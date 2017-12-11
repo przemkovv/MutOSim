@@ -1,88 +1,121 @@
 
 #include <fmt/format.h>
 #include <iostream>
+#include <map>
 #include <optional>
+#include <random>
 
 using Time = int64_t;
-using TimeInterval = int64_t;
+using TimePeriod = int64_t;
 using RequestId = uint64_t;
 
-template <typename T>
-RequestId to_id(T value) {
+static std::random_device rd;
+
+static std::mt19937_64 gen(0);
+static std::uniform_real_distribution<float> dis;
+
+template <typename T> RequestId to_id(T value)
+{
   return static_cast<RequestId>(value);
 }
 
 namespace Math {
 
-  int64_t factorial(int64_t k) {
-    int64_t result = 1;
-    while (k--) result *=k;
-    return result;
-  }
-};
+int64_t factorial(int64_t k)
+{
+  int64_t result = 1;
+  while (k--)
+    result *= k;
+  return result;
+}
+}; // namespace Math
 
 float rand01()
 {
-  return 0.5;
+  return dis(gen);
 }
 
 struct Request {
   RequestId id;
+  int64_t count;
 };
 
 struct Event {
   Time time;
 };
 
-struct RequestStream {
-  virtual std::optional<Request> get(Time time)
+class RequestStream {
+public:
+  virtual Request get(Time time)
   {
-    Request r { to_id(time) };
+    Request r{to_id(time), 1};
     return r;
   }
 
   virtual ~RequestStream() = default;
-
 };
 
-struct PoissonRequestStream : public RequestStream {
-  float intensity = 0.5;;
-  TimeInterval delta_time = 1;
+template <typename RandomEngine>
+class PoissonRequestStream : public RequestStream {
 
-  Time time = 0;
+  RandomEngine random_engine;
 
-  float theta(const TimeInterval delta_time) { return 0.0f; }
+  float intensity;
+  TimePeriod time_period;
+
+  std::poisson_distribution<int64_t> d;
+
+public:
+  PoissonRequestStream(RandomEngine random_engine,
+                       float intensity,
+                       TimePeriod time_period)
+    : random_engine(random_engine),
+      intensity(intensity),
+      time_period(time_period),
+      d(intensity * time_period)
+  {
+  }
 
   float Pk(const int k, const Time t)
   {
     return std::pow(intensity * t, k) / Math::factorial(k) *
            exp(-intensity * t);
   }
-  float P0(const Time t) { return Pk(0, t); }
-  float P1(const Time t) { return Pk(1, t); }
 
-  std::optional<Request> get(Time t)
-  {
-    if (rand01() > P0(t))
-      return {};
-    else
-      return Request{to_id(t)};
-  }
+  Request get(Time t) { return {to_id(t), d(random_engine)}; }
 };
+
+Time &advance(Time &time, const TimePeriod period)
+{
+  time += period;
+  return time;
+}
 
 int main()
 {
   Time sim_time = 0;
-  TimeInterval sim_length = 10;
+  TimePeriod sim_length = 10000;
+  TimePeriod sim_tick_length = 3;
 
-  PoissonRequestStream request_stream;
-  request_stream.intensity = 0.2;
+  PoissonRequestStream request_stream{gen, 0.25, sim_tick_length};
 
-  while (sim_time++ < sim_length) {
+  int64_t events_number = 0;
 
-    auto request = request_stream.get(sim_time);
+  std::map<int64_t, int64_t> events_counts;
 
-    fmt::print("{0}: have request? {1}\n", sim_time, static_cast<bool>(request));
+  while (advance(sim_time, sim_tick_length) < sim_length) {
+
+    auto request = request_stream.get(1);
+
+    events_number += request.count;
+    ++events_counts[request.count];
+  }
+
+  fmt::print("\n{}/{}= {}\n", events_number, sim_length,
+             static_cast<float>(events_number) / sim_length);
+
+  for (auto p : events_counts) {
+    std::cout << p.first << ' ' << std::string(p.second / 100, '*') << '\n';
   }
 
   return 0;
