@@ -11,8 +11,12 @@
 #include <optional>
 #include <random>
 
+// template <>
+// PoissonRequestStream<std::mt19937_64>;
 
-auto seed()
+uint64_t seed();
+
+uint64_t seed()
 {
   if constexpr (Config::constant_seed) {
     return 0;
@@ -28,11 +32,12 @@ int main()
   std::uniform_real_distribution<float> dis;
 
   World world{0, 10000, 3};
-  PoissonRequestStream request_stream{gen, 0.25, world.tick_length};
+  PoissonRequestStream<std::mt19937_64> request_stream(gen, 0.25,
+                                                       world.tick_length);
 
   int64_t events_number = 0;
 
-  std::map<int64_t, int64_t> events_counts;
+  std::map<int64_t, uint64_t> events_counts;
 
   while (world.advance() < world.length) {
     auto request = request_stream.get(1);
