@@ -7,7 +7,6 @@ enum class EventType { Arrival, Serve };
 struct Event {
   Time time;
   EventType event_type;
-
 };
 
 struct ArrivalEvent : public Event {

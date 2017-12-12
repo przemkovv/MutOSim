@@ -4,9 +4,12 @@ project(MSMutONet)
 add_compile_options(
     -std=c++17
     -g
-    -Wall
+    # -Wall
     -Werror
     -Weffc++
+    -Weverything
+    -Wno-c++98-compat
+    -Wno-padded
     )
 
 add_definitions(
