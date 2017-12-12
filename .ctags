@@ -7,5 +7,5 @@
 --exclude=compile_commands.json
 --exclude=*.vim
 --fields=+l
---c-kinds=+p
---c++-kinds=+p
+--c-kinds=+pl
+--c++-kinds=+pl

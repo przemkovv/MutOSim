@@ -7,7 +7,7 @@ add_compile_options(
     -Wall
     -Werror
     -Weffc++
-)
+    )
 
 add_definitions(
     -DSPDLOG_FMT_EXTERNAL
@@ -32,6 +32,10 @@ ExternalProject_Add(json
 find_library(FMT fmt libfmt)
 find_package(Threads REQUIRED)
 find_package(Boost 1.65 COMPONENTS system program_options)
+
+if (UNIX)
+    add_custom_target(ctags ALL ctags -R --options=${CMAKE_SOURCE_DIR}/.ctags -f ${CMAKE_SOURCE_DIR}/tags ${CMAKE_SOURCE_DIR})
+endif (UNIX)
 
 add_subdirectory(src)
 # add_subdirectory(tests)
