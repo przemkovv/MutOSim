@@ -1,5 +1,6 @@
 #pragma once
 
+#include "load.h"
 #include "math.h"
 #include "request.h"
 #include "types.h"
@@ -13,7 +14,7 @@ protected:
   World &world_;
 
 public:
-  virtual Request get(Time time);
+  virtual std::vector<Load> get(Time time);
 
   SourceStream(World &world) : world_(world) {}
   SourceStream(SourceStream &&) = default;
@@ -27,13 +28,17 @@ class PoissonSourceStream : public SourceStream
 {
   double intensity_;
   TimePeriod time_period_;
+  Size load_size_;
 
-  std::poisson_distribution<int64_t> d_;
+  std::poisson_distribution<uint64_t> d_;
 
   double Pk(const int k, const Time t);
 
 public:
-  PoissonSourceStream(World &world, double intensity, TimePeriod time_period);
+  PoissonSourceStream(World &world,
+                      double intensity,
+                      Size load_size,
+                      TimePeriod time_period);
 
-  Request get(Time t) override;
+  std::vector<Load> get(Time t) override;
 };
