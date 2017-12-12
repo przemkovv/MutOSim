@@ -1,8 +1,8 @@
 
 #include "config.h"
 #include "events.h"
-#include "request_stream.h"
-#include "simulation.h"
+#include "source_stream.h"
+#include "world.h"
 #include "types.h"
 
 #include <fmt/format.h>
@@ -12,7 +12,7 @@
 #include <random>
 
 // template <>
-// PoissonRequestStream<std::mt19937_64>;
+// PoissonSourceStream<std::mt19937_64>;
 
 uint64_t seed();
 
@@ -28,12 +28,9 @@ uint64_t seed()
 
 int main()
 {
-  std::mt19937_64 gen(seed());
-  std::uniform_real_distribution<float> dis;
 
-  World world{0, 10000, 3};
-  PoissonRequestStream<std::mt19937_64> request_stream(gen, 0.25,
-                                                       world.tick_length);
+  World world{seed(), 0, 10000, 3};
+  PoissonSourceStream request_stream(world, 0.25, world.tick_length);
 
   int64_t events_number = 0;
 
