@@ -1,13 +1,11 @@
 #pragma once
 
+#include "load.h"
 #include "types.h"
 
 #include <memory>
 #include <queue>
 #include <random>
-
-struct Load;
-struct Group;
 
 struct World {
   uint64_t seed_;
@@ -17,7 +15,9 @@ struct World {
 
   Uuid last_id = 0;
 
-  std::priority_queue<Load> loads{};
+  using load_container_t = std::vector<Load>;
+  std::priority_queue<Load, load_container_t, by_end_time> loads_served_{};
+  std::priority_queue<Load, load_container_t, by_send_time> loads_send_{};
   std::mt19937_64 random_engine_{seed_};
 
   std::vector<std::unique_ptr<Group>> groups_{};
@@ -30,6 +30,8 @@ struct World {
 
   void add_group(std::unique_ptr<Group> group);
   void queue_load(Load load);
-  void serve_load(Load load);
+  bool serve_load(Load load);
   void check_loads();
+
+  void print_stats();
 };

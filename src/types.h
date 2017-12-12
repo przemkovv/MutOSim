@@ -3,9 +3,9 @@
 
 #include <cstdint>
 
-using Time = int64_t;
-using TimePeriod = int64_t;
+using Time = double;
+using TimePeriod = double;
 using RequestId = uint64_t;
-using Size = int64_t;
+using Size = double;
 using Uuid = uint64_t;
 

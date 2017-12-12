@@ -1,7 +1,8 @@
 
 #include "group.h"
+#include "logger.h"
 
-#include <fmt/format.h>
+#include <cmath>
 #include <gsl/gsl>
 
 Group::Group(World &world)
@@ -11,8 +12,11 @@ Group::Group(World &world)
 
 void Group::set_end_time(Load &load)
 {
-  load.end_time =
-      load.send_time + gsl::narrow<Time>(load.size / serve_intensity);
+  auto pf = dis(world_.get_random_engine());
+  auto t_serv = -std::log(1.0 - pf) / serve_intensity;
+  load.end_time = load.send_time + t_serv;
+  // load.end_time =
+  // load.send_time + gsl::narrow<Time>(load.size / serve_intensity);
 }
 
 void Group::add_load(Load load)
@@ -23,42 +27,83 @@ void Group::add_load(Load load)
   world_.queue_load(load);
 }
 
-void Group::serve(Load load)
+bool Group::serve(Load load)
 {
   if (can_serve(load)) {
-    fmt::print("Serving load: {}\n", load.id);
+    debug_print("{} Serving load: {}\n", *this, load);
     add_load(load);
+    return true;
   } else {
-    fmt::print("Forwarding load: {}\n", load.id);
-    forward(load);
+    debug_print("{} Forwarding load: {}\n", *this, load);
+    return forward(load);
   }
 }
 
 bool Group::can_serve(const Load &load)
 {
-  return served_load_size + load.size < capacity;
+  return served_load_size + load.size <= capacity;
 }
 
-void Group::forward(Load load)
+bool Group::forward(Load load)
 {
   // TODO(PW): make it more intelligent
   if (!next_groups.empty()) {
-    next_groups.front()->serve(load);
+    return next_groups.front()->serve(load);
   } else {
-    block_group.serve(load);
+    return block_group.serve(load);
   }
 }
 
 void Group::take_off(const Load &load)
 {
-  fmt::print("Load has been served: {}\n", load.id);
+  debug_print("{} Load has been served: {}\n", *this, load);
   served_load_size -= load.size;
+  total_served_load_size += load.size;
+  total_served_load_count++;
+}
+
+Stats Group::get_stats()
+{
+  return {block_group.total_served_load_count, total_served_load_count,
+          block_group.total_served_load_size, total_served_load_size};
 }
 
 BlockGroup::BlockGroup(World &world) : id(world.get_unique_id()), world_(world)
 {
 }
-void BlockGroup::serve(Load load)
+bool BlockGroup::serve(Load load)
 {
-  fmt::print("Load drooped. Id: {}\n", load.id);
+  debug_print("{} Load drooped. {}\n", *this, load);
+  total_served_load_size += load.size;
+  total_served_load_count++;
+  return false;
+}
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const Group &group)
+
+{
+  f.writer().write("[Group {}, cap={}/{}]", group.id, group.served_load_size,
+                   group.capacity);
+}
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const BlockGroup &block_group)
+{
+  f.writer().write("[BlockGroup {}]", block_group.id);
+}
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const Stats &stats)
+{
+  auto block_probability = static_cast<double>(stats.total_blocked) /
+                           (stats.total_served + stats.total_blocked);
+  auto block_probability_size =
+      static_cast<double>(stats.total_blocked_size) /
+      (stats.total_served_size + stats.total_blocked_size);
+  f.writer().write("served/blocked: {}/{}, {}u/{}u. Pb: {}, {}",
+                   stats.total_served, stats.total_blocked,
+                   stats.total_served_size, stats.total_blocked_size,
+                   block_probability, block_probability_size);
 }

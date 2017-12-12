@@ -14,7 +14,7 @@ protected:
   World &world_;
 
 public:
-  virtual std::vector<Load> get(Time time);
+  virtual Load get(Time time);
 
   SourceStream(World &world) : world_(world) {}
   SourceStream(SourceStream &&) = default;
@@ -31,6 +31,7 @@ class PoissonSourceStream : public SourceStream
   Size load_size_;
 
   std::poisson_distribution<uint64_t> d_;
+  std::uniform_real_distribution<> uniform{0.0, 1.0};
 
   double Pk(const int k, const Time t);
 
@@ -40,5 +41,5 @@ public:
                       Size load_size,
                       TimePeriod time_period);
 
-  std::vector<Load> get(Time t) override;
+  Load get(Time t) override;
 };
