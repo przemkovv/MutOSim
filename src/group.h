@@ -13,19 +13,23 @@
 using std::experimental::make_observer;
 using std::experimental::observer_ptr;
 
+
+struct LoadStats {
+  Size count;
+  Size size;
+};
+
 struct Stats {
-  Size total_lost;
-  Size total_served;
-  Size total_lost_size;
-  Size total_served_size;
+  LoadStats total_lost;
+  LoadStats total_served;
   Duration block_time;
+  Duration simulation_time;
 };
 
 struct LossGroup {
-  Uuid id;
+  const Uuid id;
 
-  Size total_served_load_size = 0;
-  Size total_served_load_count = 0;
+  LoadStats total_served {0,0};
 
   World &world_;
 
@@ -34,12 +38,11 @@ struct LossGroup {
 };
 
 struct Group {
-  Uuid id;
+  const Uuid id;
   Size capacity_ = 1;
-  Size served_load_size = 0;
+  Size size_ = 0;
 
-  Size total_served_load_size = 0;
-  Size total_served_load_count = 0;
+  LoadStats total_served {0,0};
 
   Duration block_time_ = 0;
   Time start_of_block_;
@@ -80,3 +83,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const Stats &stats);
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const LoadStats &load_stats);

@@ -96,12 +96,12 @@ std::mt19937_64 &World::get_random_engine()
   return random_engine_;
 }
 
-  void World::add_group(gsl::not_null<Group*> group)
+void World::add_group(gsl::not_null<Group *> group)
 {
   groups_.emplace_back(group);
 }
 
-  void World::add_source(gsl::not_null<SourceStream*> source)
+void World::add_source(gsl::not_null<SourceStream *> source)
 {
   sources_.emplace_back(source);
 }
@@ -110,8 +110,6 @@ void World::print_stats()
   print("[World] Left in queue {}\n", loads_served_.size());
   print("[World] Time = {:f}\n", time_);
   for (auto &group : groups_) {
-    const auto &stats = group->get_stats();
-    print("[World] Stats for {}: {}. Pblock {}\n", *group, stats,
-          stats.block_time / duration_);
+    print("[World] Stats for {}: {}\n", *group, group->get_stats());
   }
 }

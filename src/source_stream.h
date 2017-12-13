@@ -6,22 +6,24 @@
 #include "world.h"
 
 #include <experimental/memory>
-#include <random>
 #include <gsl/gsl>
+#include <random>
 
 using std::experimental::observer_ptr;
 
 class SourceStream
 {
+public:
+  const Uuid id;
+
 protected:
-  Uuid id;
   World &world_;
 
   observer_ptr<Group> target_group_;
 
 public:
   virtual Load get(Time time);
-  void attach_to_group(gsl::not_null<Group*> target_group);
+  void attach_to_group(gsl::not_null<Group *> target_group);
 
   SourceStream(World &world) : id(world.get_unique_id()), world_(world) {}
   SourceStream(SourceStream &&) = default;
@@ -38,10 +40,6 @@ class PoissonSourceStream : public SourceStream
 
   std::uniform_real_distribution<> uniform{0.0, 1.0};
   std::exponential_distribution<> exponential{intensity_};
-
-  friend void format_arg(fmt::BasicFormatter<char> &f,
-                         const char *&format_str,
-                         const PoissonSourceStream &source);
 
 public:
   PoissonSourceStream(World &world, Intensity intensity, Size load_size);
