@@ -1,6 +1,5 @@
 
 #include "config.h"
-#include "events.h"
 #include "group.h"
 #include "source_stream.h"
 #include "types.h"
