@@ -24,7 +24,7 @@ void Group::add_load(Load load)
   served_load_size += load.size;
   load.served_by.reset(this);
   set_end_time(load);
-  world_.queue_load(load);
+  world_.queue_load_to_serve(load);
 }
 
 bool Group::serve(Load load)
@@ -33,10 +33,9 @@ bool Group::serve(Load load)
     debug_print("{} Serving load: {}\n", *this, load);
     add_load(load);
     return true;
-  } else {
-    debug_print("{} Forwarding load: {}\n", *this, load);
-    return forward(load);
   }
+  debug_print("{} Forwarding load: {}\n", *this, load);
+  return forward(load);
 }
 
 bool Group::can_serve(const Load &load)
@@ -49,9 +48,8 @@ bool Group::forward(Load load)
   // TODO(PW): make it more intelligent
   if (!next_groups.empty()) {
     return next_groups.front()->serve(load);
-  } else {
-    return block_group.serve(load);
   }
+  return block_group.serve(load);
 }
 
 void Group::take_off(const Load &load)

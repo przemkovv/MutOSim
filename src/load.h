@@ -36,8 +36,6 @@ public:
     return l1.end_time < l2.end_time;
   }
 };
-// bool by_send_time(const Load &l1, const Load &l2);
-// bool by_end_time(const Load &l1, const Load &l2);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,

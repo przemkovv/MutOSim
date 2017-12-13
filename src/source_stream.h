@@ -27,19 +27,12 @@ public:
 class PoissonSourceStream : public SourceStream
 {
   double intensity_;
-  TimePeriod time_period_;
   Size load_size_;
 
-  std::poisson_distribution<uint64_t> d_;
   std::uniform_real_distribution<> uniform{0.0, 1.0};
 
-  double Pk(const int k, const Time t);
-
 public:
-  PoissonSourceStream(World &world,
-                      double intensity,
-                      Size load_size,
-                      TimePeriod time_period);
+  PoissonSourceStream(World &world, double intensity, Size load_size);
 
   Load get(Time t) override;
 };

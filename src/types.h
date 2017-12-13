@@ -4,8 +4,8 @@
 #include <cstdint>
 
 using Time = double;
-using TimePeriod = double;
-using RequestId = uint64_t;
+using Duration = double;
 using Size = double;
+using Intensity = double;
 using Uuid = uint64_t;
 
