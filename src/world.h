@@ -16,8 +16,8 @@ class World
 
   uint64_t seed_;
   Time time_ = 0;
-  Duration duration_ ;
-  Duration tick_length_ ;
+  Duration duration_;
+  Duration tick_length_;
 
   Uuid last_id = 0;
 
@@ -40,6 +40,7 @@ public:
   Uuid get_unique_id();
   RandomEngine &get_random_engine();
   Duration get_tick_length() { return tick_length_; }
+  auto get_progress() { return time_ / duration_; }
 
   void add_group(std::unique_ptr<Group> group);
   void add_source(std::unique_ptr<SourceStream> source);

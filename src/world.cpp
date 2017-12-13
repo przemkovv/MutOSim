@@ -108,6 +108,7 @@ void World::add_source(std::unique_ptr<SourceStream> source)
 void World::print_stats()
 {
   print("[World] Left in queue {}\n", loads_served_.size());
+  print("[World] Time = {:f}\n", time_);
   for (auto &group : groups_) {
     const auto &stats = group->get_stats();
     print("[World] Stats for {}: {}. Pblock {}\n", *group, stats,
