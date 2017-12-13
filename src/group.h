@@ -17,6 +17,7 @@ struct Stats {
   Size total_served;
   Size total_lost_size;
   Size total_served_size;
+  Duration block_time;
 };
 
 struct LossGroup {
@@ -39,6 +40,9 @@ struct Group {
   Size total_served_load_size = 0;
   Size total_served_load_count = 0;
 
+  Duration block_time_ = 0;
+  Time start_of_block_;
+
   Intensity serve_intensity_ = 1.0;
 
   std::uniform_real_distribution<> dis{0.0, 1.0};
@@ -46,13 +50,15 @@ struct Group {
 
   World &world_;
 
-  std::vector<observer_ptr<Group>> next_groups{};
+  std::vector<observer_ptr<Group>> next_groups_{};
   LossGroup loss_group;
 
+  void add_next_group(observer_ptr<Group> group);
   void set_end_time(Load &load);
   void add_load(Load load);
   bool forward(Load load);
   bool can_serve(const Load &load);
+  bool is_blocked();
 
   Group(World &world, Size capacity, Intensity serve_intensity);
 

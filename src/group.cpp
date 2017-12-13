@@ -24,6 +24,11 @@ void Group::set_end_time(Load &load)
   // load.send_time + gsl::narrow<Time>(load.size / serve_intensity);
 }
 
+void Group::add_next_group(observer_ptr<Group> group)
+{
+  next_groups_.emplace_back(std::move(group));
+}
+
 void Group::add_load(Load load)
 {
   served_load_size += load.size;
@@ -37,10 +42,19 @@ bool Group::serve(Load load)
   if (can_serve(load)) {
     debug_print("{} Serving load: {}\n", *this, load);
     add_load(load);
+    if (is_blocked()) {
+      debug_print("{} Blocking\n", *this);
+      start_of_block_ = load.send_time;
+    }
     return true;
   }
   debug_print("{} Forwarding load: {}\n", *this, load);
   return forward(load);
+}
+
+bool Group::is_blocked()
+{
+  return served_load_size == capacity_;
 }
 
 bool Group::can_serve(const Load &load)
@@ -51,8 +65,8 @@ bool Group::can_serve(const Load &load)
 bool Group::forward(Load load)
 {
   // TODO(PW): make it more intelligent
-  if (!next_groups.empty()) {
-    return next_groups.front()->serve(load);
+  if (!next_groups_.empty()) {
+    return next_groups_.front()->serve(load);
   }
   return loss_group.serve(load);
 }
@@ -60,6 +74,11 @@ bool Group::forward(Load load)
 void Group::take_off(const Load &load)
 {
   debug_print("{} Load has been served: {}\n", *this, load);
+  if (is_blocked()) {
+    auto block_time = load.end_time - start_of_block_;
+    block_time_ += block_time;
+    debug_print("{} Unblocking dt={}\n", *this, block_time);
+  }
   served_load_size -= load.size;
   total_served_load_size += load.size;
   total_served_load_count++;
@@ -68,7 +87,8 @@ void Group::take_off(const Load &load)
 Stats Group::get_stats()
 {
   return {loss_group.total_served_load_count, total_served_load_count,
-          loss_group.total_served_load_size, total_served_load_size};
+          loss_group.total_served_load_size, total_served_load_size,
+          block_time_};
 }
 
 LossGroup::LossGroup(World &world) : id(world.get_unique_id()), world_(world)
@@ -101,12 +121,12 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const Stats &stats)
 {
   auto loss_probability = static_cast<double>(stats.total_lost) /
-                           (stats.total_served + stats.total_lost);
+                          (stats.total_served + stats.total_lost);
   auto loss_probability_size =
       static_cast<double>(stats.total_lost_size) /
       (stats.total_served_size + stats.total_lost_size);
-  f.writer().write("served/lost: {}/{}, {}u/{}u. Pb: {}, {}",
+  f.writer().write("served/lost: {}/{}, {}u/{}u. Plost: {}, {}, block time: {}",
                    stats.total_served, stats.total_lost,
                    stats.total_served_size, stats.total_lost_size,
-                   loss_probability, loss_probability_size);
+                   loss_probability, loss_probability_size, stats.block_time);
 }

@@ -9,6 +9,12 @@
 World::World(uint64_t seed, Duration duration, Duration tick_length)
   : seed_(seed), duration_(duration), tick_length_(tick_length)
 {
+  print("[World] {:=^100}\n", " New world ");
+}
+
+World::~World()
+{
+  print("[World] {:^^100}\n", " End of the world ");
 }
 void World::init()
 {
@@ -52,7 +58,9 @@ void World::queue_load_to_serve(Load load)
 
 bool World::serve_load(Load load)
 {
-  if (!groups_.empty()) {
+  if (load.target_group) {
+    return load.target_group->serve(load);
+  } else if (!groups_.empty()) {
     debug_print("[World] New load: {}\n", load);
     return groups_.front()->serve(load);
   }
@@ -101,6 +109,8 @@ void World::print_stats()
 {
   print("[World] Left in queue {}\n", loads_served_.size());
   for (auto &group : groups_) {
-    print("[World] Stats for {}: {}\n", *group, group->get_stats());
+    const auto &stats = group->get_stats();
+    print("[World] Stats for {}: {}. Pblock {}\n", *group, stats,
+          stats.block_time / duration_);
   }
 }

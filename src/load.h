@@ -15,6 +15,7 @@ struct Load {
 
   std::experimental::observer_ptr<Group> served_by{};
   std::experimental::observer_ptr<SourceStream> produced_by{};
+  std::experimental::observer_ptr<Group> target_group{};
 };
 
 bool operator<(const Load &l1, const Load &l2);

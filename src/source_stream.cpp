@@ -10,9 +10,13 @@ using std::experimental::make_observer;
 
 Load SourceStream::get(Time time)
 {
-  return {world_.get_unique_id(), time, 1};
+  return {world_.get_unique_id(), time, 1, {}, target_group_};
 }
 
+void SourceStream::attach_to_group(observer_ptr<Group> target_group)
+{
+  target_group_ = target_group;
+}
 PoissonSourceStream::PoissonSourceStream(World &world,
                                          Intensity intensity,
                                          Size load_size)
@@ -28,8 +32,8 @@ Load PoissonSourceStream::get(Time t)
 
   auto dt = static_cast<Time>(exponential(world_.get_random_engine()));
   auto create_load = [this, t, dt]() -> Load {
-    return {world_.get_unique_id(), t + dt, load_size_, -1, {},
-            make_observer(this)};
+    return {world_.get_unique_id(), t + dt,       load_size_, -1, {},
+            make_observer(this),    target_group_};
   };
   auto load = create_load();
   debug_print("{} Produced: {}\n", *this, load);

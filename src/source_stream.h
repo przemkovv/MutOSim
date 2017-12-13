@@ -5,7 +5,10 @@
 #include "types.h"
 #include "world.h"
 
+#include <experimental/memory>
 #include <random>
+
+using std::experimental::observer_ptr;
 
 class SourceStream
 {
@@ -13,8 +16,11 @@ protected:
   Uuid id;
   World &world_;
 
+  observer_ptr<Group> target_group_;
+
 public:
   virtual Load get(Time time);
+  void attach_to_group(observer_ptr<Group> target_group);
 
   SourceStream(World &world) : id(world.get_unique_id()), world_(world) {}
   SourceStream(SourceStream &&) = default;
