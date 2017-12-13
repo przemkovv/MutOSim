@@ -17,10 +17,9 @@ uint64_t seed()
 {
   if constexpr (Config::constant_seed) {
     return 0;
-  } else {
-    std::random_device rd;
-    return rd();
   }
+  std::random_device rd;
+  return rd();
 }
 
 int main()
