@@ -5,6 +5,7 @@
 #include "world.h"
 
 #include <experimental/memory>
+#include <gsl/gsl>
 #include <queue>
 #include <random>
 #include <vector>
@@ -53,7 +54,7 @@ struct Group {
   std::vector<observer_ptr<Group>> next_groups_{};
   LossGroup loss_group;
 
-  void add_next_group(observer_ptr<Group> group);
+  void add_next_group(gsl::not_null<Group *> group);
   void set_end_time(Load &load);
   void add_load(Load load);
   bool forward(Load load);

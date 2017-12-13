@@ -24,9 +24,9 @@ void Group::set_end_time(Load &load)
   // load.send_time + gsl::narrow<Time>(load.size / serve_intensity);
 }
 
-void Group::add_next_group(observer_ptr<Group> group)
+void Group::add_next_group(gsl::not_null<Group *> group)
 {
-  next_groups_.emplace_back(std::move(group));
+  next_groups_.emplace_back(make_observer(group.get()));
 }
 
 void Group::add_load(Load load)

@@ -7,6 +7,7 @@
 
 #include <experimental/memory>
 #include <random>
+#include <gsl/gsl>
 
 using std::experimental::observer_ptr;
 
@@ -20,7 +21,7 @@ protected:
 
 public:
   virtual Load get(Time time);
-  void attach_to_group(observer_ptr<Group> target_group);
+  void attach_to_group(gsl::not_null<Group*> target_group);
 
   SourceStream(World &world) : id(world.get_unique_id()), world_(world) {}
   SourceStream(SourceStream &&) = default;

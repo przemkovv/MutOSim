@@ -3,6 +3,7 @@
 #include "types.h"
 #include <experimental/memory>
 #include <fmt/format.h>
+#include <gsl/gsl>
 
 struct Group;
 class SourceStream;

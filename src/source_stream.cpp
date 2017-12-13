@@ -13,9 +13,9 @@ Load SourceStream::get(Time time)
   return {world_.get_unique_id(), time, 1, {}, target_group_};
 }
 
-void SourceStream::attach_to_group(observer_ptr<Group> target_group)
+void SourceStream::attach_to_group(gsl::not_null<Group*> target_group)
 {
-  target_group_ = target_group;
+  target_group_ = make_observer(target_group.get());
 }
 PoissonSourceStream::PoissonSourceStream(World &world,
                                          Intensity intensity,

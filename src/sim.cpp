@@ -11,6 +11,7 @@
 #include <fmt/printf.h>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <optional>
 #include <random>
 
@@ -31,17 +32,24 @@ int main()
 {
   const auto duration = Duration(1'000'000);
   {
-    // World world{seed(), Duration(50), Duration(0.1)};
     World world{seed(), duration, Duration(0.1)};
 
-    auto group1 = std::make_unique<Group>(world, Size(3), Intensity(1.0));
+    std::vector<std::unique_ptr<Group>> groups;
+    groups.emplace_back(
+        std::make_unique<Group>(world, Size(3), Intensity(1.0)));
 
-    auto s1 =
-        std::make_unique<PoissonSourceStream>(world, Intensity(3.0), Size(1));
-    s1->attach_to_group(make_observer(group1.get()));
+    std::vector<std::unique_ptr<SourceStream>> sources;
+    sources.emplace_back(
+        std::make_unique<PoissonSourceStream>(world, Intensity(3.0), Size(1)));
 
-    world.add_group(std::move(group1));
-    world.add_source(std::move(s1));
+    sources[0]->attach_to_group(groups[0].get());
+
+    for (auto &group : groups) {
+      world.add_group(group.get());
+    }
+    for (auto &source : sources) {
+      world.add_source(source.get());
+    }
     world.init();
 
     double stats_freq = 0.2;
@@ -58,16 +66,20 @@ int main()
   if ((true)) {
     World world{seed(), duration, Duration(0.1)};
 
+    std::vector<Group> groups {
+      {world, Size(2), Intensity(1.0)},
+      {world, Size(1), Intensity(1.0)}
+    };
     auto group1 = std::make_unique<Group>(world, Size(2), Intensity(1.0));
     auto group2 = std::make_unique<Group>(world, Size(1), Intensity(1.0));
-    group1->add_next_group(make_observer(group2.get()));
+    group1->add_next_group(group2.get());
     auto s1 =
         std::make_unique<PoissonSourceStream>(world, Intensity(3.0), Size(1));
-    s1->attach_to_group(make_observer(group1.get()));
+    s1->attach_to_group(group1.get());
 
-    world.add_group(std::move(group1));
-    world.add_group(std::move(group2));
-    world.add_source(std::move(s1));
+    world.add_group(group1.get());
+    world.add_group(group2.get());
+    world.add_source(s1.get());
 
     world.init();
     double stats_freq = 0.2;

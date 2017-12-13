@@ -6,6 +6,7 @@
 #include <memory>
 #include <queue>
 #include <random>
+#include <gsl/gsl>
 
 struct Group;
 class SourceStream;
@@ -25,8 +26,8 @@ class World
   std::priority_queue<Load, std::vector<Load>, by_send_time> loads_send_{};
   RandomEngine random_engine_{seed_};
 
-  std::vector<std::unique_ptr<Group>> groups_{};
-  std::vector<std::unique_ptr<SourceStream>> sources_{};
+  std::vector<Group*> groups_{};
+  std::vector<SourceStream*> sources_{};
 
   bool serve_load(Load load);
 
@@ -42,8 +43,8 @@ public:
   Duration get_tick_length() { return tick_length_; }
   auto get_progress() { return time_ / duration_; }
 
-  void add_group(std::unique_ptr<Group> group);
-  void add_source(std::unique_ptr<SourceStream> source);
+  void add_group(gsl::not_null<Group*> group);
+  void add_source(gsl::not_null<SourceStream*> source);
 
   void queue_load_to_serve(Load load);
 

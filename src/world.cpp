@@ -96,14 +96,14 @@ std::mt19937_64 &World::get_random_engine()
   return random_engine_;
 }
 
-void World::add_group(std::unique_ptr<Group> group)
+  void World::add_group(gsl::not_null<Group*> group)
 {
-  groups_.emplace_back(std::move(group));
+  groups_.emplace_back(group);
 }
 
-void World::add_source(std::unique_ptr<SourceStream> source)
+  void World::add_source(gsl::not_null<SourceStream*> source)
 {
-  sources_.emplace_back(std::move(source));
+  sources_.emplace_back(source);
 }
 void World::print_stats()
 {
