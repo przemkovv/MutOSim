@@ -5,16 +5,21 @@
 #include <cmath>
 #include <gsl/gsl>
 
-Group::Group(World &world)
-  : id(world.get_unique_id()), world_(world), block_group(world)
+Group::Group(World &world, Size capacity, Intensity serve_intensity)
+  : id(world.get_unique_id()),
+    capacity_(capacity),
+    serve_intensity_(serve_intensity),
+    world_(world),
+    loss_group(world)
 {
 }
 
 void Group::set_end_time(Load &load)
 {
-  auto pf = dis(world_.get_random_engine());
-  auto t_serv = -std::log(1.0 - pf) / serve_intensity;
-  load.end_time = load.send_time + t_serv;
+  // auto pf = dis(world_.get_random_engine());
+  // auto t_serv = -std::log(1.0 - pf) / serve_intensity;
+  auto t_serv = exponential(world_.get_random_engine());
+  load.end_time = load.send_time + static_cast<Time>(t_serv);
   // load.end_time =
   // load.send_time + gsl::narrow<Time>(load.size / serve_intensity);
 }
@@ -40,7 +45,7 @@ bool Group::serve(Load load)
 
 bool Group::can_serve(const Load &load)
 {
-  return served_load_size + load.size <= capacity;
+  return served_load_size + load.size <= capacity_;
 }
 
 bool Group::forward(Load load)
@@ -49,7 +54,7 @@ bool Group::forward(Load load)
   if (!next_groups.empty()) {
     return next_groups.front()->serve(load);
   }
-  return block_group.serve(load);
+  return loss_group.serve(load);
 }
 
 void Group::take_off(const Load &load)
@@ -62,16 +67,16 @@ void Group::take_off(const Load &load)
 
 Stats Group::get_stats()
 {
-  return {block_group.total_served_load_count, total_served_load_count,
-          block_group.total_served_load_size, total_served_load_size};
+  return {loss_group.total_served_load_count, total_served_load_count,
+          loss_group.total_served_load_size, total_served_load_size};
 }
 
-BlockGroup::BlockGroup(World &world) : id(world.get_unique_id()), world_(world)
+LossGroup::LossGroup(World &world) : id(world.get_unique_id()), world_(world)
 {
 }
-bool BlockGroup::serve(Load load)
+bool LossGroup::serve(Load load)
 {
-  debug_print("{} Load drooped. {}\n", *this, load);
+  debug_print("{} Load droped. {}\n", *this, load);
   total_served_load_size += load.size;
   total_served_load_count++;
   return false;
@@ -83,25 +88,25 @@ void format_arg(fmt::BasicFormatter<char> &f,
 
 {
   f.writer().write("[Group {}, cap={}/{}]", group.id, group.served_load_size,
-                   group.capacity);
+                   group.capacity_);
 }
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
-                const BlockGroup &block_group)
+                const LossGroup &loss_group)
 {
-  f.writer().write("[BlockGroup {}]", block_group.id);
+  f.writer().write("[LossGroup {}]", loss_group.id);
 }
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const Stats &stats)
 {
-  auto block_probability = static_cast<double>(stats.total_blocked) /
-                           (stats.total_served + stats.total_blocked);
-  auto block_probability_size =
-      static_cast<double>(stats.total_blocked_size) /
-      (stats.total_served_size + stats.total_blocked_size);
-  f.writer().write("served/blocked: {}/{}, {}u/{}u. Pb: {}, {}",
-                   stats.total_served, stats.total_blocked,
-                   stats.total_served_size, stats.total_blocked_size,
-                   block_probability, block_probability_size);
+  auto loss_probability = static_cast<double>(stats.total_lost) /
+                           (stats.total_served + stats.total_lost);
+  auto loss_probability_size =
+      static_cast<double>(stats.total_lost_size) /
+      (stats.total_served_size + stats.total_lost_size);
+  f.writer().write("served/lost: {}/{}, {}u/{}u. Pb: {}, {}",
+                   stats.total_served, stats.total_lost,
+                   stats.total_served_size, stats.total_lost_size,
+                   loss_probability, loss_probability_size);
 }

@@ -38,6 +38,7 @@ public:
 
   Uuid get_unique_id();
   RandomEngine &get_random_engine();
+  Duration get_tick_length() { return tick_length_; }
 
   void add_group(std::unique_ptr<Group> group);
   void add_source(std::unique_ptr<SourceStream> source);

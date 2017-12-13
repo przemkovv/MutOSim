@@ -4,6 +4,8 @@ project(MSMutONet)
 add_compile_options(
     -std=c++17
     -g
+    # -pg
+    -O2
     # -Wall
     -Werror
     -Weffc++

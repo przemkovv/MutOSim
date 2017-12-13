@@ -19,11 +19,29 @@ void World::init()
 
 bool World::next_iteration()
 {
-  debug_print("[World] Time = {}\n", time_);
-  time_ += tick_length_;
+  debug_print("[World] Time = {} "
+              "----------------------------------------------------------------"
+              "\n",
+              time_);
 
-  send_loads();
   serve_loads();
+  send_loads();
+
+  Time next_event = 0;
+
+  if (!loads_send_.empty()) {
+    next_event = loads_send_.top().send_time;
+  }
+  if (!loads_served_.empty()) {
+    next_event = std::min(next_event, loads_served_.top().end_time);
+  }
+  if (next_event > time_) {
+    time_ = next_event;
+  } else {
+    print("No events\n");
+    time_ += tick_length_;
+  }
+
   return time_ <= duration_;
 }
 
@@ -46,7 +64,7 @@ void World::send_loads()
   while (!loads_send_.empty() && loads_send_.top().send_time <= time_) {
     auto load = loads_send_.top();
     loads_send_.pop();
-    loads_send_.emplace(load.produced_by->get(time_));
+    loads_send_.emplace(load.produced_by->get(load.send_time));
     serve_load(load);
   }
 }

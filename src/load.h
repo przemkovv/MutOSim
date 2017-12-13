@@ -24,7 +24,7 @@ class by_send_time
 public:
   bool operator()(const Load &l1, const Load &l2)
   {
-    return l1.send_time < l2.send_time;
+    return l1.send_time > l2.send_time;
   }
 };
 
@@ -33,7 +33,7 @@ class by_end_time
 public:
   bool operator()(const Load &l1, const Load &l2)
   {
-    return l1.end_time < l2.end_time;
+    return l1.end_time > l2.end_time;
   }
 };
 
