@@ -13,7 +13,6 @@
 using std::experimental::make_observer;
 using std::experimental::observer_ptr;
 
-
 struct LoadStats {
   Size count;
   Size size;
@@ -29,7 +28,7 @@ struct Stats {
 struct LossGroup {
   const Uuid id;
 
-  LoadStats total_served {0,0};
+  LoadStats total_served{0, 0};
 
   World &world_;
 
@@ -42,7 +41,7 @@ struct Group {
   Size capacity_ = 1;
   Size size_ = 0;
 
-  LoadStats total_served {0,0};
+  LoadStats total_served{0, 0};
 
   Duration block_time_ = 0;
   Time start_of_block_;
@@ -61,7 +60,7 @@ struct Group {
   void set_end_time(Load &load);
   void add_load(Load load);
   bool forward(Load load);
-  bool can_serve(const Load &load);
+  bool can_serve(const Size &load_size);
   bool is_blocked();
 
   Group(World &world, Size capacity, Intensity serve_intensity);

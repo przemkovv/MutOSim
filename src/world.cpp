@@ -20,7 +20,7 @@ World::~World()
 void World::init()
 {
   for (auto &source : sources_) {
-    schedule(source->produce_load(time_));
+    source->init();
   }
 }
 
@@ -37,7 +37,7 @@ bool World::next_iteration()
   if (next_event > time_) {
     time_ = next_event;
   } else {
-    print("No events\n");
+    debug_print("No events\n");
     time_ += tick_length_;
   }
 
@@ -55,9 +55,14 @@ void World::process_event()
       serve_load(send_event->load);
       break;
     }
-    case EventType::LoadServe:
+    case EventType::LoadServe: {
+      auto serve_event = static_cast<LoadServeEvent *>(event);
+      serve_event->load.produced_by->notify_on_serve(serve_event->load);
       break;
+    }
     case EventType::LoadProduce:
+      break;
+    case EventType::None:
       break;
     }
 

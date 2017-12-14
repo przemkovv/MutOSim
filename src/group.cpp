@@ -51,7 +51,7 @@ void Group::add_load(Load load)
 
 bool Group::serve(Load load)
 {
-  if (can_serve(load)) {
+  if (can_serve(load.size)) {
     debug_print("{} Serving load: {}\n", *this, load);
     add_load(load);
     if (is_blocked()) {
@@ -69,9 +69,9 @@ bool Group::is_blocked()
   return size_ == capacity_;
 }
 
-bool Group::can_serve(const Load &load)
+bool Group::can_serve(const Size &load_size)
 {
-  return size_ + load.size <= capacity_;
+  return size_ + load_size <= capacity_;
 }
 
 bool Group::forward(Load load)

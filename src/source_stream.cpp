@@ -16,6 +16,14 @@ EventPtr SourceStream::produce_load(Time time)
   return std::make_unique<LoadSendEvent>(world_.get_unique_id(), load);
 }
 
+void SourceStream::notify_on_serve(Load & /* load */)
+{
+}
+
+void SourceStream::init()
+{
+}
+
 void SourceStream::attach_to_group(gsl::not_null<Group *> target_group)
 {
   target_group_ = make_observer(target_group.get());
@@ -35,6 +43,11 @@ static void poisson_produce_load_callback(World *world, Event *event)
   world->schedule(produced_by->produce_load(send_event->load.send_time));
 }
 
+void PoissonSourceStream::init()
+{
+  world_.schedule(produce_load(world_.get_time()));
+}
+
 EventPtr PoissonSourceStream::produce_load(Time time)
 {
   auto dt = static_cast<Time>(exponential(world_.get_random_engine()));
@@ -46,8 +59,8 @@ EventPtr PoissonSourceStream::produce_load(Time time)
   debug_print("{} Produced: {}\n", *this, load);
 
   // auto on_process = [this](World *world, Event *event) {
-    // auto t = static_cast<LoadSendEvent *>(event)->load.send_time;
-    // world->schedule(this->produce_load(t));
+  // auto t = static_cast<LoadSendEvent *>(event)->load.send_time;
+  // world->schedule(this->produce_load(t));
   // };
   return std::make_unique<LoadSendEvent>(world_.get_uuid(), load,
                                          poisson_produce_load_callback);
@@ -60,39 +73,81 @@ void format_arg(fmt::BasicFormatter<char> &f,
   f.writer().write("[PoissonSource {}]", source.id);
 }
 
-// EngsetSourceStream::EngsetSourceStream(World &world,
-                                       // Intensity intensity,
-                                       // Size sources_number,
-                                       // Size load_size)
-  // : SourceStream(world),
-    // intensity_(intensity),
-    // load_size_(load_size),
-    // sources_number_(sources_number)
-// {
-// }
-// Load EngsetSourceStream::get(Time t)
-// {
-  // auto params = decltype(exponential)::param_type(
-      // (sources_number_ - active_sources_) * intensity_);
-  // exponential.param(params);
+EngsetSourceStream::EngsetSourceStream(World &world,
+                                       Intensity intensity,
+                                       Size sources_number,
+                                       Size load_size)
+  : SourceStream(world),
+    intensity_(intensity),
+    load_size_(load_size),
+    sources_number_(sources_number)
+{
+}
 
-  // auto dt = static_cast<Time>(exponential(world_.get_random_engine()));
-  // auto create_load = [this, t, dt]() -> Load {
-    // return {world_.get_unique_id(), t + dt,       load_size_, -1, {},
-            // make_observer(this),    target_group_};
-  // };
+void engset_load_send_callback(World *world, Event *event)
+{
+  auto send_event = static_cast<LoadSendEvent *>(event);
+  auto &produced_by = send_event->load.produced_by;
+  world->schedule(produced_by->produce_load(send_event->load.send_time));
+}
+void engset_load_produce_callback(World *world, Event *event)
+{
+  auto produce_event = static_cast<LoadProduceEvent *>(event);
+  auto &source_stream = produce_event->source_stream;
+  world->schedule(source_stream->produce_load(event->time));
+}
 
-  // auto load = create_load();
-  // if (target_group_->can_serve(load)) {
-    // debug_print("{} Produced: {}\n", *this, load);
-    // return load;
-  // }
-  // return {};
-// }
+void EngsetSourceStream::notify_on_serve(Load &load)
+{
+  active_sources_--;
+  print("XXX {}\n", load);
+  world_.schedule(produce_load(load.end_time));
+}
 
-// void format_arg(fmt::BasicFormatter<char> &f,
-                // const char *& [> format_str <],
-                // const EngsetSourceStream &source)
-// {
-  // f.writer().write("[EngsetSource {}]", source.id);
-// }
+void EngsetSourceStream::init()
+{
+  for (Size i = 0; i < sources_number_; ++i) {
+    world_.schedule(produce_load(world_.get_time()));
+  }
+}
+Load EngsetSourceStream::create_load(Time time)
+{
+  return {world_.get_unique_id(), time,         load_size_, -1, {},
+          make_observer(this),    target_group_};
+}
+
+EventPtr EngsetSourceStream::produce_load(Time time)
+{
+  if (active_sources_ < 0 || active_sources_ > sources_number_) {
+    print("{} active_sources = {} ERRRORRRRORR", *this, active_sources_);
+  }
+
+  auto load = create_load(time);
+  if (target_group_->can_serve(load.size)) {
+    active_sources_++;
+    debug_print("{} Produced: {}\n", *this, load);
+    target_group_->serve(load);
+    return std::make_unique<Event>(EventType::None, world_.get_uuid(), time);
+    // return std::make_unique<LoadSendEvent>(
+    // world_.get_uuid(), load); //, engset_load_send_callback);
+  } else {
+    debug_print("{} Produced ghost: {}\n", *this, load);
+    target_group_->loss_group.serve(load); // Record lost call
+  }
+
+  auto params = decltype(exponential)::param_type(
+      (sources_number_ - active_sources_) * intensity_);
+  exponential.param(params);
+  auto dt = static_cast<Time>(exponential(world_.get_random_engine()));
+
+  return std::make_unique<LoadProduceEvent>(world_.get_uuid(), time + dt, this,
+                                            engset_load_produce_callback);
+}
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const EngsetSourceStream &source)
+{
+  f.writer().write("[EngsetSource {}, active={}/{}]", source.id,
+                   source.active_sources_, source.sources_number_);
+}

@@ -42,7 +42,7 @@ public:
   Uuid get_uuid();
   RandomEngine &get_random_engine();
   Duration get_tick_length() { return tick_length_; }
-  Duration get_time() { return time_; }
+  Time get_time() { return time_; }
   auto get_progress() { return time_ / duration_; }
 
   void add_group(gsl::not_null<Group *> group);

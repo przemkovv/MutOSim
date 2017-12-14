@@ -12,6 +12,8 @@ void format_arg(fmt::BasicFormatter<char> &f,
       return "LoadServe";
     case EventType::LoadProduce:
       return "LoadProduce";
+    case EventType::None:
+      return "None";
     }
   }());
 }

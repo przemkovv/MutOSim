@@ -44,20 +44,20 @@ void add_sources(World &world,
 
 int main()
 {
-  const auto duration = Duration(10'000'000);
-  // const auto duration = Duration(100);
+  // const auto duration = Duration(10'000'000);
+  const auto duration = Duration(100);
   {
     World world{seed(), duration, Duration(0.1)};
 
     std::vector<std::unique_ptr<Group>> groups;
     std::vector<std::unique_ptr<SourceStream>> sources;
     groups.emplace_back(
-        std::make_unique<Group>(world, Size(3), Intensity(1.0)));
+        std::make_unique<Group>(world, Size(4), Intensity(1.0)));
 
-    sources.emplace_back(
-    std::make_unique<PoissonSourceStream>(world, Intensity(3.0), Size(1)));
-    // sources.emplace_back(std::make_unique<EngsetSourceStream>(
-        // world, Intensity(3.0), Size(4), Size(1)));
+    // sources.emplace_back(
+    // std::make_unique<PoissonSourceStream>(world, Intensity(3.0), Size(1)));
+    sources.emplace_back(std::make_unique<EngsetSourceStream>(
+        world, Intensity(1.0), Size(5), Size(1)));
     sources[0]->attach_to_group(groups[0].get());
 
     add_groups(world, groups);
@@ -66,7 +66,7 @@ int main()
     world.init();
     world.run();
   }
-  if ((true)) {
+  if ((false)) {
     World world{seed(), duration, Duration(0.1)};
 
     std::vector<std::unique_ptr<Group>> groups;

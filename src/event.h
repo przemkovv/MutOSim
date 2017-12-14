@@ -14,7 +14,7 @@ class World;
 using EventFunc = void (*)(World *, Event *);
 using EventPtr = std::unique_ptr<Event>;
 
-enum class EventType { LoadSend, LoadServe, LoadProduce };
+enum class EventType { LoadSend, LoadServe, LoadProduce, None };
 
 struct Event {
   EventType type;
@@ -52,6 +52,11 @@ struct LoadServeEvent : public Event {
 };
 
 struct LoadProduceEvent : public Event {
+  std::experimental::observer_ptr<SourceStream> source_stream;
+  LoadProduceEvent(Uuid id, Time time_, SourceStream* source_stream_, EventFunc on_process_)
+    : Event(EventType::LoadProduce, id, time_, on_process_), source_stream(source_stream_)
+  {
+  }
 };
 
 class by_time
