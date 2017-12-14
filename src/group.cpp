@@ -2,6 +2,7 @@
 #include "group.h"
 #include "logger.h"
 #include "math.h"
+#include "source_stream.h"
 
 #include <cmath>
 #include <gsl/gsl>
@@ -55,13 +56,28 @@ bool Group::serve(Load load)
     debug_print("{} Serving load: {}\n", *this, load);
     add_load(load);
     if (is_blocked()) {
-      debug_print("{} Blocking\n", *this);
       start_of_block_ = load.send_time;
+      debug_print("{} Blocking bt={}, sobt={}\n", *this, block_time_, start_of_block_);
     }
     return true;
   }
   debug_print("{} Forwarding load: {}\n", *this, load);
   return forward(load);
+}
+
+void Group::take_off(const Load &load)
+{
+  debug_print("{} Load has been served: {}\n", *this, load);
+  if (is_blocked()) {
+    auto block_time = load.end_time - start_of_block_;
+    block_time_ += block_time;
+    debug_print("{} Unblocking bt={}, dt={}\n", *this, block_time_, block_time);
+  }
+  size_ -= load.size;
+  total_served.size += load.size;
+  total_served.count++;
+
+  load.produced_by->notify_on_serve(load);
 }
 
 bool Group::is_blocked()
@@ -81,19 +97,6 @@ bool Group::forward(Load load)
     return next_groups_.front()->serve(load);
   }
   return loss_group.serve(load);
-}
-
-void Group::take_off(const Load &load)
-{
-  debug_print("{} Load has been served: {}\n", *this, load);
-  if (is_blocked()) {
-    auto block_time = load.end_time - start_of_block_;
-    block_time_ += block_time;
-    debug_print("{} Unblocking dt={}\n", *this, block_time);
-  }
-  size_ -= load.size;
-  total_served.size += load.size;
-  total_served.count++;
 }
 
 Stats Group::get_stats()

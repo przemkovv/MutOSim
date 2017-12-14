@@ -47,7 +47,7 @@ bool World::next_iteration()
 
 void World::process_event()
 {
-  if (!events_.empty()) {
+  while (!events_.empty() && events_.top()->time <= time_) {
     auto event = events_.top().get();
     switch (event->type) {
     case EventType::LoadSend: {
@@ -56,8 +56,8 @@ void World::process_event()
       break;
     }
     case EventType::LoadServe: {
-      auto serve_event = static_cast<LoadServeEvent *>(event);
-      serve_event->load.produced_by->notify_on_serve(serve_event->load);
+      // auto serve_event = static_cast<LoadServeEvent *>(event);
+      // serve_event->load.produced_by->notify_on_serve(serve_event->load);
       break;
     }
     case EventType::LoadProduce:

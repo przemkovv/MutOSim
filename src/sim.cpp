@@ -46,8 +46,9 @@ void add_sources(World &world,
 int main()
 {
   // const auto duration = Duration(10'000'000);
-  const auto duration = Duration(100'000);
-  { // Erlang model
+  // const auto duration = Duration(100'000);
+  const auto duration = Duration(2000);
+  if ((false)) { // Erlang model
     World world{seed(), duration, Duration(0.1)};
 
     const auto lambda = Intensity(3.0);
@@ -69,18 +70,23 @@ int main()
 
     world.init();
     world.run();
+    print("[Erlang] P_loss = P_block = E_V(A) = {}\n", erlang_pk(A, V, V));
   }
-  { // Engset model
-    World world{seed(), duration, Duration(0.1)};
+{ // Engset model
+  World world{seed(), duration, Duration(0.1)};
 
-    const auto gamma = Intensity(0.3);
+     const auto lambda = Intensity(3);
+    const auto N = Size(2);
+    const auto gamma = lambda / N;
+    // const auto gamma = Intensity(1);
     const auto mikro = Intensity(1.0);
     const auto V = Size(1);
-    const auto N = Size(10);
     const auto alpha = gamma / mikro;
 
+
     print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
-    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n", engset_pi(alpha, V, N-1, V));
+    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
+          engset_pi(alpha, V, N - 1, V));
 
     std::vector<std::unique_ptr<Group>> groups;
     std::vector<std::unique_ptr<SourceStream>> sources;
@@ -95,6 +101,9 @@ int main()
 
     world.init();
     world.run();
+    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
+    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
+          engset_pi(alpha, V, N - 1, V));
   }
   if ((false)) {
     World world{seed(), duration, Duration(0.1)};

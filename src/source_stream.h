@@ -23,7 +23,7 @@ protected:
 
 public:
   virtual EventPtr produce_load(Time time);
-  virtual void notify_on_serve(Load &load);
+  virtual void notify_on_serve(const Load &load);
   virtual void init();
   void attach_to_group(gsl::not_null<Group *> target_group);
 
@@ -63,7 +63,6 @@ class EngsetSourceStream : public SourceStream
 
   std::exponential_distribution<> exponential{intensity_};
 
-  friend void engset_load_send_callback(World *world, Event *event);
   friend void engset_load_produce_callback(World *world, Event *event);
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,
@@ -73,7 +72,7 @@ class EngsetSourceStream : public SourceStream
 public:
   void init() override;
   EventPtr produce_load(Time time) override;
-  void notify_on_serve(Load &load) override;
+  void notify_on_serve(const Load &load) override;
   EngsetSourceStream(World &world,
                      Intensity intensity,
                      Size sources_number,
@@ -84,5 +83,4 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const EngsetSourceStream &source);
 
-void engset_load_send_callback(World *world, Event *event);
 void engset_load_produce_callback(World *world, Event *event);

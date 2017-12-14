@@ -16,7 +16,7 @@ EventPtr SourceStream::produce_load(Time time)
   return std::make_unique<LoadSendEvent>(world_.get_unique_id(), load);
 }
 
-void SourceStream::notify_on_serve(Load & /* load */)
+void SourceStream::notify_on_serve(const Load & /* load */)
 {
 }
 
@@ -84,12 +84,6 @@ EngsetSourceStream::EngsetSourceStream(World &world,
 {
 }
 
-void engset_load_send_callback(World *world, Event *event)
-{
-  auto send_event = static_cast<LoadSendEvent *>(event);
-  auto &produced_by = send_event->load.produced_by;
-  world->schedule(produced_by->produce_load(send_event->load.send_time));
-}
 void engset_load_produce_callback(World *world, Event *event)
 {
   auto produce_event = static_cast<LoadProduceEvent *>(event);
@@ -97,11 +91,15 @@ void engset_load_produce_callback(World *world, Event *event)
   world->schedule(source_stream->produce_load(event->time));
 }
 
-void EngsetSourceStream::notify_on_serve(Load &load)
+void EngsetSourceStream::notify_on_serve(const Load &load)
 {
   active_sources_--;
-  debug_print("XXX {}\n", load);
-  world_.schedule(produce_load(load.end_time));
+  debug_print("{} Load has been served {}\n", *this, load);
+
+  auto dt = static_cast<Time>(exponential(world_.get_random_engine()));
+  world_.schedule(
+      std::make_unique<LoadProduceEvent>(world_.get_uuid(), load.end_time + dt,
+                                         this, engset_load_produce_callback));
 }
 
 void EngsetSourceStream::init()
@@ -124,30 +122,31 @@ EventPtr EngsetSourceStream::produce_load(Time time)
 
   auto load = create_load(time);
   if (target_group_->can_serve(load.size)) {
-    active_sources_++;
     debug_print("{} Produced: {}\n", *this, load);
     target_group_->serve(load);
+    active_sources_++;
     return std::make_unique<Event>(EventType::None, world_.get_uuid(), time);
-    // return std::make_unique<LoadSendEvent>(
-    // world_.get_uuid(), load); //, engset_load_send_callback);
+
   } else {
     debug_print("{} Produced ghost: {}\n", *this, load);
     target_group_->loss_group.serve(load); // Record lost call
+
+    // auto params = decltype(exponential)::param_type(
+    // (sources_number_ - active_sources_) * intensity_);
+    // exponential.param(params);
+    auto dt = static_cast<Time>(exponential(world_.get_random_engine()));
+
+    return std::make_unique<LoadProduceEvent>(
+        world_.get_uuid(), time + dt, this, engset_load_produce_callback);
   }
-
-  auto params = decltype(exponential)::param_type(
-      (sources_number_ - active_sources_) * intensity_);
-  exponential.param(params);
-  auto dt = static_cast<Time>(exponential(world_.get_random_engine()));
-
-  return std::make_unique<LoadProduceEvent>(world_.get_uuid(), time + dt, this,
-                                            engset_load_produce_callback);
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const EngsetSourceStream &source)
 {
-  f.writer().write("[EngsetSource {}, active={}/{}]", source.id,
-                   source.active_sources_, source.sources_number_);
+  f.writer().write(
+      "[EngsetSource {}, active={}/{}, gamma={}, lambda={}]", source.id,
+      source.active_sources_, source.sources_number_, source.intensity_,
+      (source.sources_number_ - source.active_sources_) * source.intensity_);
 }

@@ -18,6 +18,7 @@ constexpr double erlang_pk(const double A, const int64_t V, const int64_t k)
 constexpr double
 engset_pi(const double alpha, const int64_t V, const int64_t N, const int64_t i)
 {
+  if (N==0 ) return 0;
   const double dividend = Math::n_over_k(N, i) * Math::pow(alpha, i);
   double divisor = 0;
   for (int64_t j = 0; j <= V; ++j) {
