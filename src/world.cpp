@@ -19,7 +19,7 @@ World::~World()
 void World::init()
 {
   for (auto &source : sources_) {
-    loads_send_.emplace(source->get(time_));
+    schedule(source->produce_load(time_));
   }
 }
 
@@ -30,17 +30,12 @@ bool World::next_iteration()
               "\n",
               time_);
 
-  serve_loads();
-  send_loads();
+  process_event();
 
   Time next_event = 0;
+  if (!events_.empty())
+    next_event = events_.top()->time;
 
-  if (!loads_send_.empty()) {
-    next_event = loads_send_.top().send_time;
-  }
-  if (!loads_served_.empty()) {
-    next_event = std::min(next_event, loads_served_.top().end_time);
-  }
   if (next_event > time_) {
     time_ = next_event;
   } else {
@@ -54,6 +49,30 @@ bool World::next_iteration()
 void World::queue_load_to_serve(Load load)
 {
   loads_served_.emplace(load);
+}
+
+void World::process_event()
+{
+  if (!events_.empty()) {
+    auto event = events_.top().get();
+    switch (event->type) {
+    case EventType::LoadSend: {
+      auto send_event = static_cast<LoadSendEvent *>(event);
+      serve_load(send_event->load);
+      break;
+    }
+    case EventType::LoadServe:
+      break;
+    case EventType::LoadProduce:
+      break;
+    }
+
+    if (event->on_process) {
+      event->on_process(this, event);
+    }
+
+    events_.pop();
+  }
 }
 
 bool World::serve_load(Load load)
@@ -86,7 +105,13 @@ void World::serve_loads()
   }
 }
 
+// TODO(PW): remove
 Uuid World::get_unique_id()
+{
+  return ++last_id;
+}
+
+Uuid World::get_uuid()
 {
   return ++last_id;
 }
@@ -112,4 +137,17 @@ void World::print_stats()
   for (auto &group : groups_) {
     print("[World] Stats for {}: {}\n", *group, group->get_stats());
   }
+}
+
+void World::run()
+{
+  double stats_freq = 0.2;
+  int i = 1;
+  while (next_iteration()) {
+    if (get_progress() > stats_freq * i) {
+      print_stats();
+      ++i;
+    }
+  }
+  print_stats();
 }

@@ -35,7 +35,12 @@ void Group::add_load(Load load)
   size_ += load.size;
   load.served_by.reset(this);
   set_end_time(load);
-  world_.queue_load_to_serve(load);
+  auto on_process = [this](World *, Event *e) {
+    this->take_off(static_cast<LoadServeEvent *>(e)->load);
+  };
+  world_.schedule(std::make_unique<LoadServeEvent>(world_.get_uuid(), load,
+                                                   std::move(on_process)));
+  // world_.queue_load_to_serve(load);
 }
 
 bool Group::serve(Load load)

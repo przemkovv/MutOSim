@@ -2,6 +2,8 @@
 
 #include "load.h"
 #include "types.h"
+#include "event.h"
+#include "logger.h"
 
 #include <gsl/gsl>
 #include <memory>
@@ -22,6 +24,7 @@ class World
 
   Uuid last_id = 0;
 
+  std::priority_queue<EventPtr, std::vector<EventPtr>, by_time> events_;
   std::priority_queue<Load, std::vector<Load>, by_end_time> loads_served_{};
   std::priority_queue<Load, std::vector<Load>, by_send_time> loads_send_{};
   RandomEngine random_engine_{seed_};
@@ -33,12 +36,14 @@ class World
 
   void send_loads();
   void serve_loads();
+  void process_event();
 
 public:
   World(uint64_t seed, Duration duration, Duration tick_length);
   ~World();
 
   Uuid get_unique_id();
+  Uuid get_uuid();
   RandomEngine &get_random_engine();
   Duration get_tick_length() { return tick_length_; }
   Duration get_time() { return time_; }
@@ -49,8 +54,15 @@ public:
 
   void queue_load_to_serve(Load load);
 
+  void schedule(std::unique_ptr<Event> event) {
+
+    debug_print("[World] Schedule: {}\n", *event.get());
+    events_.emplace(std::move(event));
+  }
+
   void init();
   bool next_iteration();
+  void run();
 
   void print_stats();
 };
