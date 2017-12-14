@@ -16,6 +16,7 @@ add_compile_options(
 
 add_definitions(
     -DSPDLOG_FMT_EXTERNAL
+    -DSIM_DEBUG=${SIM_DEBUG}
     )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -41,6 +42,24 @@ find_package(Boost 1.65 COMPONENTS system program_options)
 if (UNIX)
     add_custom_target(ctags ALL ctags -R --options=${CMAKE_SOURCE_DIR}/.ctags -f ${CMAKE_SOURCE_DIR}/tags ${CMAKE_SOURCE_DIR})
 endif (UNIX)
+
+ADD_CUSTOM_TARGET(debug
+  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+  COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
+  )
+
+ADD_CUSTOM_TARGET(sim_debug
+    COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=1 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all 
+  COMMENT "Switch CMAKE_BUILD_TYPE to Release"
+  )
+
+ADD_CUSTOM_TARGET(release
+    COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=0 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+  COMMENT "Switch CMAKE_BUILD_TYPE to Release"
+  )
 
 add_subdirectory(src)
 # add_subdirectory(tests)
