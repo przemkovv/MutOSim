@@ -44,7 +44,8 @@ void add_sources(World &world,
 
 int main()
 {
-  const auto duration = Duration(1'000'000);
+  const auto duration = Duration(10'000'000);
+  // const auto duration = Duration(100);
   {
     World world{seed(), duration, Duration(0.1)};
 

@@ -30,16 +30,22 @@ void Group::add_next_group(gsl::not_null<Group *> group)
   next_groups_.emplace_back(make_observer(group.get()));
 }
 
+static void group_serve_event_callback(World *, Event *e)
+{
+  auto load = static_cast<LoadServeEvent *>(e)->load;
+  load.served_by->take_off(load);
+}
+
 void Group::add_load(Load load)
 {
   size_ += load.size;
   load.served_by.reset(this);
   set_end_time(load);
-  auto on_process = [this](World *, Event *e) {
-    this->take_off(static_cast<LoadServeEvent *>(e)->load);
-  };
+  // auto on_process = [this](World *, Event *e) {
+  // this->take_off(static_cast<LoadServeEvent *>(e)->load);
+  // };
   world_.schedule(std::make_unique<LoadServeEvent>(world_.get_uuid(), load,
-                                                   std::move(on_process)));
+                                                   group_serve_event_callback));
   // world_.queue_load_to_serve(load);
 }
 
@@ -119,7 +125,8 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const LossGroup &loss_group)
 {
-  f.writer().write("[LossGroup {}]", loss_group.id);
+  f.writer().write("[LossGroup {}, lost={}]", loss_group.id,
+                   loss_group.total_served.count);
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,
@@ -132,10 +139,10 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const Stats &stats)
 {
-  auto loss_ratio =
-      Math::ratio_to_sum(stats.total_lost.count, stats.total_served.count);
-  auto loss_ratio_size =
-      Math::ratio_to_sum(stats.total_lost.size, stats.total_served.size);
+  auto loss_ratio = Math::ratio_to_sum<double>(stats.total_lost.count,
+                                               stats.total_served.count);
+  auto loss_ratio_size = Math::ratio_to_sum<double>(stats.total_lost.size,
+                                                    stats.total_served.size);
 
   f.writer().write("served/lost: {} / {}. P_lost: {} ({}), P_block: {}",
                    stats.total_served, stats.total_lost, loss_ratio,

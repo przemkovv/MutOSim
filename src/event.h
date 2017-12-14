@@ -11,7 +11,7 @@
 
 struct Event;
 class World;
-using EventFunc = void(World *, Event *);
+using EventFunc = void (*)(World *, Event *);
 using EventPtr = std::unique_ptr<Event>;
 
 enum class EventType { LoadSend, LoadServe, LoadProduce };
@@ -21,15 +21,12 @@ struct Event {
   Uuid id;
   Time time;
 
-  std::function<EventFunc> on_process{};
+  EventFunc on_process = nullptr;
 
-  Event(EventType type_, Uuid id_, Time time_) : Event(type_, id_, time_, {}) {}
+  Event(EventType type_, Uuid id_, Time time_) : Event(type_, id_, time_, nullptr) {}
 
-  Event(EventType type_,
-        Uuid id_,
-        Time time_,
-        std::function<EventFunc> on_process_)
-    : type(type_), id(id_), time(time_), on_process(std::move(on_process_))
+  Event(EventType type_, Uuid id_, Time time_, EventFunc on_process_)
+    : type(type_), id(id_), time(time_), on_process(on_process_)
   {
   }
 };
@@ -37,8 +34,8 @@ struct Event {
 struct LoadSendEvent : public Event {
   Load load;
 
-  LoadSendEvent(Uuid id, Load load_) : LoadSendEvent(id, load_, {}) {}
-  LoadSendEvent(Uuid id, Load load_, std::function<EventFunc> on_process_)
+  LoadSendEvent(Uuid id, Load load_) : LoadSendEvent(id, load_, nullptr) {}
+  LoadSendEvent(Uuid id, Load load_, EventFunc on_process_)
     : Event(EventType::LoadSend, id, load_.send_time, on_process_),
       load(std::move(load_))
   {
@@ -47,7 +44,7 @@ struct LoadSendEvent : public Event {
 
 struct LoadServeEvent : public Event {
   Load load;
-  LoadServeEvent(Uuid id, Load load_, std::function<EventFunc> on_process_)
+  LoadServeEvent(Uuid id, Load load_, EventFunc on_process_)
     : Event(EventType::LoadServe, id, load_.end_time, on_process_),
       load(std::move(load_))
   {
@@ -55,7 +52,6 @@ struct LoadServeEvent : public Event {
 };
 
 struct LoadProduceEvent : public Event {
-  std::function<EventFunc> produce;
 };
 
 class by_time

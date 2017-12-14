@@ -16,6 +16,7 @@ World::~World()
 {
   print("[World] {:^^100}\n", " End of the world ");
 }
+
 void World::init()
 {
   for (auto &source : sources_) {
@@ -25,12 +26,9 @@ void World::init()
 
 bool World::next_iteration()
 {
-  debug_print("[World] Time = {} "
-              "----------------------------------------------------------------"
+  debug_print("[World] Time = {:-<80} "
               "\n",
               time_);
-
-  process_event();
 
   Time next_event = 0;
   if (!events_.empty())
@@ -43,12 +41,8 @@ bool World::next_iteration()
     time_ += tick_length_;
   }
 
+  process_event();
   return time_ <= duration_;
-}
-
-void World::queue_load_to_serve(Load load)
-{
-  loads_served_.emplace(load);
 }
 
 void World::process_event()
@@ -77,32 +71,13 @@ void World::process_event()
 
 bool World::serve_load(Load load)
 {
+  debug_print("[World] New load: {}\n", load);
   if (load.target_group) {
     return load.target_group->serve(load);
   } else if (!groups_.empty()) {
-    debug_print("[World] New load: {}\n", load);
     return groups_.front()->serve(load);
   }
   return false;
-}
-
-void World::send_loads()
-{
-  while (!loads_send_.empty() && loads_send_.top().send_time <= time_) {
-    auto load = loads_send_.top();
-    loads_send_.pop();
-    loads_send_.emplace(load.produced_by->get(load.send_time));
-    serve_load(load);
-  }
-}
-
-void World::serve_loads()
-{
-  while (!loads_served_.empty() && loads_served_.top().end_time <= time_) {
-    auto &load = loads_served_.top();
-    load.served_by->take_off(load);
-    loads_served_.pop();
-  }
 }
 
 // TODO(PW): remove
@@ -132,7 +107,7 @@ void World::add_source(gsl::not_null<SourceStream *> source)
 }
 void World::print_stats()
 {
-  print("[World] Left in queue {}\n", loads_served_.size());
+  print("[World] In queue left {} events\n", events_.size());
   print("[World] Time = {:f}\n", time_);
   for (auto &group : groups_) {
     print("[World] Stats for {}: {}\n", *group, group->get_stats());

@@ -22,7 +22,6 @@ protected:
   observer_ptr<Group> target_group_;
 
 public:
-  virtual Load get(Time time);
   virtual EventPtr produce_load(Time time);
   void attach_to_group(gsl::not_null<Group *> target_group);
 
@@ -45,7 +44,6 @@ class PoissonSourceStream : public SourceStream
 public:
   PoissonSourceStream(World &world, Intensity intensity, Size load_size);
 
-  Load get(Time t) override;
   EventPtr produce_load(Time time) override;
 };
 
@@ -53,24 +51,23 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const PoissonSourceStream &source);
 
-class EngsetSourceStream : public SourceStream
-{
-  double intensity_;
-  Size load_size_;
-  Size sources_number_;
-  Size active_sources_ =0;
+// class EngsetSourceStream : public SourceStream
+// {
+  // double intensity_;
+  // Size load_size_;
+  // Size sources_number_;
+  // Size active_sources_ =0;
 
-  std::exponential_distribution<> exponential{intensity_};
+  // std::exponential_distribution<> exponential{intensity_};
 
-public:
-  EngsetSourceStream(World &world,
-                     Intensity intensity,
-                     Size sources_number,
-                     Size load_size);
+// public:
+  // EngsetSourceStream(World &world,
+                     // Intensity intensity,
+                     // Size sources_number,
+                     // Size load_size);
 
-  Load get(Time t) override;
-};
+// };
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const EngsetSourceStream &source);
+// void format_arg(fmt::BasicFormatter<char> &f,
+                // const char *& [> format_str <],
+                // const EngsetSourceStream &source);

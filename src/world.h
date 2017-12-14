@@ -25,8 +25,6 @@ class World
   Uuid last_id = 0;
 
   std::priority_queue<EventPtr, std::vector<EventPtr>, by_time> events_;
-  std::priority_queue<Load, std::vector<Load>, by_end_time> loads_served_{};
-  std::priority_queue<Load, std::vector<Load>, by_send_time> loads_send_{};
   RandomEngine random_engine_{seed_};
 
   std::vector<Group *> groups_{};
@@ -34,8 +32,6 @@ class World
 
   bool serve_load(Load load);
 
-  void send_loads();
-  void serve_loads();
   void process_event();
 
 public:
@@ -52,7 +48,6 @@ public:
   void add_group(gsl::not_null<Group *> group);
   void add_source(gsl::not_null<SourceStream *> source);
 
-  void queue_load_to_serve(Load load);
 
   void schedule(std::unique_ptr<Event> event) {
 
