@@ -45,10 +45,10 @@ void add_sources(World &world,
 
 int main()
 {
-  // const auto duration = Duration(10'000'000);
+  const auto duration = Duration(20'000'000);
   // const auto duration = Duration(100'000);
-  const auto duration = Duration(2000);
-  if ((false)) { // Erlang model
+  // const auto duration = Duration(2000);
+  if ((true)) { // Erlang model
     World world{seed(), duration, Duration(0.1)};
 
     const auto lambda = Intensity(3.0);

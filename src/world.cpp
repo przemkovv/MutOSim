@@ -40,9 +40,14 @@ bool World::next_iteration()
     debug_print("No events\n");
     time_ += tick_length_;
   }
+  if (time_ > duration_) {
+    for(auto &source : sources_) {
+      source->pause();
+    }
+  }
 
   process_event();
-  return time_ <= duration_;
+  return time_ <= duration_ || !events_.empty();
 }
 
 void World::process_event()
@@ -121,7 +126,7 @@ void World::print_stats()
 
 void World::run()
 {
-  double stats_freq = 0.2;
+  long double stats_freq = 0.2L;
   int i = 1;
   while (next_iteration()) {
     if (get_progress() > stats_freq * i) {

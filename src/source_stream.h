@@ -21,6 +21,8 @@ protected:
 
   observer_ptr<Group> target_group_;
 
+  bool pause_ = false;
+
 public:
   virtual EventPtr produce_load(Time time);
   virtual void notify_on_serve(const Load &load);
@@ -33,6 +35,8 @@ public:
   SourceStream &operator=(const SourceStream &) = default;
   SourceStream &operator=(SourceStream &&) = default;
   virtual ~SourceStream() = default;
+
+  void pause() { pause_ = true; }
 };
 
 class PoissonSourceStream : public SourceStream
@@ -69,6 +73,8 @@ class EngsetSourceStream : public SourceStream
                          const EngsetSourceStream &source);
 
   Load create_load(Time time);
+  std::unique_ptr<LoadProduceEvent> create_produce_load_event(Time time);
+
 public:
   void init() override;
   EventPtr produce_load(Time time) override;

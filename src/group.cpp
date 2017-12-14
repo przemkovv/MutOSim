@@ -147,7 +147,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
   auto loss_ratio_size = Math::ratio_to_sum<double>(stats.total_lost.size,
                                                     stats.total_served.size);
 
-  f.writer().write("served/lost: {} / {}. P_lost: {} ({}), P_block: {}",
+  f.writer().write("served/lost: {} / {}. P_loss: {} ({}), P_block: {}",
                    stats.total_served, stats.total_lost, loss_ratio,
                    loss_ratio_size, stats.block_time / stats.simulation_time);
 }
