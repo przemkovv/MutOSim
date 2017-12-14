@@ -1,4 +1,5 @@
 
+#include "calculation.h"
 #include "config.h"
 #include "group.h"
 #include "logger.h"
@@ -44,20 +45,49 @@ void add_sources(World &world,
 
 int main()
 {
-  // const auto duration = Duration(10'000'000);
-  const auto duration = Duration(100);
-  {
+  const auto duration = Duration(10'000'000);
+  // const auto duration = Duration(100'000);
+  { // Erlang model
     World world{seed(), duration, Duration(0.1)};
+
+    const auto lambda = Intensity(3.0);
+    const auto mikro = Intensity(1.0);
+    const auto V = Size(1);
+    const auto A = lambda / mikro;
+    print("[Erlang] P_lost = P_block = E_V(A) = {}\n", erlang_pk(A, V, V));
 
     std::vector<std::unique_ptr<Group>> groups;
     std::vector<std::unique_ptr<SourceStream>> sources;
-    groups.emplace_back(
-        std::make_unique<Group>(world, Size(4), Intensity(1.0)));
+    groups.emplace_back(std::make_unique<Group>(world, V, mikro));
 
-    // sources.emplace_back(
-    // std::make_unique<PoissonSourceStream>(world, Intensity(3.0), Size(1)));
-    sources.emplace_back(std::make_unique<EngsetSourceStream>(
-        world, Intensity(1.0), Size(5), Size(1)));
+    sources.emplace_back(
+        std::make_unique<PoissonSourceStream>(world, lambda, Size(1)));
+    sources[0]->attach_to_group(groups[0].get());
+
+    add_groups(world, groups);
+    add_sources(world, sources);
+
+    world.init();
+    world.run();
+  }
+  { // Engset model
+    World world{seed(), duration, Duration(0.1)};
+
+    const auto gamma = Intensity(3.0);
+    const auto mikro = Intensity(1.0);
+    const auto V = Size(1);
+    const auto N = Size(10);
+    const auto alpha = gamma / mikro;
+
+    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
+    print("[Engset] P_lost = B(alpha, V, N) = E(alfa, V, N-1) = {}\n", engset_pi(alpha, V, N-1, V));
+
+    std::vector<std::unique_ptr<Group>> groups;
+    std::vector<std::unique_ptr<SourceStream>> sources;
+    groups.emplace_back(std::make_unique<Group>(world, V, mikro));
+
+    sources.emplace_back(
+        std::make_unique<EngsetSourceStream>(world, gamma, N, Size(1)));
     sources[0]->attach_to_group(groups[0].get());
 
     add_groups(world, groups);

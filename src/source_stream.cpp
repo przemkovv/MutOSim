@@ -100,7 +100,7 @@ void engset_load_produce_callback(World *world, Event *event)
 void EngsetSourceStream::notify_on_serve(Load &load)
 {
   active_sources_--;
-  print("XXX {}\n", load);
+  debug_print("XXX {}\n", load);
   world_.schedule(produce_load(load.end_time));
 }
 
