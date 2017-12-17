@@ -1,10 +1,12 @@
 #pragma once
 
-#include "load.h"
-#include "types.h"
 #include "event.h"
+#include "load.h"
 #include "logger.h"
+#include "topology.h"
+#include "types.h"
 
+#include <experimental/memory>
 #include <gsl/gsl>
 #include <memory>
 #include <queue>
@@ -12,6 +14,9 @@
 
 struct Group;
 class SourceStream;
+
+using std::experimental::make_observer;
+using std::experimental::observer_ptr;
 
 class World
 {
@@ -27,8 +32,7 @@ class World
   std::priority_queue<EventPtr, std::vector<EventPtr>, by_time> events_;
   RandomEngine random_engine_{seed_};
 
-  std::vector<Group *> groups_{};
-  std::vector<SourceStream *> sources_{};
+  observer_ptr<Topology> topology_;
 
   bool serve_load(Load load);
 
@@ -45,15 +49,8 @@ public:
   Time get_time() { return time_; }
   auto get_progress() { return time_ / duration_; }
 
-  void add_group(gsl::not_null<Group *> group);
-  void add_source(gsl::not_null<SourceStream *> source);
-
-
-  void schedule(std::unique_ptr<Event> event) {
-
-    debug_print("[World] Schedule: {}\n", *event.get());
-    events_.emplace(std::move(event));
-  }
+  void set_topology(gsl::not_null<Topology *> topology);
+  void schedule(std::unique_ptr<Event> event);
 
   void init();
   bool next_iteration();

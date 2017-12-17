@@ -33,6 +33,7 @@ public:
   virtual void notify_on_serve(const Load &load);
   virtual void init();
   void attach_to_group(gsl::not_null<Group *> target_group);
+  const Name& get_name() { return name_; }
 
   SourceStream(const Name &name) : name_(name) {}
   SourceStream(SourceStream &&) = default;

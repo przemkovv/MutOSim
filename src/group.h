@@ -78,6 +78,7 @@ struct Group {
   void take_off(const Load &load);
 
   Stats get_stats();
+  const Name& get_name() { return name_; }
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

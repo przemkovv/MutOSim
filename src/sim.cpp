@@ -12,12 +12,16 @@
 #include <fmt/format.h>
 #include <fmt/printf.h>
 #include <iostream>
-#include <map>
 #include <memory>
 #include <optional>
 #include <random>
 
 using std::experimental::make_observer;
+
+// const auto duration = Duration(20'000'000);
+const auto duration = Duration(100'000);
+// const auto duration = Duration(2000);
+const auto tick_length = Duration(0.1);
 
 uint64_t seed()
 {
@@ -28,115 +32,97 @@ uint64_t seed()
   return rd();
 }
 
-void add_groups(World &world, const std::vector<std::unique_ptr<Group>> &groups)
+SimulationSettings erlang_model()
 {
-  for (auto &group : groups) {
-    world.add_group(group.get());
+  SimulationSettings sim_settings{duration, tick_length, "Erlang model"};
 
-  }
+  const auto lambda = Intensity(3.0);
+  const auto micro = Intensity(1.0);
+  const auto V = Size(1);
+  const auto A = lambda / micro;
+  sim_settings.do_before = [&]() {
+    print("[Erlang] P_loss = P_block = E_V(A) = {}\n", erlang_pk(A, V, V));
+  };
+  sim_settings.do_after = sim_settings.do_before;
+
+  auto &topology = sim_settings.topology;
+  topology.add_group(std::make_unique<Group>("G1", V, micro));
+
+  topology.add_source(
+      std::make_unique<PoissonSourceStream>("S1", lambda, Size(1)));
+  topology.attach_source_to_group("S1", "G1");
+
+  return sim_settings;
 }
 
-void add_sources(World &world,
-                 const std::vector<std::unique_ptr<SourceStream>> &sources)
-{
-  for (auto &source : sources) {
-    world.add_source(source.get());
-  }
+SimulationSettings engset_model()
+{ // Engset model
+
+  SimulationSettings sim_settings{duration, tick_length, "Engset model"};
+
+  const auto lambda = Intensity(3);
+  const auto N = Size(2);
+  const auto gamma = lambda / N;
+  const auto micro = Intensity(1.0);
+  const auto V = Size(1);
+  const auto alpha = gamma / micro;
+
+  sim_settings.do_before = [&]() {
+    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
+    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
+          engset_pi(alpha, V, N - 1, V));
+  };
+  sim_settings.do_after = sim_settings.do_before;
+
+  auto &topology = sim_settings.topology;
+  topology.add_group(std::make_unique<Group>("G1", V, micro));
+
+  topology.add_source(
+      std::make_unique<EngsetSourceStream>("S1", gamma, N, Size(1)));
+  topology.attach_source_to_group("S1", "G1");
+
+  return sim_settings;
 }
 
-struct Topology {
-  std::map<Name, std::unique_ptr<Group>> groups;
-  std::map<Name, std::unique_ptr<SourceStream>> sources;
+SimulationSettings single_overflow()
+{
+  SimulationSettings sim_settings{duration, tick_length, "Single overflow"};
 
-  // void connect_groups(Uuid from, Uuid to)
-};
+  auto &topology = sim_settings.topology;
+  topology.add_group(std::make_unique<Group>("G1", Size(2), Intensity(1.0)));
+  topology.add_group(std::make_unique<Group>("G2", Size(1), Intensity(1.0)));
+  topology.add_source(
+      std::make_unique<PoissonSourceStream>("S1", Intensity(3.0), Size(1)));
 
-struct SimulationSettings {
-  Duration duration;
+  topology.connect_groups("G1", "G2");
+  topology.attach_source_to_group("S1", "G1");
 
-  Topology topology;
-};
+  return sim_settings;
+}
 
 int main()
 {
-  const auto duration = Duration(20'000'000);
-  // const auto duration = Duration(100'000);
-  // const auto duration = Duration(2000);
-  if ((true)) { // Erlang model
-    World world{seed(), duration, Duration(0.1)};
+  std::vector<SimulationSettings> scenarios;
 
-    const auto lambda = Intensity(3.0);
-    const auto micro = Intensity(1.0);
-    const auto V = Size(1);
-    const auto A = lambda / micro;
-    print("[Erlang] P_loss = P_block = E_V(A) = {}\n", erlang_pk(A, V, V));
+  {
+    scenarios.emplace_back(erlang_model());
+    scenarios.emplace_back(engset_model());
+    scenarios.emplace_back(single_overflow());
 
-    std::vector<std::unique_ptr<Group>> groups;
-    std::vector<std::unique_ptr<SourceStream>> sources;
-    groups.emplace_back(std::make_unique<Group>("G1", V, micro));
+    for (auto &scenario : scenarios) {
+      print("[Main] {:-^100}\n", scenario.name);
+      World world{seed(), scenario.duration, scenario.tick_length};
+      world.set_topology(&scenario.topology);
 
-    sources.emplace_back(
-        std::make_unique<PoissonSourceStream>("S1", lambda, Size(1)));
-    sources[0]->attach_to_group(groups[0].get());
-
-    add_groups(world, groups);
-    add_sources(world, sources);
-
-    world.init();
-    world.run();
-    print("[Erlang] P_loss = P_block = E_V(A) = {}\n", erlang_pk(A, V, V));
-  }
-  { // Engset model
-    World world{seed(), duration, Duration(0.1)};
-
-    const auto lambda = Intensity(3);
-    const auto N = Size(2);
-    const auto gamma = lambda / N;
-    // const auto gamma = Intensity(1);
-    const auto micro = Intensity(1.0);
-    const auto V = Size(1);
-    const auto alpha = gamma / micro;
-
-    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
-    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          engset_pi(alpha, V, N - 1, V));
-
-    std::vector<std::unique_ptr<Group>> groups;
-    std::vector<std::unique_ptr<SourceStream>> sources;
-    groups.emplace_back(std::make_unique<Group>("G1", V, micro));
-
-    sources.emplace_back(
-        std::make_unique<EngsetSourceStream>("S1", gamma, N, Size(1)));
-    sources[0]->attach_to_group(groups[0].get());
-
-    add_groups(world, groups);
-    add_sources(world, sources);
-
-    world.init();
-    world.run();
-    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
-    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          engset_pi(alpha, V, N - 1, V));
-  }
-  if ((false)) {
-    World world{seed(), duration, Duration(0.1)};
-
-    std::vector<std::unique_ptr<Group>> groups;
-    std::vector<std::unique_ptr<SourceStream>> sources;
-
-    groups.emplace_back(std::make_unique<Group>("G1", Size(2), Intensity(1.0)));
-    groups.emplace_back(std::make_unique<Group>("G2", Size(1), Intensity(1.0)));
-    sources.emplace_back(
-        std::make_unique<PoissonSourceStream>("S1", Intensity(3.0), Size(1)));
-
-    groups[0]->add_next_group(groups[1].get());
-    sources[0]->attach_to_group(groups[0].get());
-
-    add_groups(world, groups);
-    add_sources(world, sources);
-
-    world.init();
-    world.run();
+      world.init();
+      if (scenario.do_before) {
+        scenario.do_before();
+      }
+      world.run();
+      if (scenario.do_after) {
+        scenario.do_after();
+      }
+    }
   }
 
   return 0;
