@@ -10,26 +10,31 @@
 #include <random>
 
 using std::experimental::observer_ptr;
+using std::experimental::make_observer;
 
 class SourceStream
 {
 public:
-  const Uuid id;
+  const Name name_;
 
 protected:
-  World &world_;
+  observer_ptr<World> world_;
 
   observer_ptr<Group> target_group_;
 
   bool pause_ = false;
 
 public:
+  void set_world(gsl::not_null<World*> world) {
+    world_ = make_observer(world.get());
+  }
+
   virtual EventPtr produce_load(Time time);
   virtual void notify_on_serve(const Load &load);
   virtual void init();
   void attach_to_group(gsl::not_null<Group *> target_group);
 
-  SourceStream(World &world) : id(world.get_unique_id()), world_(world) {}
+  SourceStream(const Name &name) : name_(name) {}
   SourceStream(SourceStream &&) = default;
   SourceStream(const SourceStream &) = default;
   SourceStream &operator=(const SourceStream &) = default;
@@ -48,7 +53,7 @@ class PoissonSourceStream : public SourceStream
   std::exponential_distribution<> exponential{intensity_};
 
 public:
-  PoissonSourceStream(World &world, Intensity intensity, Size load_size);
+  PoissonSourceStream(const Name &name, Intensity intensity, Size load_size);
 
   void init() override;
   EventPtr produce_load(Time time) override;
@@ -79,7 +84,7 @@ public:
   void init() override;
   EventPtr produce_load(Time time) override;
   void notify_on_serve(const Load &load) override;
-  EngsetSourceStream(World &world,
+  EngsetSourceStream(const Name &name,
                      Intensity intensity,
                      Size sources_number,
                      Size load_size);

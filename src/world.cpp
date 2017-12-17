@@ -90,12 +90,6 @@ bool World::serve_load(Load load)
   return false;
 }
 
-// TODO(PW): remove
-Uuid World::get_unique_id()
-{
-  return ++last_id;
-}
-
 Uuid World::get_uuid()
 {
   return ++last_id;
@@ -108,11 +102,13 @@ std::mt19937_64 &World::get_random_engine()
 
 void World::add_group(gsl::not_null<Group *> group)
 {
+  group->set_world(this);
   groups_.emplace_back(group);
 }
 
 void World::add_source(gsl::not_null<SourceStream *> source)
 {
+  source->set_world(this);
   sources_.emplace_back(source);
 }
 void World::print_stats()

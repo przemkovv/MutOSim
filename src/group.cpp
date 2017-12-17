@@ -7,12 +7,11 @@
 #include <cmath>
 #include <gsl/gsl>
 
-Group::Group(World &world, Size capacity, Intensity serve_intensity)
-  : id(world.get_unique_id()),
+Group::Group(const Name &name, Size capacity, Intensity serve_intensity)
+  : name_(name),
     capacity_(capacity),
     serve_intensity_(serve_intensity),
-    world_(world),
-    loss_group(world)
+    loss_group(name + "_LG")
 {
 }
 
@@ -20,7 +19,7 @@ void Group::set_end_time(Load &load)
 {
   // auto pf = dis(world_.get_random_engine());
   // auto t_serv = -std::log(1.0 - pf) / serve_intensity;
-  auto t_serv = exponential(world_.get_random_engine());
+  auto t_serv = exponential(world_->get_random_engine());
   load.end_time = load.send_time + static_cast<Time>(t_serv);
   // load.end_time =
   // load.send_time + gsl::narrow<Time>(load.size / serve_intensity);
@@ -42,12 +41,8 @@ void Group::add_load(Load load)
   size_ += load.size;
   load.served_by.reset(this);
   set_end_time(load);
-  // auto on_process = [this](World *, Event *e) {
-  // this->take_off(static_cast<LoadServeEvent *>(e)->load);
-  // };
-  world_.schedule(std::make_unique<LoadServeEvent>(world_.get_uuid(), load,
-                                                   group_serve_event_callback));
-  // world_.queue_load_to_serve(load);
+  world_->schedule(std::make_unique<LoadServeEvent>(
+      world_->get_uuid(), load, group_serve_event_callback));
 }
 
 bool Group::serve(Load load)
@@ -57,7 +52,8 @@ bool Group::serve(Load load)
     add_load(load);
     if (is_blocked()) {
       start_of_block_ = load.send_time;
-      debug_print("{} Blocking bt={}, sobt={}\n", *this, block_time_, start_of_block_);
+      debug_print("{} Blocking bt={}, sobt={}\n", *this, block_time_,
+                  start_of_block_);
     }
     return true;
   }
@@ -102,10 +98,10 @@ bool Group::forward(Load load)
 Stats Group::get_stats()
 {
   return {loss_group.total_served, total_served, block_time_,
-          world_.get_time()};
+          world_->get_time()};
 }
 
-LossGroup::LossGroup(World &world) : id(world.get_unique_id()), world_(world)
+LossGroup::LossGroup(const Name &name) : name_(name)
 {
 }
 bool LossGroup::serve(Load load)
@@ -121,14 +117,14 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const Group &group)
 
 {
-  f.writer().write("[Group {}, cap={}/{}]", group.id, group.size_,
+  f.writer().write("[Group {}, cap={}/{}]", group.name_, group.size_,
                    group.capacity_);
 }
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const LossGroup &loss_group)
 {
-  f.writer().write("[LossGroup {}, lost={}]", loss_group.id,
+  f.writer().write("[LossGroup {}, lost={}]", loss_group.name_,
                    loss_group.total_served.count);
 }
 

@@ -26,18 +26,22 @@ struct Stats {
 };
 
 struct LossGroup {
-  const Uuid id;
+  const Name name_;
 
   LoadStats total_served{0, 0};
 
-  World &world_;
+  observer_ptr<World> world_;
 
-  LossGroup(World &world);
+  void set_world(gsl::not_null<World*> world) {
+    world_ = make_observer(world.get());
+  }
+
+  LossGroup(const Name &name);
   bool serve(Load load);
 };
 
 struct Group {
-  const Uuid id;
+  const Name name_;
   Size capacity_ = 1;
   Size size_ = 0;
 
@@ -51,7 +55,12 @@ struct Group {
   std::uniform_real_distribution<> dis{0.0, 1.0};
   std::exponential_distribution<> exponential{serve_intensity_};
 
-  World &world_;
+  observer_ptr<World> world_;
+
+  void set_world(gsl::not_null<World*> world) {
+    world_ = make_observer(world.get());
+    loss_group.set_world(world);
+  }
 
   std::vector<observer_ptr<Group>> next_groups_{};
   LossGroup loss_group;
@@ -63,7 +72,7 @@ struct Group {
   bool can_serve(const Size &load_size);
   bool is_blocked();
 
-  Group(World &world, Size capacity, Intensity serve_intensity);
+  Group(const Name &name, Size capacity, Intensity serve_intensity);
 
   bool serve(Load load);
   void take_off(const Load &load);
