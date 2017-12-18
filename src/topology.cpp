@@ -2,7 +2,6 @@
 #include "topology.h"
 
 #include "group.h"
-#include "source_stream.h"
 
 void Topology::add_group(std::unique_ptr<Group> group)
 {

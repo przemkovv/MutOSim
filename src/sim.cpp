@@ -4,7 +4,9 @@
 #include "group.h"
 #include "logger.h"
 #include "sim.h"
-#include "source_stream.h"
+#include "source_stream/engset.h"
+#include "source_stream/poisson.h"
+#include "source_stream/source_stream.h"
 #include "types.h"
 #include "world.h"
 
@@ -14,12 +16,15 @@
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <parallel/algorithm>
 #include <random>
 
 using std::experimental::make_observer;
 
 // const auto duration = Duration(20'000'000);
-const auto duration = Duration(100'000);
+const auto duration = Duration(1'000'000);
+// const auto duration = Duration(500'000);
+// const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 const auto tick_length = Duration(0.1);
 
@@ -137,7 +142,7 @@ int main()
     scenarios.emplace_back(single_overflow());
     scenarios.emplace_back(multiple_sources_single_overflow());
 
-    for (auto &scenario : scenarios) {
+    auto run_scenario = [](auto &scenario) {
       print("[Main] {:-^100}\n", scenario.name);
       World world{seed(), scenario.duration, scenario.tick_length};
       world.set_topology(&scenario.topology);
@@ -149,6 +154,18 @@ int main()
       world.run();
       if (scenario.do_after) {
         scenario.do_after();
+      }
+    };
+
+    if ((false)) {
+#pragma omp parallel for
+      for (auto i = 0ul; i < scenarios.size(); ++i) {
+        auto &scenario = scenarios[i];
+        run_scenario(scenario);
+      }
+    } else {
+      for (auto &scenario : scenarios) {
+        run_scenario(scenario);
       }
     }
   }

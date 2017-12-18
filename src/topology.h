@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "source_stream/source_stream.h"
 
 #include <gsl/gsl>
 #include <map>

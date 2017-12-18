@@ -4,7 +4,7 @@
 #include "group.h"
 #include "load.h"
 #include "logger.h"
-#include "source_stream.h"
+#include "source_stream/source_stream.h"
 
 World::World(uint64_t seed, Duration duration, Duration tick_length)
   : seed_(seed), duration_(duration), tick_length_(tick_length)
@@ -31,8 +31,9 @@ bool World::next_iteration()
               time_);
 
   Time next_event = 0;
-  if (!events_.empty())
+  if (!events_.empty()) {
     next_event = events_.top()->time;
+  }
 
   if (next_event > time_) {
     time_ = next_event;
@@ -56,7 +57,7 @@ void World::process_event()
     auto event = events_.top().get();
     switch (event->type) {
     case EventType::LoadSend: {
-      auto send_event = static_cast<LoadSendEvent *>(event);
+      auto send_event = dynamic_cast<LoadSendEvent *>(event);
       serve_load(send_event->load);
       break;
     }
@@ -71,7 +72,7 @@ void World::process_event()
       break;
     }
 
-    if (event->on_process) {
+    if (event->on_process != nullptr) {
       event->on_process(this, event);
     }
 
@@ -133,6 +134,6 @@ void World::set_topology(gsl::not_null<Topology *> topology)
 
 void World::schedule(std::unique_ptr<Event> event)
 {
-  debug_print("[World] Schedule: {}\n", *event.get());
+  debug_print("[World] Schedule: {}\n", *event);
   events_.emplace(std::move(event));
 }

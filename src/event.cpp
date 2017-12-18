@@ -1,5 +1,19 @@
 #include "event.h"
 
+Event::~Event()
+{
+}
+
+LoadServeEvent::~LoadServeEvent()
+{
+}
+LoadSendEvent::~LoadSendEvent()
+{
+}
+LoadProduceEvent::~LoadProduceEvent()
+{
+}
+
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const EventType &type)

@@ -29,6 +29,8 @@ struct Event {
     : type(type_), id(id_), time(time_), on_process(on_process_)
   {
   }
+
+  virtual ~Event();
 };
 
 struct LoadSendEvent : public Event {
@@ -40,6 +42,8 @@ struct LoadSendEvent : public Event {
       load(std::move(load_))
   {
   }
+
+  virtual ~LoadSendEvent();
 };
 
 struct LoadServeEvent : public Event {
@@ -49,6 +53,8 @@ struct LoadServeEvent : public Event {
       load(std::move(load_))
   {
   }
+
+  virtual ~LoadServeEvent();
 };
 
 struct LoadProduceEvent : public Event {
@@ -57,6 +63,8 @@ struct LoadProduceEvent : public Event {
     : Event(EventType::LoadProduce, id, time_, on_process_), source_stream(source_stream_)
   {
   }
+
+  virtual ~LoadProduceEvent();
 };
 
 class by_time

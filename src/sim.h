@@ -2,9 +2,9 @@
 #pragma once
 
 #include "group.h"
-#include "source_stream.h"
-#include "topology.h"
 #include "simulation_settings.h"
+#include "source_stream/source_stream.h"
+#include "topology.h"
 
 #include <map>
 #include <memory>
