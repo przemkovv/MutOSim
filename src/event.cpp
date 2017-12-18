@@ -32,6 +32,10 @@ void LoadServeEvent::process()
 void LoadSendEvent::process()
 {
   load.produced_by->notify_on_send(this);
+
+  if (load.target_group->try_serve(load)) {
+    load.produced_by->notify_on_accept(this);
+  }
 }
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

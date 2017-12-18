@@ -25,7 +25,6 @@ struct Event {
     : type(type_), id(id_), time(time_)
   {
   }
-
   void clear_type() { type = EventType::None; }
 
   virtual void process();
@@ -48,6 +47,7 @@ struct LoadSendEvent : public Event {
 
 struct LoadServeEvent : public Event {
   Load load;
+
   LoadServeEvent(Uuid id, Load load_)
     : Event(EventType::LoadServe, id, load_.end_time), load(std::move(load_))
   {
@@ -60,6 +60,7 @@ struct LoadServeEvent : public Event {
 
 struct LoadProduceEvent : public Event {
   std::experimental::observer_ptr<SourceStream> source_stream;
+
   LoadProduceEvent(Uuid id, Time time_, SourceStream *source_stream_)
     : Event(EventType::LoadProduce, id, time_), source_stream(source_stream_)
   {

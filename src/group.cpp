@@ -39,7 +39,7 @@ void Group::add_load(Load load)
   world_->schedule(std::make_unique<LoadServeEvent>(world_->get_uuid(), load));
 }
 
-bool Group::serve(Load load)
+bool Group::try_serve(Load load)
 {
   if (can_serve(load.size)) {
     debug_print("{} Serving load: {}\n", *this, load);
@@ -88,7 +88,7 @@ bool Group::forward(Load load)
   }
   // TODO(PW): make it more intelligent
   if (!next_groups_.empty()) {
-    return next_groups_.front()->serve(load);
+    return next_groups_.front()->try_serve(load);
   }
   return loss_group.serve(load);
 }

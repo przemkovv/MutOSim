@@ -69,7 +69,7 @@ struct Group {
 
   Group(const Name &name, Size capacity, Intensity serve_intensity);
 
-  bool serve(Load load);
+  bool try_serve(Load load);
   void take_off(const Load &load);
 
   void notify_on_serve(LoadServeEvent *event);

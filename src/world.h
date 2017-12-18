@@ -34,8 +34,6 @@ class World
 
   observer_ptr<Topology> topology_;
 
-  bool serve_load(Load load);
-
   void process_event();
 
 public:

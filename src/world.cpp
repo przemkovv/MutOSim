@@ -57,36 +57,10 @@ void World::process_event()
     auto event = events_.top().get();
     event->process();
 
-    switch (event->type) {
-    case EventType::LoadSend: {
-      auto send_event = dynamic_cast<LoadSendEvent *>(event);
-      if (serve_load(send_event->load)) {
-        send_event->load.produced_by->notify_on_accept(send_event);
-      }
-      break;
-    }
-    case EventType::LoadServe: {
-      break;
-    }
-    case EventType::LoadProduce: {
-      break;
-    }
-    case EventType::None:
-      break;
-    }
-
     events_.pop();
   }
 }
 
-bool World::serve_load(Load load)
-{
-  debug_print("[World] New load: {}\n", load);
-  if (load.target_group) {
-    return load.target_group->serve(load);
-  }
-  return false;
-}
 
 Uuid World::get_uuid()
 {
