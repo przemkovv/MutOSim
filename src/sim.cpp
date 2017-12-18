@@ -5,9 +5,9 @@
 #include "logger.h"
 #include "sim.h"
 #include "source_stream/engset.h"
+#include "source_stream/pascal.h"
 #include "source_stream/poisson.h"
 #include "source_stream/source_stream.h"
-#include "source_stream/pascal.h"
 #include "types.h"
 #include "world.h"
 
@@ -24,10 +24,10 @@ using std::experimental::make_observer;
 
 // const auto duration = Duration(20'000'000);
 // const auto duration = Duration(1'000'000);
-// const auto duration = Duration(500'000);
+const auto duration = Duration(500'000);
 // const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
-const auto duration = Duration(100);
+// const auto duration = Duration(100);
 const auto tick_length = Duration(0.1);
 
 uint64_t seed()
@@ -56,8 +56,8 @@ SimulationSettings erlang_model()
   topology.add_group(std::make_unique<Group>("G1", V, micro));
 
   topology.add_source(
-      std::make_unique<PoissonSourceStream>("S1", lambda, Size(1)));
-  topology.attach_source_to_group("S1", "G1");
+      std::make_unique<PoissonSourceStream>("SPo1", lambda, Size(1)));
+  topology.attach_source_to_group("SPo1", "G1");
 
   return sim_settings;
 }
@@ -85,27 +85,28 @@ SimulationSettings engset_model()
   topology.add_group(std::make_unique<Group>("G1", V, micro));
 
   topology.add_source(
-      std::make_unique<EngsetSourceStream>("S1", gamma, N, Size(1)));
-  topology.attach_source_to_group("S1", "G1");
+      std::make_unique<EngsetSourceStream>("SEn1", gamma, N, Size(1)));
+  topology.attach_source_to_group("SEn1", "G1");
 
   return sim_settings;
 }
-SimulationSettings pascal_source_model()
+SimulationSettings pascal_source_model(Intensity gamma, Size V, Size N)
 { // Pascal source
 
-  SimulationSettings sim_settings{duration, tick_length, "Pascal source model"};
+  auto name = fmt::format("Pascal source. gamma={}, V={}, N={} ", gamma, V, N);
+  SimulationSettings sim_settings{duration, tick_length, name};
 
-  const auto lambda = Intensity(3);
-  const auto N = Size(2);
-  const auto gamma = lambda / N;
+  // const auto lambda = Intensity(5);
+  // const auto N = Size(5);
+  // const auto gamma = lambda / N;
   const auto micro = Intensity(1.0);
-  const auto V = Size(1);
-  const auto alpha = gamma / micro;
+  // const auto V = Size(7);
+  // const auto alpha = gamma / micro;
 
   sim_settings.do_before = [&]() {
-    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
-    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          engset_pi(alpha, V, N - 1, V));
+    // print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N,
+    // V)); print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
+    // engset_pi(alpha, V, N - 1, V));
   };
   sim_settings.do_after = sim_settings.do_before;
 
@@ -113,8 +114,8 @@ SimulationSettings pascal_source_model()
   topology.add_group(std::make_unique<Group>("G1", V, micro));
 
   topology.add_source(
-      std::make_unique<PascalSourceStream>("S1", gamma, N, Size(1)));
-  topology.attach_source_to_group("S1", "G1");
+      std::make_unique<PascalSourceStream>("SPa1", gamma, N, Size(1)));
+  topology.attach_source_to_group("SPa1", "G1");
 
   return sim_settings;
 }
@@ -127,10 +128,10 @@ SimulationSettings single_overflow()
   topology.add_group(std::make_unique<Group>("G1", Size(1), Intensity(1.0)));
   topology.add_group(std::make_unique<Group>("G2", Size(1), Intensity(1.0)));
   topology.add_source(
-      std::make_unique<PoissonSourceStream>("S1", Intensity(3.0), Size(1)));
+      std::make_unique<PoissonSourceStream>("SPo1", Intensity(3.0), Size(1)));
 
   topology.connect_groups("G1", "G2");
-  topology.attach_source_to_group("S1", "G1");
+  topology.attach_source_to_group("SPo1", "G1");
 
   return sim_settings;
 }
@@ -151,13 +152,13 @@ SimulationSettings multiple_sources_single_overflow()
   topology.add_group(std::make_unique<Group>("G1", V, micro));
   topology.add_group(std::make_unique<Group>("G2", V, micro));
   topology.add_source(
-      std::make_unique<PoissonSourceStream>("SP1", lambda, Size(1)));
+      std::make_unique<PoissonSourceStream>("SPo1", lambda, Size(1)));
   topology.add_source(
-      std::make_unique<EngsetSourceStream>("SE2", gamma, N, Size(1)));
+      std::make_unique<EngsetSourceStream>("SEn2", gamma, N, Size(1)));
 
   topology.connect_groups("G1", "G2");
-  topology.attach_source_to_group("SP1", "G1");
-  topology.attach_source_to_group("SE2", "G1");
+  topology.attach_source_to_group("SPo1", "G1");
+  topology.attach_source_to_group("SEn2", "G1");
 
   return sim_settings;
 }
@@ -167,11 +168,13 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    scenarios.emplace_back(erlang_model());
+    // scenarios.emplace_back(erlang_model());
     // scenarios.emplace_back(engset_model());
     // scenarios.emplace_back(single_overflow());
     // scenarios.emplace_back(multiple_sources_single_overflow());
-    scenarios.emplace_back(pascal_source_model());
+    scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(1)));
+    scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(5)));
+    scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(10)));
 
     auto run_scenario = [](auto &scenario) {
       print("[Main] {:-^100}\n", scenario.name);

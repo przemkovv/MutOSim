@@ -23,4 +23,4 @@ SimulationSettings erlang_model();
 SimulationSettings engset_model();
 SimulationSettings single_overflow();
 SimulationSettings multiple_sources_single_overflow();
-SimulationSettings pascal_source_model();
+SimulationSettings pascal_source_model(Intensity gamma, Size V, Size N);
