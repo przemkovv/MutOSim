@@ -7,6 +7,7 @@
 #include "source_stream/engset.h"
 #include "source_stream/poisson.h"
 #include "source_stream/source_stream.h"
+#include "source_stream/pascal.h"
 #include "types.h"
 #include "world.h"
 
@@ -22,10 +23,11 @@
 using std::experimental::make_observer;
 
 // const auto duration = Duration(20'000'000);
-const auto duration = Duration(1'000'000);
+// const auto duration = Duration(1'000'000);
 // const auto duration = Duration(500'000);
 // const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
+const auto duration = Duration(100);
 const auto tick_length = Duration(0.1);
 
 uint64_t seed()
@@ -88,6 +90,34 @@ SimulationSettings engset_model()
 
   return sim_settings;
 }
+SimulationSettings pascal_source_model()
+{ // Pascal source
+
+  SimulationSettings sim_settings{duration, tick_length, "Pascal source model"};
+
+  const auto lambda = Intensity(3);
+  const auto N = Size(2);
+  const auto gamma = lambda / N;
+  const auto micro = Intensity(1.0);
+  const auto V = Size(1);
+  const auto alpha = gamma / micro;
+
+  sim_settings.do_before = [&]() {
+    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
+    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
+          engset_pi(alpha, V, N - 1, V));
+  };
+  sim_settings.do_after = sim_settings.do_before;
+
+  auto &topology = sim_settings.topology;
+  topology.add_group(std::make_unique<Group>("G1", V, micro));
+
+  topology.add_source(
+      std::make_unique<PascalSourceStream>("S1", gamma, N, Size(1)));
+  topology.attach_source_to_group("S1", "G1");
+
+  return sim_settings;
+}
 
 SimulationSettings single_overflow()
 {
@@ -138,9 +168,10 @@ int main()
 
   {
     scenarios.emplace_back(erlang_model());
-    scenarios.emplace_back(engset_model());
-    scenarios.emplace_back(single_overflow());
-    scenarios.emplace_back(multiple_sources_single_overflow());
+    // scenarios.emplace_back(engset_model());
+    // scenarios.emplace_back(single_overflow());
+    // scenarios.emplace_back(multiple_sources_single_overflow());
+    scenarios.emplace_back(pascal_source_model());
 
     auto run_scenario = [](auto &scenario) {
       print("[Main] {:-^100}\n", scenario.name);

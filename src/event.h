@@ -30,6 +30,10 @@ struct Event {
   {
   }
 
+  void clear_type() {
+    type = EventType::None;
+  }
+
   virtual ~Event();
 };
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.h"
 #include "event.h"
+#include "types.h"
 
 #include <fmt/format.h>
 #include <memory>
@@ -23,10 +23,12 @@ protected:
   bool pause_ = false;
 
 public:
-  void set_world(gsl::not_null<World *> world) ;
+  void set_world(gsl::not_null<World *> world);
 
   virtual EventPtr produce_load(Time time);
   virtual void notify_on_serve(const Load &load);
+  virtual void notify_on_accept(const Load &load);
+  virtual void notify_on_produce(const LoadProduceEvent *produce_event);
   virtual void init();
   void attach_to_group(gsl::not_null<Group *> target_group);
   const Name &get_name() { return name_; }

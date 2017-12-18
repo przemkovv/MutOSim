@@ -58,7 +58,9 @@ void World::process_event()
     switch (event->type) {
     case EventType::LoadSend: {
       auto send_event = dynamic_cast<LoadSendEvent *>(event);
-      serve_load(send_event->load);
+      if (serve_load(send_event->load)) {
+        send_event->load.produced_by->notify_on_accept(send_event->load);
+      }
       break;
     }
     case EventType::LoadServe: {
@@ -66,8 +68,11 @@ void World::process_event()
       // serve_event->load.produced_by->notify_on_serve(serve_event->load);
       break;
     }
-    case EventType::LoadProduce:
+    case EventType::LoadProduce: {
+      auto produce_event = dynamic_cast<LoadProduceEvent *>(event);
+      produce_event->source_stream->notify_on_produce(produce_event);
       break;
+    }
     case EventType::None:
       break;
     }

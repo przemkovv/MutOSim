@@ -13,6 +13,13 @@ void SourceStream::notify_on_serve(const Load & /* load */)
 {
 }
 
+void SourceStream::notify_on_accept(const Load & /* load */)
+{
+}
+void SourceStream::notify_on_produce(
+    const LoadProduceEvent * /* produce_event */)
+{
+}
 void SourceStream::init()
 {
 }

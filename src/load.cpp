@@ -11,10 +11,10 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const Load &load)
 {
   if (load.end_time < 0) {
-    f.writer().write("[Load: id={}, size={} st={}]", load.id, load.size,
-                     load.send_time);
+    f.writer().write("[Load: id={}, size={} st={}, p_by={}]", load.id, load.size,
+                     load.send_time, load.produced_by != nullptr);
   } else {
-    f.writer().write("[Load: id={}, size={}, st={}, dt={}]", load.id, load.size,
-                     load.send_time, load.end_time - load.send_time);
+    f.writer().write("[Load: id={}, size={}, st={}, dt={}, p_by={}]", load.id, load.size,
+                     load.send_time, load.end_time - load.send_time, load.produced_by != nullptr);
   }
 }
