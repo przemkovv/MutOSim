@@ -17,12 +17,8 @@ Group::Group(const Name &name, Size capacity, Intensity serve_intensity)
 
 void Group::set_end_time(Load &load)
 {
-  // auto pf = dis(world_.get_random_engine());
-  // auto t_serv = -std::log(1.0 - pf) / serve_intensity;
   auto t_serv = exponential(world_->get_random_engine());
   load.end_time = load.send_time + static_cast<Time>(t_serv);
-  // load.end_time =
-  // load.send_time + gsl::narrow<Time>(load.size / serve_intensity);
 }
 
 void Group::add_next_group(gsl::not_null<Group *> group)
@@ -30,10 +26,9 @@ void Group::add_next_group(gsl::not_null<Group *> group)
   next_groups_.emplace_back(make_observer(group.get()));
 }
 
-static void group_serve_event_callback(World *, Event *e)
+void Group::notify_on_serve(LoadServeEvent *event)
 {
-  auto load = static_cast<LoadServeEvent *>(e)->load;
-  load.served_by->take_off(load);
+  take_off(event->load);
 }
 
 void Group::add_load(Load load)
@@ -41,8 +36,7 @@ void Group::add_load(Load load)
   size_ += load.size;
   load.served_by.reset(this);
   set_end_time(load);
-  world_->schedule(std::make_unique<LoadServeEvent>(
-      world_->get_uuid(), load, group_serve_event_callback));
+  world_->schedule(std::make_unique<LoadServeEvent>(world_->get_uuid(), load));
 }
 
 bool Group::serve(Load load)
@@ -75,8 +69,6 @@ void Group::take_off(const Load &load)
   total_served.count++;
   served_by_source[load.produced_by->id].size += load.size;
   served_by_source[load.produced_by->id].count++;
-
-  load.produced_by->notify_on_serve(load);
 }
 
 bool Group::is_blocked()
@@ -147,4 +139,3 @@ void format_arg(fmt::BasicFormatter<char> &f,
   f.writer().write("[LossGroup {}, lost={}]", loss_group.name_,
                    loss_group.total_served.count);
 }
-

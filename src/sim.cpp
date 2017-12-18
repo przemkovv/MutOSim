@@ -20,8 +20,6 @@
 #include <parallel/algorithm>
 #include <random>
 
-using std::experimental::make_observer;
-
 // const auto duration = Duration(20'000'000);
 // const auto duration = Duration(1'000'000);
 // const auto duration = Duration(500'000);

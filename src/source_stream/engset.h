@@ -4,7 +4,6 @@
 
 #include <random>
 
-
 class EngsetSourceStream : public SourceStream
 {
   double intensity_;
@@ -14,7 +13,6 @@ class EngsetSourceStream : public SourceStream
 
   std::exponential_distribution<> exponential{intensity_};
 
-  friend void engset_load_produce_callback(World *world, Event *event);
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,
                          const EngsetSourceStream &source);
@@ -25,7 +23,8 @@ class EngsetSourceStream : public SourceStream
 public:
   void init() override;
   EventPtr produce_load(Time time) override;
-  void notify_on_serve(const Load &load) override;
+  void notify_on_serve(const LoadServeEvent *event) override;
+  void notify_on_produce(const LoadProduceEvent *event) override;
   EngsetSourceStream(const Name &name,
                      Intensity intensity,
                      Size sources_number,
@@ -35,5 +34,3 @@ public:
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const EngsetSourceStream &source);
-
-void engset_load_produce_callback(World *world, Event *event);

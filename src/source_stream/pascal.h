@@ -3,8 +3,8 @@
 
 #include "source_stream.h"
 
-#include <random>
 #include <map>
+#include <random>
 
 class PascalSourceStream : public SourceStream
 {
@@ -27,8 +27,9 @@ class PascalSourceStream : public SourceStream
 public:
   void init() override;
   EventPtr produce_load(Time time) override;
-  void notify_on_serve(const Load &load) override;
-  void notify_on_accept(const Load &load) override;
+  void notify_on_send(const LoadSendEvent *event) override;
+  void notify_on_serve(const LoadServeEvent *event) override;
+  void notify_on_accept(const LoadSendEvent *event) override;
   void notify_on_produce(const LoadProduceEvent *produce_event) override;
   PascalSourceStream(const Name &name,
                      Intensity intensity,
@@ -39,4 +40,3 @@ public:
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const PascalSourceStream &source);
-

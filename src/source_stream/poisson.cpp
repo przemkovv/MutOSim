@@ -10,11 +10,9 @@ PoissonSourceStream::PoissonSourceStream(const Name &name,
 {
 }
 
-static void poisson_produce_load_callback(World *world, Event *event)
+void PoissonSourceStream::notify_on_send(const LoadSendEvent *event)
 {
-  auto send_event = static_cast<LoadSendEvent *>(event);
-  auto &produced_by = send_event->load.produced_by;
-  world->schedule(produced_by->produce_load(send_event->load.send_time));
+  world_->schedule(produce_load(event->load.send_time));
 }
 
 void PoissonSourceStream::init()
@@ -39,8 +37,7 @@ EventPtr PoissonSourceStream::produce_load(Time time)
   // auto t = static_cast<LoadSendEvent *>(event)->load.send_time;
   // world->schedule(this->produce_load(t));
   // };
-  return std::make_unique<LoadSendEvent>(world_->get_uuid(), load,
-                                         poisson_produce_load_callback);
+  return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,

@@ -12,26 +12,23 @@ EngsetSourceStream::EngsetSourceStream(const Name &name,
     sources_number_(sources_number)
 {
 }
-
-void engset_load_produce_callback(World *world, Event *event)
+void EngsetSourceStream::notify_on_produce(const LoadProduceEvent *event)
 {
-  auto produce_event = static_cast<LoadProduceEvent *>(event);
-  auto &source_stream = produce_event->source_stream;
-  world->schedule(source_stream->produce_load(event->time));
+  world_->schedule(produce_load(event->time));
 }
 
-void EngsetSourceStream::notify_on_serve(const Load &load)
+void EngsetSourceStream::notify_on_serve(const LoadServeEvent *event)
 {
   active_sources_--;
-  debug_print("{} Load has been served {}\n", *this, load);
+  debug_print("{} Load has been served {}\n", *this, event->load);
 
   if (active_sources_ < 0) {
     print("{} Number of active sources is less than zero. Load {}\n", *this,
-          load);
+          event->load);
     std::abort();
   }
 
-  world_->schedule(create_produce_load_event(load.end_time));
+  world_->schedule(create_produce_load_event(event->load.end_time));
 }
 
 void EngsetSourceStream::init()
@@ -53,8 +50,8 @@ EngsetSourceStream::create_produce_load_event(Time time)
   // (sources_number_ - active_sources_) * intensity_);
   // exponential.param(params);
   auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
-  return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt, this,
-                                            engset_load_produce_callback);
+  return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt,
+                                            this);
 }
 
 EventPtr EngsetSourceStream::produce_load(Time time)

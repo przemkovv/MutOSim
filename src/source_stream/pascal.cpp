@@ -16,31 +16,29 @@ PascalSourceStream::PascalSourceStream(const Name &name,
 {
 }
 
-static void pascal_produce_load_callback(World *world, Event *event)
+void PascalSourceStream::notify_on_send(const LoadSendEvent *event)
 {
-  if (event->type == EventType::LoadSend) {
-    auto send_event = static_cast<LoadSendEvent *>(event);
-    auto &produced_by = send_event->load.produced_by;
-    world->schedule(produced_by->produce_load(send_event->load.send_time));
-  }
+  world_->schedule(produce_load(event->load.send_time));
 }
-void PascalSourceStream::notify_on_accept(const Load &load)
+
+void PascalSourceStream::notify_on_accept(const LoadSendEvent *event)
 {
   active_sources_++;
-  debug_print("{} Load has been accepted {}\n", *this, load);
+  debug_print("{} Load has been accepted {}\n", *this, event->load);
 
-  auto event = create_produce_load_event(load.send_time);
-  linked_sources_.emplace(load.id, make_observer(event.get()));
-  world_->schedule(std::move(event));
+  auto new_event = create_produce_load_event(event->load.send_time);
+  linked_sources_.emplace(event->load.id, make_observer(new_event.get()));
+  world_->schedule(std::move(new_event));
 }
 
-void PascalSourceStream::notify_on_serve(const Load &load)
+void PascalSourceStream::notify_on_serve(const LoadServeEvent *event)
 {
   active_sources_--;
-  debug_print("{} Load has been served {}\n", *this, load);
+  debug_print("{} Load has been served {}\n", *this, event->load);
 
   // TODO(PW): remove related event
-  if (auto it = linked_sources_.find(load.id); it != end(linked_sources_)) {
+  if (auto it = linked_sources_.find(event->load.id);
+      it != end(linked_sources_)) {
     it->second->clear_type();
     linked_sources_.erase(it);
   }
@@ -76,8 +74,8 @@ PascalSourceStream::create_produce_load_event(Time time)
   // (sources_number_ - active_sources_) * intensity_);
   // exponential.param(params);
   auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
-  return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt, this,
-                                            pascal_produce_load_callback);
+  return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt,
+                                            this);
 }
 
 EventPtr PascalSourceStream::produce_load(Time time)
@@ -90,8 +88,7 @@ EventPtr PascalSourceStream::produce_load(Time time)
   auto load = create_load(time + dt);
   debug_print("{} Produced: {}\n", *this, load);
 
-  return std::make_unique<LoadSendEvent>(world_->get_uuid(), load,
-                                         pascal_produce_load_callback);
+  return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,

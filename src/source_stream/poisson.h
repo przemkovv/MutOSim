@@ -4,7 +4,6 @@
 
 #include <random>
 
-
 class PoissonSourceStream : public SourceStream
 {
   double intensity_;
@@ -18,6 +17,7 @@ public:
 
   void init() override;
   EventPtr produce_load(Time time) override;
+  void notify_on_send(const LoadSendEvent *event) override;
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

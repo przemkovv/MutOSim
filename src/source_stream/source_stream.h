@@ -26,8 +26,9 @@ public:
   void set_world(gsl::not_null<World *> world);
 
   virtual EventPtr produce_load(Time time);
-  virtual void notify_on_serve(const Load &load);
-  virtual void notify_on_accept(const Load &load);
+  virtual void notify_on_send(const LoadSendEvent *event);
+  virtual void notify_on_serve(const LoadServeEvent *event);
+  virtual void notify_on_accept(const LoadSendEvent *event);
   virtual void notify_on_produce(const LoadProduceEvent *produce_event);
   virtual void init();
   void attach_to_group(gsl::not_null<Group *> target_group);

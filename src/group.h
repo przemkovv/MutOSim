@@ -72,6 +72,8 @@ struct Group {
   bool serve(Load load);
   void take_off(const Load &load);
 
+  void notify_on_serve(LoadServeEvent *event);
+
   Stats get_stats();
   const Name &get_name() { return name_; }
 };

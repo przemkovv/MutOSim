@@ -55,30 +55,24 @@ void World::process_event()
 {
   while (!events_.empty() && events_.top()->time <= time_) {
     auto event = events_.top().get();
+    event->process();
+
     switch (event->type) {
     case EventType::LoadSend: {
       auto send_event = dynamic_cast<LoadSendEvent *>(event);
       if (serve_load(send_event->load)) {
-        send_event->load.produced_by->notify_on_accept(send_event->load);
+        send_event->load.produced_by->notify_on_accept(send_event);
       }
       break;
     }
     case EventType::LoadServe: {
-      // auto serve_event = static_cast<LoadServeEvent *>(event);
-      // serve_event->load.produced_by->notify_on_serve(serve_event->load);
       break;
     }
     case EventType::LoadProduce: {
-      auto produce_event = dynamic_cast<LoadProduceEvent *>(event);
-      produce_event->source_stream->notify_on_produce(produce_event);
       break;
     }
     case EventType::None:
       break;
-    }
-
-    if (event->on_process != nullptr) {
-      event->on_process(this, event);
     }
 
     events_.pop();

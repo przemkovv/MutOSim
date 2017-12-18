@@ -1,5 +1,8 @@
 #include "event.h"
 
+#include "group.h"
+#include "source_stream/source_stream.h"
+
 Event::~Event()
 {
 }
@@ -13,7 +16,23 @@ LoadSendEvent::~LoadSendEvent()
 LoadProduceEvent::~LoadProduceEvent()
 {
 }
+void Event::process()
+{
+}
+void LoadProduceEvent::process()
+{
+  source_stream->notify_on_produce(this);
+}
+void LoadServeEvent::process()
+{
+  load.produced_by->notify_on_serve(this);
+  load.served_by->notify_on_serve(this);
+}
 
+void LoadSendEvent::process()
+{
+  load.produced_by->notify_on_send(this);
+}
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const EventType &type)

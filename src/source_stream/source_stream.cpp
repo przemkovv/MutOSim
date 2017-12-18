@@ -9,15 +9,17 @@ EventPtr SourceStream::produce_load(Time time)
   return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
 }
 
-void SourceStream::notify_on_serve(const Load & /* load */)
+void SourceStream::notify_on_produce(const LoadProduceEvent * /* event */)
+{
+}
+void SourceStream::notify_on_send(const LoadSendEvent * /* event */)
+{
+}
+void SourceStream::notify_on_serve(const LoadServeEvent * /* event */)
 {
 }
 
-void SourceStream::notify_on_accept(const Load & /* load */)
-{
-}
-void SourceStream::notify_on_produce(
-    const LoadProduceEvent * /* produce_event */)
+void SourceStream::notify_on_accept(const LoadSendEvent * /* event */)
 {
 }
 void SourceStream::init()

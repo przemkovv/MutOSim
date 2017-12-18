@@ -21,18 +21,14 @@ struct Event {
   Uuid id;
   Time time;
 
-  EventFunc on_process = nullptr;
-
-  Event(EventType type_, Uuid id_, Time time_) : Event(type_, id_, time_, nullptr) {}
-
-  Event(EventType type_, Uuid id_, Time time_, EventFunc on_process_)
-    : type(type_), id(id_), time(time_), on_process(on_process_)
+  Event(EventType type_, Uuid id_, Time time_)
+    : type(type_), id(id_), time(time_)
   {
   }
 
-  void clear_type() {
-    type = EventType::None;
-  }
+  void clear_type() { type = EventType::None; }
+
+  virtual void process();
 
   virtual ~Event();
 };
@@ -40,35 +36,37 @@ struct Event {
 struct LoadSendEvent : public Event {
   Load load;
 
-  LoadSendEvent(Uuid id, Load load_) : LoadSendEvent(id, load_, nullptr) {}
-  LoadSendEvent(Uuid id, Load load_, EventFunc on_process_)
-    : Event(EventType::LoadSend, id, load_.send_time, on_process_),
-      load(std::move(load_))
+  LoadSendEvent(Uuid id, Load load_)
+    : Event(EventType::LoadSend, id, load_.send_time), load(std::move(load_))
   {
   }
 
-  virtual ~LoadSendEvent();
+  void process() override;
+
+  ~LoadSendEvent() override;
 };
 
 struct LoadServeEvent : public Event {
   Load load;
-  LoadServeEvent(Uuid id, Load load_, EventFunc on_process_)
-    : Event(EventType::LoadServe, id, load_.end_time, on_process_),
-      load(std::move(load_))
+  LoadServeEvent(Uuid id, Load load_)
+    : Event(EventType::LoadServe, id, load_.end_time), load(std::move(load_))
   {
   }
 
-  virtual ~LoadServeEvent();
+  void process() override;
+
+  ~LoadServeEvent() override;
 };
 
 struct LoadProduceEvent : public Event {
   std::experimental::observer_ptr<SourceStream> source_stream;
-  LoadProduceEvent(Uuid id, Time time_, SourceStream* source_stream_, EventFunc on_process_)
-    : Event(EventType::LoadProduce, id, time_, on_process_), source_stream(source_stream_)
+  LoadProduceEvent(Uuid id, Time time_, SourceStream *source_stream_)
+    : Event(EventType::LoadProduce, id, time_), source_stream(source_stream_)
   {
   }
 
-  virtual ~LoadProduceEvent();
+  void process() override;
+  ~LoadProduceEvent() override;
 };
 
 class by_time
