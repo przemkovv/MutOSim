@@ -25,10 +25,19 @@ void Topology::attach_source_to_group(Name source, Name group)
 }
 void Topology::set_world(gsl::not_null<World *> world)
 {
-  for (auto &[name, group] : groups) {
+  for (auto & [ name, group ] : groups) {
     group->set_world(world.get());
   }
-  for (auto &[name, source] : sources) {
+  for (auto & [ name, source ] : sources) {
     source->set_world(world.get());
   }
+}
+std::optional<SourceStream *> Topology::find_source_by_id(Uuid id)
+{
+  for (auto & [ name, source ] : sources) {
+    if (source->id == id) {
+      return source.get();
+    }
+  }
+  return {};
 }

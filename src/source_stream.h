@@ -9,8 +9,8 @@
 #include <gsl/gsl>
 #include <random>
 
-using std::experimental::observer_ptr;
 using std::experimental::make_observer;
+using std::experimental::observer_ptr;
 
 class SourceStream
 {
@@ -26,7 +26,8 @@ protected:
   bool pause_ = false;
 
 public:
-  void set_world(gsl::not_null<World*> world) {
+  void set_world(gsl::not_null<World *> world)
+  {
     world_ = make_observer(world.get());
     id = world->get_uuid();
   }
@@ -35,7 +36,7 @@ public:
   virtual void notify_on_serve(const Load &load);
   virtual void init();
   void attach_to_group(gsl::not_null<Group *> target_group);
-  const Name& get_name() { return name_; }
+  const Name &get_name() { return name_; }
 
   SourceStream(const Name &name) : name_(name) {}
   SourceStream(SourceStream &&) = default;
@@ -46,6 +47,10 @@ public:
 
   void pause() { pause_ = true; }
 };
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const SourceStream &source);
 
 class PoissonSourceStream : public SourceStream
 {

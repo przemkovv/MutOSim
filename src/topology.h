@@ -2,9 +2,10 @@
 
 #include "types.h"
 
+#include <gsl/gsl>
 #include <map>
 #include <memory>
-#include <gsl/gsl>
+#include <optional>
 
 struct Group;
 class SourceStream;
@@ -22,5 +23,7 @@ struct Topology {
 
   void attach_source_to_group(Name source, Name group);
 
-  void set_world(gsl::not_null<World *>world);
+  void set_world(gsl::not_null<World *> world);
+
+  std::optional<SourceStream *> find_source_by_id(Uuid id);
 };

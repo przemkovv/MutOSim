@@ -106,8 +106,8 @@ void World::print_stats()
     const auto &group_stats = group->get_stats();
     print("[World] Stats for {}: {}\n", *group, group_stats);
     for (auto & [ source_id, stats ] : group_stats.by_source) {
-      print("[World] Stats for {}: source_id={}: {}\n", *group, source_id,
-            stats);
+      print("[World] Stats for {}: {}: {}\n", *group,
+            *topology_->find_source_by_id(source_id).value(), stats);
     }
   }
 }

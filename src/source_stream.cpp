@@ -29,6 +29,13 @@ void SourceStream::attach_to_group(gsl::not_null<Group *> target_group)
   target_group_ = make_observer(target_group.get());
 }
 
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const SourceStream &source)
+{
+  f.writer().write("[Source {} (id={})]", source.name_, source.id);
+}
+
 PoissonSourceStream::PoissonSourceStream(const Name &name,
                                          Intensity intensity,
                                          Size load_size)
@@ -157,7 +164,8 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const EngsetSourceStream &source)
 {
   f.writer().write(
-      "[EngsetSource {} (id={}), active={}/{}, gamma={}, lambda={}]", source.name_, source.id,
-      source.active_sources_, source.sources_number_, source.intensity_,
+      "[EngsetSource {} (id={}), active={}/{}, gamma={}, lambda={}]",
+      source.name_, source.id, source.active_sources_, source.sources_number_,
+      source.intensity_,
       (source.sources_number_ - source.active_sources_) * source.intensity_);
 }

@@ -116,13 +116,13 @@ SimulationSettings multiple_sources_single_overflow()
   topology.add_group(std::make_unique<Group>("G1", V, micro));
   topology.add_group(std::make_unique<Group>("G2", V, micro));
   topology.add_source(
-      std::make_unique<PoissonSourceStream>("S1", lambda, Size(1)));
+      std::make_unique<PoissonSourceStream>("SP1", lambda, Size(1)));
   topology.add_source(
-      std::make_unique<EngsetSourceStream>("S2", gamma, N, Size(1)));
+      std::make_unique<EngsetSourceStream>("SE2", gamma, N, Size(1)));
 
   topology.connect_groups("G1", "G2");
-  topology.attach_source_to_group("S1", "G1");
-  topology.attach_source_to_group("S2", "G1");
+  topology.attach_source_to_group("SP1", "G1");
+  topology.attach_source_to_group("SE2", "G1");
 
   return sim_settings;
 }
