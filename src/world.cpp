@@ -35,12 +35,10 @@ bool World::next_iteration()
     next_event = events_.top()->time;
   }
 
-  if (next_event > time_) {
-    time_ = next_event;
-  } else {
-    debug_print("No events\n");
-    time_ += tick_length_;
-  }
+  time_ += tick_length_;
+
+  time_ = std::max(next_event, time_);
+
   if (time_ > duration_) {
     for (auto & [ name, source ] : topology_->sources) {
       source->pause();
@@ -54,13 +52,12 @@ bool World::next_iteration()
 void World::process_event()
 {
   while (!events_.empty() && events_.top()->time <= time_) {
-    auto event = events_.top().get();
+    auto &event = events_.top();
     event->process();
 
     events_.pop();
   }
 }
-
 
 Uuid World::get_uuid()
 {

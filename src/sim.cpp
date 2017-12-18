@@ -26,7 +26,7 @@ const auto duration = Duration(500'000);
 // const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(100);
-const auto tick_length = Duration(0.1);
+const auto tick_length = Duration(5);
 
 uint64_t seed()
 {

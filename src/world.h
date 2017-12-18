@@ -40,7 +40,6 @@ public:
   World(uint64_t seed, Duration duration, Duration tick_length);
   ~World();
 
-  Uuid get_unique_id();
   Uuid get_uuid();
   RandomEngine &get_random_engine();
   Duration get_tick_length() { return tick_length_; }
