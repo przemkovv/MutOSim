@@ -89,7 +89,7 @@ SimulationSettings single_overflow()
   SimulationSettings sim_settings{duration, tick_length, "Single overflow"};
 
   auto &topology = sim_settings.topology;
-  topology.add_group(std::make_unique<Group>("G1", Size(2), Intensity(1.0)));
+  topology.add_group(std::make_unique<Group>("G1", Size(1), Intensity(1.0)));
   topology.add_group(std::make_unique<Group>("G2", Size(1), Intensity(1.0)));
   topology.add_source(
       std::make_unique<PoissonSourceStream>("S1", Intensity(3.0), Size(1)));
@@ -100,14 +100,42 @@ SimulationSettings single_overflow()
   return sim_settings;
 }
 
+SimulationSettings multiple_sources_single_overflow()
+{
+  const auto lambda = Intensity(3);
+  const auto N = Size(2);
+  const auto gamma = lambda / N;
+  const auto micro = Intensity(1.0);
+  const auto V = Size(1);
+  // const auto alpha = gamma / micro;
+
+  SimulationSettings sim_settings{duration, tick_length, "Multiple sources - Single overflow"};
+
+  auto &topology = sim_settings.topology;
+  topology.add_group(std::make_unique<Group>("G1", V, micro));
+  topology.add_group(std::make_unique<Group>("G2", V, micro));
+  topology.add_source(
+      std::make_unique<PoissonSourceStream>("S1", lambda, Size(1)));
+  topology.add_source(
+      std::make_unique<EngsetSourceStream>("S2", gamma, N, Size(1)));
+
+  topology.connect_groups("G1", "G2");
+  // topology.attach_source_to_group("S1", "G1");
+  topology.attach_source_to_group("S2", "G1");
+
+  return sim_settings;
+}
+
+
 int main()
 {
   std::vector<SimulationSettings> scenarios;
 
   {
-    scenarios.emplace_back(erlang_model());
-    scenarios.emplace_back(engset_model());
-    scenarios.emplace_back(single_overflow());
+    // scenarios.emplace_back(erlang_model());
+    // scenarios.emplace_back(engset_model());
+    // scenarios.emplace_back(single_overflow());
+    scenarios.emplace_back(multiple_sources_single_overflow());
 
     for (auto &scenario : scenarios) {
       print("[Main] {:-^100}\n", scenario.name);

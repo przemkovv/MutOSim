@@ -12,7 +12,7 @@ using std::experimental::make_observer;
 
 EventPtr SourceStream::produce_load(Time time)
 {
-  Load load{world_->get_uuid(), time, 1, {}, target_group_};
+  Load load{world_->get_uuid(), time, 1, false, {}, target_group_};
   return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
 }
 
@@ -55,7 +55,7 @@ EventPtr PoissonSourceStream::produce_load(Time time)
   }
   auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
   auto create_load = [this, time, dt]() -> Load {
-    return {world_->get_uuid(),  time + dt,    load_size_, -1, {},
+    return {world_->get_uuid(),  time + dt,    load_size_, -1, false, {},
             make_observer(this), target_group_};
   };
   auto load = create_load();
@@ -99,6 +99,12 @@ void EngsetSourceStream::notify_on_serve(const Load &load)
   active_sources_--;
   debug_print("{} Load has been served {}\n", *this, load);
 
+  if (active_sources_ < 0) {
+    print("{} Number of active sources is less than zero. Load {}\n", *this,
+          load);
+    std::abort();
+  }
+
   world_->schedule(create_produce_load_event(load.end_time));
 }
 
@@ -110,7 +116,7 @@ void EngsetSourceStream::init()
 }
 Load EngsetSourceStream::create_load(Time time)
 {
-  return {world_->get_uuid(),  time,         load_size_, -1, {},
+  return {world_->get_uuid(),  time,         load_size_, -1, false, {},
           make_observer(this), target_group_};
 }
 
@@ -130,12 +136,17 @@ EventPtr EngsetSourceStream::produce_load(Time time)
   if (pause_) {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
   }
+  if (!target_group_) {
+    print("{} The source is not connected to any group.", *this);
+    return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
+  }
   auto load = create_load(time);
   if (target_group_->can_serve(load.size)) {
     debug_print("{} Produced: {}\n", *this, load);
     active_sources_++;
   } else {
     debug_print("{} Produced ghost: {}\n", *this, load);
+    load.drop = true;
     world_->schedule(create_produce_load_event(time));
   }
   return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);

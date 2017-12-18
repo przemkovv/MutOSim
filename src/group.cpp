@@ -88,6 +88,9 @@ bool Group::can_serve(const Size &load_size)
 
 bool Group::forward(Load load)
 {
+  if (load.drop) {
+    return loss_group.serve(load);
+  }
   // TODO(PW): make it more intelligent
   if (!next_groups_.empty()) {
     return next_groups_.front()->serve(load);

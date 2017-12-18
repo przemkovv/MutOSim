@@ -13,6 +13,7 @@ struct Load {
   Time send_time;
   Size size;
   Time end_time = -1;
+  bool drop = false;
 
   std::experimental::observer_ptr<Group> served_by{};
   std::experimental::observer_ptr<SourceStream> produced_by{};
