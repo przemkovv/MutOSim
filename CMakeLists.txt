@@ -5,7 +5,6 @@ add_compile_options(
     -std=c++17
     -g
     # -pg
-    -O2
     # -Wall
     -Werror
     -Weffc++
@@ -52,19 +51,19 @@ endif (UNIX)
 
 ADD_CUSTOM_TARGET(debug
     COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all -- -j3
     COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
     )
 
 ADD_CUSTOM_TARGET(sim_debug
     COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=1 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all 
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all  -- -j3
     COMMENT "Switch CMAKE_BUILD_TYPE to Release"
     )
 
 ADD_CUSTOM_TARGET(release
     COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=0 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all -- -j3
     COMMENT "Switch CMAKE_BUILD_TYPE to Release"
     )
 
