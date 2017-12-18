@@ -29,7 +29,7 @@ struct LossGroup {
     world_ = make_observer(world.get());
   }
 
-  LossGroup(const Name &name);
+  LossGroup(Name name);
   bool serve(Load load);
 };
 
@@ -62,12 +62,11 @@ struct Group {
 
   void add_next_group(gsl::not_null<Group *> group);
   void set_end_time(Load &load);
-  void add_load(Load load);
   bool forward(Load load);
   bool can_serve(const Size &load_size);
   bool is_blocked();
 
-  Group(const Name &name, Size capacity, Intensity serve_intensity);
+  Group(Name name, Size capacity, Intensity serve_intensity);
 
   bool try_serve(Load load);
   void take_off(const Load &load);

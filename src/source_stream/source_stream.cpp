@@ -3,10 +3,10 @@
 
 #include "world.h"
 
-EventPtr SourceStream::produce_load(Time time)
+Load SourceStream::create_load(Time time, Size size)
 {
-  Load load{world_->get_uuid(), time, 1, false, {}, target_group_};
-  return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
+  return {world_->get_uuid(),  time,         size, -1, false, {},
+          make_observer(this), target_group_};
 }
 
 void SourceStream::notify_on_produce(const LoadProduceEvent * /* event */)
@@ -36,6 +36,8 @@ void SourceStream::set_world(gsl::not_null<World *> world)
   world_ = make_observer(world.get());
   id = world->get_uuid();
 }
+
+//----------------------------------------------------------------------
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

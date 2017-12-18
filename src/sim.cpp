@@ -22,8 +22,8 @@
 
 // const auto duration = Duration(20'000'000);
 // const auto duration = Duration(1'000'000);
-// const auto duration = Duration(500'000);
-const auto duration = Duration(100'000);
+const auto duration = Duration(500'000);
+// const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(100);
 const auto tick_length = Duration(0.1);

@@ -12,6 +12,7 @@ EngsetSourceStream::EngsetSourceStream(const Name &name,
     sources_number_(sources_number)
 {
 }
+
 void EngsetSourceStream::notify_on_produce(const LoadProduceEvent *event)
 {
   world_->schedule(produce_load(event->time));
@@ -37,18 +38,10 @@ void EngsetSourceStream::init()
     world_->schedule(create_produce_load_event(world_->get_time()));
   }
 }
-Load EngsetSourceStream::create_load(Time time)
-{
-  return {world_->get_uuid(),  time,         load_size_, -1, false, {},
-          make_observer(this), target_group_};
-}
 
 std::unique_ptr<LoadProduceEvent>
 EngsetSourceStream::create_produce_load_event(Time time)
 {
-  // auto params = decltype(exponential)::param_type(
-  // (sources_number_ - active_sources_) * intensity_);
-  // exponential.param(params);
   auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
   return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt,
                                             this);
@@ -59,11 +52,8 @@ EventPtr EngsetSourceStream::produce_load(Time time)
   if (pause_) {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
   }
-  if (!target_group_) {
-    print("{} The source is not connected to any group.", *this);
-    return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
-  }
-  auto load = create_load(time);
+
+  auto load = create_load(time, load_size_);
   if (target_group_->can_serve(load.size)) {
     debug_print("{} Produced: {}\n", *this, load);
     active_sources_++;
@@ -74,6 +64,8 @@ EventPtr EngsetSourceStream::produce_load(Time time)
   }
   return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
 }
+
+//----------------------------------------------------------------------
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

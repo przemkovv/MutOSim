@@ -52,7 +52,7 @@ void LoadProduceEvent::process()
 //----------------------------------------------------------------------
 
 LoadServeEvent::LoadServeEvent(Uuid id, Load load_)
-  : Event(EventType::LoadServe, id, load_.end_time), load(load_)
+  : Event(EventType::LoadServe, id, load_.end_time), load((load_))
 {
 }
 

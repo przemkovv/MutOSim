@@ -1,14 +1,13 @@
 
 #include "group.h"
 #include "logger.h"
-#include "math.h"
 #include "source_stream/source_stream.h"
 
 #include <cmath>
 #include <gsl/gsl>
 
-Group::Group(const Name &name, Size capacity, Intensity serve_intensity)
-  : name_(name),
+Group::Group(Name name, Size capacity, Intensity serve_intensity)
+  : name_(std::move(name)),
     capacity_(capacity),
     serve_intensity_(serve_intensity),
     loss_group(name + "_LG")
@@ -31,24 +30,22 @@ void Group::notify_on_serve(LoadServeEvent *event)
   take_off(event->load);
 }
 
-void Group::add_load(Load load)
-{
-  size_ += load.size;
-  load.served_by.reset(this);
-  set_end_time(load);
-  world_->schedule(std::make_unique<LoadServeEvent>(world_->get_uuid(), load));
-}
-
 bool Group::try_serve(Load load)
 {
   if (can_serve(load.size)) {
     debug_print("{} Serving load: {}\n", *this, load);
-    add_load(load);
+    size_ += load.size;
+    load.served_by.reset(this);
+    set_end_time(load);
+
     if (is_blocked()) {
       block_stats_.start_of_block = load.send_time;
       debug_print("{} Blocking bt={}, sobt={}\n", *this,
                   block_stats_.block_time, block_stats_.start_of_block);
     }
+
+    world_->schedule(
+        std::make_unique<LoadServeEvent>(world_->get_uuid(), load));
     return true;
   }
   debug_print("{} Forwarding load: {}\n", *this, load);
@@ -111,7 +108,9 @@ Stats Group::get_stats()
   return stats;
 }
 
-LossGroup::LossGroup(const Name &name) : name_(name)
+//----------------------------------------------------------------------
+
+LossGroup::LossGroup(Name name) : name_(std::move(name))
 {
 }
 bool LossGroup::serve(Load load)
@@ -123,6 +122,8 @@ bool LossGroup::serve(Load load)
   served_by_source[load.produced_by->id].count++;
   return false;
 }
+
+//----------------------------------------------------------------------
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

@@ -22,26 +22,23 @@ protected:
 
   bool pause_ = false;
 
-public:
-  void set_world(gsl::not_null<World *> world);
+  Load create_load(Time time, Size size);
 
-  virtual EventPtr produce_load(Time time);
+public:
+  virtual void init();
   virtual void notify_on_send(const LoadSendEvent *event);
   virtual void notify_on_serve(const LoadServeEvent *event);
   virtual void notify_on_accept(const LoadSendEvent *event);
-  virtual void notify_on_produce(const LoadProduceEvent *produce_event);
-  virtual void init();
-  void attach_to_group(gsl::not_null<Group *> target_group);
-  const Name &get_name() { return name_; }
+  virtual void notify_on_produce(const LoadProduceEvent *event);
 
   SourceStream(const Name &name) : name_(name) {}
-  SourceStream(SourceStream &&) = default;
-  SourceStream(const SourceStream &) = default;
-  SourceStream &operator=(const SourceStream &) = default;
-  SourceStream &operator=(SourceStream &&) = default;
   virtual ~SourceStream() = default;
 
+  void set_world(gsl::not_null<World *> world);
+  void attach_to_group(gsl::not_null<Group *> target_group);
   void pause() { pause_ = true; }
+
+  const Name &get_name() { return name_; }
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

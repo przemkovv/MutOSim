@@ -13,24 +13,26 @@ class PascalSourceStream : public SourceStream
   Size sources_number_;
   Size active_sources_ = 0;
 
+  std::map<Uuid, observer_ptr<LoadProduceEvent>> linked_sources_;
+
   std::exponential_distribution<> exponential{intensity_};
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,
                          const PascalSourceStream &source);
 
-  Load create_load(Time time);
   std::unique_ptr<LoadProduceEvent> create_produce_load_event(Time time);
 
-  std::map<Uuid, observer_ptr<LoadProduceEvent>> linked_sources_;
+
+  EventPtr produce_load(Time time);
 
 public:
   void init() override;
-  EventPtr produce_load(Time time) override;
   void notify_on_send(const LoadSendEvent *event) override;
   void notify_on_serve(const LoadServeEvent *event) override;
   void notify_on_accept(const LoadSendEvent *event) override;
-  void notify_on_produce(const LoadProduceEvent *produce_event) override;
+  void notify_on_produce(const LoadProduceEvent *event) override;
+
   PascalSourceStream(const Name &name,
                      Intensity intensity,
                      Size sources_number,

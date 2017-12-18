@@ -17,14 +17,15 @@ class EngsetSourceStream : public SourceStream
                          const char *&format_str,
                          const EngsetSourceStream &source);
 
-  Load create_load(Time time);
   std::unique_ptr<LoadProduceEvent> create_produce_load_event(Time time);
+
+  EventPtr produce_load(Time time);
 
 public:
   void init() override;
-  EventPtr produce_load(Time time) override;
   void notify_on_serve(const LoadServeEvent *event) override;
   void notify_on_produce(const LoadProduceEvent *event) override;
+
   EngsetSourceStream(const Name &name,
                      Intensity intensity,
                      Size sources_number,

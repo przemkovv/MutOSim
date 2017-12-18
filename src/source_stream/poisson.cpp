@@ -26,17 +26,9 @@ EventPtr PoissonSourceStream::produce_load(Time time)
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
   }
   auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
-  auto create_load = [this, time, dt]() -> Load {
-    return {world_->get_uuid(),  time + dt,    load_size_, -1, false, {},
-            make_observer(this), target_group_};
-  };
-  auto load = create_load();
+  auto load = create_load(time + dt, load_size_);
   debug_print("{} Produced: {}\n", *this, load);
 
-  // auto on_process = [this](World *world, Event *event) {
-  // auto t = static_cast<LoadSendEvent *>(event)->load.send_time;
-  // world->schedule(this->produce_load(t));
-  // };
   return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
 }
 

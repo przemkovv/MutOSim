@@ -44,13 +44,11 @@ void PascalSourceStream::notify_on_serve(const LoadServeEvent *event)
   }
 }
 
-void PascalSourceStream::notify_on_produce(
-    const LoadProduceEvent *produce_event)
+void PascalSourceStream::notify_on_produce(const LoadProduceEvent *event)
 {
-  auto it = find_if(begin(linked_sources_), end(linked_sources_),
-                    [&produce_event](const auto &p) {
-                      return p.second.get() == produce_event;
-                    });
+  auto it =
+      find_if(begin(linked_sources_), end(linked_sources_),
+              [&event](const auto &p) { return p.second.get() == event; });
   if (it != linked_sources_.end()) {
     linked_sources_.erase(it);
   }
@@ -61,18 +59,10 @@ void PascalSourceStream::init()
     world_->schedule(produce_load(world_->get_time()));
   }
 }
-Load PascalSourceStream::create_load(Time time)
-{
-  return {world_->get_uuid(),  time,         load_size_, -1, false, {},
-          make_observer(this), target_group_};
-}
 
 std::unique_ptr<LoadProduceEvent>
 PascalSourceStream::create_produce_load_event(Time time)
 {
-  // auto params = decltype(exponential)::param_type(
-  // (sources_number_ - active_sources_) * intensity_);
-  // exponential.param(params);
   auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
   return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt,
                                             this);
@@ -85,11 +75,13 @@ EventPtr PascalSourceStream::produce_load(Time time)
   }
 
   auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
-  auto load = create_load(time + dt);
+  auto load = create_load(time + dt, load_size_);
   debug_print("{} Produced: {}\n", *this, load);
 
   return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
 }
+
+//----------------------------------------------------------------------
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
