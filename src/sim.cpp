@@ -24,8 +24,8 @@ using std::experimental::make_observer;
 
 // const auto duration = Duration(20'000'000);
 // const auto duration = Duration(1'000'000);
-const auto duration = Duration(500'000);
-// const auto duration = Duration(100'000);
+// const auto duration = Duration(500'000);
+const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(100);
 const auto tick_length = Duration(0.1);
@@ -172,20 +172,24 @@ int main()
     scenarios.emplace_back(engset_model());
     scenarios.emplace_back(single_overflow());
     scenarios.emplace_back(multiple_sources_single_overflow());
-    scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(5)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(10)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1), Size(10), Size(1)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1), Size(10), Size(5)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1), Size(10), Size(10)));
 
-    auto run_scenario = [](auto &scenario) {
-      print("[Main] {:-^100}\n", scenario.name);
-      World world{seed(), scenario.duration, scenario.tick_length};
+    auto run_scenario = [](auto &scenario, bool quiet = false) {
+      scenario.world = std::make_unique<World>(seed(), scenario.duration,
+                                               scenario.tick_length);
+      auto &world = *scenario.world;
       world.set_topology(&scenario.topology);
 
       world.init();
       if (scenario.do_before) {
         scenario.do_before();
       }
-      world.run();
+      world.run(quiet);
       if (scenario.do_after) {
         scenario.do_after();
       }
@@ -195,10 +199,16 @@ int main()
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         auto &scenario = scenarios[i];
-        run_scenario(scenario);
+        run_scenario(scenario, true);
+      }
+      for (auto &scenario : scenarios) {
+        print("[Main] {:-^100}\n", scenario.name);
+        scenario.world->print_stats();
+        print("[Main] {:^^100}\n", scenario.name);
       }
     } else {
       for (auto &scenario : scenarios) {
+        print("[Main] {:-^100}\n", scenario.name);
         run_scenario(scenario);
       }
     }

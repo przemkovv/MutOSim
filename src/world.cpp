@@ -106,7 +106,6 @@ std::mt19937_64 &World::get_random_engine()
 
 void World::print_stats()
 {
-  print("[World] ----\n");
   print("[World] Time = {:f}\n", time_);
   print("[World] In queue left {} events\n", events_.size());
   for (auto & [ name, group ] : topology_->groups) {
@@ -119,17 +118,19 @@ void World::print_stats()
   }
 }
 
-void World::run()
+void World::run(bool quiet)
 {
   long double stats_freq = 0.2L;
   int i = 1;
   while (next_iteration()) {
-    if (get_progress() > stats_freq * i) {
+    if (!quiet && get_progress() > stats_freq * i) {
       print_stats();
       ++i;
     }
   }
-  print_stats();
+  if (!quiet) {
+    print_stats();
+  }
 }
 void World::set_topology(gsl::not_null<Topology *> topology)
 {

@@ -54,7 +54,7 @@ public:
 
   void init();
   bool next_iteration();
-  void run();
+  void run(bool quiet);
 
   void print_stats();
 };
