@@ -168,10 +168,10 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    // scenarios.emplace_back(erlang_model());
-    // scenarios.emplace_back(engset_model());
-    // scenarios.emplace_back(single_overflow());
-    // scenarios.emplace_back(multiple_sources_single_overflow());
+    scenarios.emplace_back(erlang_model());
+    scenarios.emplace_back(engset_model());
+    scenarios.emplace_back(single_overflow());
+    scenarios.emplace_back(multiple_sources_single_overflow());
     scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(5)));
     scenarios.emplace_back(pascal_source_model(Intensity(1), Size(10), Size(10)));
