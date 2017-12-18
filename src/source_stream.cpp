@@ -73,7 +73,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const PoissonSourceStream &source)
 {
-  f.writer().write("[PoissonSource {}]", source.name_);
+  f.writer().write("[PoissonSource {} (id={})]", source.name_, source.id);
 }
 
 EngsetSourceStream::EngsetSourceStream(const Name &name,
@@ -157,7 +157,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const EngsetSourceStream &source)
 {
   f.writer().write(
-      "[EngsetSource {}, active={}/{}, gamma={}, lambda={}]", source.name_,
+      "[EngsetSource {} (id={}), active={}/{}, gamma={}, lambda={}]", source.name_, source.id,
       source.active_sources_, source.sources_number_, source.intensity_,
       (source.sources_number_ - source.active_sources_) * source.intensity_);
 }

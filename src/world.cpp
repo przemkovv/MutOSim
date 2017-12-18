@@ -103,7 +103,12 @@ void World::print_stats()
   print("[World] In queue left {} events\n", events_.size());
   print("[World] Time = {:f}\n", time_);
   for (auto & [ name, group ] : topology_->groups) {
-    print("[World] Stats for {}: {}\n", *group, group->get_stats());
+    const auto &group_stats = group->get_stats();
+    print("[World] Stats for {}: {}\n", *group, group_stats);
+    for (auto & [ source_id, stats ] : group_stats.by_source) {
+      print("[World] Stats for {}: source_id={}: {}\n", *group, source_id,
+            stats);
+    }
   }
 }
 

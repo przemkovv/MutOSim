@@ -16,6 +16,7 @@ class SourceStream
 {
 public:
   const Name name_;
+  Uuid id = 0;
 
 protected:
   observer_ptr<World> world_;
@@ -27,6 +28,7 @@ protected:
 public:
   void set_world(gsl::not_null<World*> world) {
     world_ = make_observer(world.get());
+    id = world->get_uuid();
   }
 
   virtual EventPtr produce_load(Time time);
