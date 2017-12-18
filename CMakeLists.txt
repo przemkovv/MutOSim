@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(MSMutONet)
 
+include(CheckIPOSupported)
+check_ipo_supported()
+
 add_compile_options(
     -std=c++17
     -g
@@ -45,6 +48,14 @@ find_library(FMT fmt libfmt)
 find_package(Threads REQUIRED)
 find_package(Boost 1.65 COMPONENTS system program_options)
 
+function(append value)
+    foreach(variable ${ARGN})
+        set(${variable} "${${variable}} ${value}" PARENT_SCOPE)
+    endforeach(variable)
+endfunction()
+
+append("-fuse-ld=gold -Wl,--no-threads,--plugin-opt,cache-dir=${PROJECT_BINARY_DIR}/lto.cache" CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
+
 if (UNIX)
     add_custom_target(ctags ALL ctags -R --options=${CMAKE_SOURCE_DIR}/.ctags -f ${CMAKE_SOURCE_DIR}/tags ${CMAKE_SOURCE_DIR})
 endif (UNIX)
@@ -69,3 +80,5 @@ ADD_CUSTOM_TARGET(release
 
 add_subdirectory(src)
 # add_subdirectory(tests)
+
+set_target_properties(sim PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
