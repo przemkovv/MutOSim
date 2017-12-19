@@ -2,6 +2,7 @@
 #include "stats.h"
 
 #include "math.h"
+#include <fmt/ostream.h>
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

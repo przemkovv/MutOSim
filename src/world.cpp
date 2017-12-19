@@ -71,7 +71,7 @@ std::mt19937_64 &World::get_random_engine()
 
 void World::print_stats()
 {
-  print("[World] Time = {:f}\n", time_);
+  print("[World] Time = {}\n", time_);
   print("[World] In queue left {} events\n", events_.size());
   for (auto & [ name, group ] : topology_->groups) {
     const auto &group_stats = group->get_stats();

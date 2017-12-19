@@ -21,12 +21,13 @@
 #include <random>
 
 // const auto duration = Duration(20'000'000);
-// const auto duration = Duration(1'000'000);
-const auto duration = Duration(500'000);
+// constexpr auto duration = 5'000'000;
+constexpr auto duration = 500'000;
+// const auto duration = Duration(500'000);
 // const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(100);
-const auto tick_length = Duration(5);
+constexpr auto tick_length = 5;
 
 uint64_t seed()
 {

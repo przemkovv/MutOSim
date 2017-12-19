@@ -1,5 +1,6 @@
 
 #include "load.h"
+#include <fmt/ostream.h>
 
 bool operator<(const Load &l1, const Load &l2)
 {

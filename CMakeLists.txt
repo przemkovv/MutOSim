@@ -47,6 +47,8 @@ endif()
 find_library(FMT fmt libfmt)
 find_package(Threads REQUIRED)
 find_package(Boost 1.65 COMPONENTS system program_options)
+find_library(GMP gmp libgmp)
+find_library(MPFR mpfr libmpfr)
 
 function(append value)
     foreach(variable ${ARGN})
