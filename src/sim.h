@@ -19,8 +19,9 @@ void add_sources(World &world,
 
 void set_topology(World &world, Topology &topology);
 
-SimulationSettings erlang_model();
-SimulationSettings engset_model();
+SimulationSettings erlang_model(const Intensity lambda, const Size V);
+SimulationSettings
+engset_model(const Intensity gamma, const Size V, const Size N);
 SimulationSettings single_overflow();
 SimulationSettings multiple_sources_single_overflow();
 SimulationSettings pascal_source_model(Intensity gamma, Size V, Size N);

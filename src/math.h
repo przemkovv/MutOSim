@@ -1,9 +1,11 @@
 #pragma once
 
 #include "types.h"
+#include <cmath>
 
 namespace Math
 {
+// using std::pow;
 template <typename T>
 T ratio_to_sum(T s1, T s2)
 {
@@ -12,12 +14,15 @@ T ratio_to_sum(T s1, T s2)
 
 constexpr double pow(double x, int64_t y)
 {
-  return y == 0 ? 1.0 : x * pow(x, y - 1);
+return y == 0 ? 1.0 : x * pow(x, y - 1);
 }
 
 constexpr int64_t factorial(int64_t x)
 {
-  return x == 0 ? 1 : x * factorial(x - 1);
+  if (x > 0) {
+    return x * factorial(x - 1);
+  }
+  return 1;
 }
 
 constexpr double exp(double x)

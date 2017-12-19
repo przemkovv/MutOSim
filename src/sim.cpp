@@ -38,15 +38,13 @@ uint64_t seed()
   return rd();
 }
 
-SimulationSettings erlang_model()
+SimulationSettings erlang_model(const Intensity lambda, const Size V)
 {
   SimulationSettings sim_settings{duration, tick_length, "Erlang model"};
 
-  const auto lambda = Intensity(3.0);
   const auto micro = Intensity(1.0);
-  const auto V = Size(1);
   const auto A = lambda / micro;
-  sim_settings.do_before = [&]() {
+  sim_settings.do_before = [=]() {
     print("[Erlang] P_loss = P_block = E_V(A) = {}\n", erlang_pk(A, V, V));
   };
   sim_settings.do_after = sim_settings.do_before;
@@ -61,19 +59,16 @@ SimulationSettings erlang_model()
   return sim_settings;
 }
 
-SimulationSettings engset_model()
+SimulationSettings
+engset_model(const Intensity gamma, const Size V, const Size N)
 { // Engset model
 
   SimulationSettings sim_settings{duration, tick_length, "Engset model"};
 
-  const auto lambda = Intensity(3);
-  const auto N = Size(2);
-  const auto gamma = lambda / N;
   const auto micro = Intensity(1.0);
-  const auto V = Size(1);
   const auto alpha = gamma / micro;
 
-  sim_settings.do_before = [&]() {
+  sim_settings.do_before = [=]() {
     print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
     print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
           engset_pi(alpha, V, N - 1, V));
@@ -167,8 +162,8 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    scenarios.emplace_back(erlang_model());
-    scenarios.emplace_back(engset_model());
+    scenarios.emplace_back(erlang_model(Intensity(3.0), Size(1)));
+    scenarios.emplace_back(engset_model(Intensity(1.0), Size(1), Size(3)));
     scenarios.emplace_back(single_overflow());
     scenarios.emplace_back(multiple_sources_single_overflow());
     scenarios.emplace_back(

@@ -10,8 +10,8 @@
 
 using Time = long double;
 using Duration = long double;
-// using Time = boost::multiprecision::static_mpfr_float_50;
-// using Duration = boost::multiprecision::static_mpfr_float_50;
+// using Time = boost::multiprecision::static_mpfr_float_100;
+// using Duration = boost::multiprecision::static_mpfr_float_100;
 using Size = int64_t;
 using Intensity = double;
 using Uuid = uint64_t;
