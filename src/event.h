@@ -70,11 +70,11 @@ struct LoadProduceEvent : public Event {
 class by_time
 {
 public:
-  bool operator()(const EventPtr &e1, const EventPtr &e2)
+  bool operator()(const EventPtr &e1, const EventPtr &e2) const
   {
     return e1->time > e2->time;
   }
-  bool operator()(const Event &e1, const Event &e2)
+  bool operator()(const Event &e1, const Event &e2) const
   {
     return e1.time > e2.time;
   }
