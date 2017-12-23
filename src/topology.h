@@ -4,7 +4,7 @@
 #include "source_stream/source_stream.h"
 
 #include <gsl/gsl>
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <optional>
 
@@ -13,8 +13,8 @@ class SourceStream;
 class World;
 
 struct Topology {
-  std::map<Name, std::unique_ptr<Group>> groups;
-  std::map<Name, std::unique_ptr<SourceStream>> sources;
+  std::unordered_map<Name, std::unique_ptr<Group>> groups;
+  std::unordered_map<Name, std::unique_ptr<SourceStream>> sources;
 
   void add_group(std::unique_ptr<Group> group);
 

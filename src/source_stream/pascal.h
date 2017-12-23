@@ -3,7 +3,7 @@
 
 #include "source_stream.h"
 
-#include <map>
+#include <unordered_map>
 #include <random>
 
 class PascalSourceStream : public SourceStream
@@ -13,7 +13,7 @@ class PascalSourceStream : public SourceStream
   Size sources_number_;
   Size active_sources_ = 0;
 
-  std::map<Uuid, observer_ptr<LoadProduceEvent>> linked_sources_;
+  std::unordered_map<Uuid, observer_ptr<LoadProduceEvent>> linked_sources_;
 
   std::exponential_distribution<> exponential{intensity_};
 

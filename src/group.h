@@ -11,6 +11,7 @@
 #include <queue>
 #include <random>
 #include <vector>
+#include <unordered_map>
 
 using std::experimental::make_observer;
 using std::experimental::observer_ptr;
@@ -20,7 +21,7 @@ struct LossGroup {
   const Name name_;
 
   LoadStats total_served{0, 0};
-  std::map<Uuid, LoadStats> served_by_source;
+  std::unordered_map<Uuid, LoadStats> served_by_source;
 
   observer_ptr<World> world_;
 
@@ -39,9 +40,9 @@ struct Group {
   Size size_ = 0;
 
   LoadStats total_served{0, 0};
-  std::map<Uuid, LoadStats> served_by_source;
+  std::unordered_map<Uuid, LoadStats> served_by_source;
 
-  std::map<Uuid, BlockStats> blocked_by_source;
+  std::unordered_map<Uuid, BlockStats> blocked_by_source;
   BlockStats block_stats_;
 
   Intensity serve_intensity_ = 1.0;

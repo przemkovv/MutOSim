@@ -33,7 +33,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
-                const std::map<Uuid, LostServedStats> &lost_served_stats)
+                const std::unordered_map<Uuid, LostServedStats> &lost_served_stats)
 {
   for (auto & [ source_id, stats ] : lost_served_stats) {
     f.writer().write("source_id={}: {}", source_id, stats);
@@ -42,7 +42,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
-                const std::map<Uuid, LoadStats> &served_by_source)
+                const std::unordered_map<Uuid, LoadStats> &served_by_source)
 {
   for (auto & [ source_id, stats ] : served_by_source) {
     f.writer().write("source_id={}: {}", source_id, stats);

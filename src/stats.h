@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-#include <map>
+#include <unordered_map>
 #include <fmt/format.h>
 
 struct LoadStats {
@@ -25,7 +25,7 @@ struct Stats {
   Duration block_time;
   Duration simulation_time;
 
-  std::map<Uuid, LostServedStats> by_source;
+  std::unordered_map<Uuid, LostServedStats> by_source;
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,
@@ -38,7 +38,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
-                const std::map<Uuid, LoadStats> &served_by_source);
+                const std::unordered_map<Uuid, LoadStats> &served_by_source);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
@@ -46,4 +46,4 @@ void format_arg(fmt::BasicFormatter<char> &f,
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
-                const std::map<Uuid, LostServedStats> &lost_served_stats);
+                const std::unordered_map<Uuid, LostServedStats> &lost_served_stats);
