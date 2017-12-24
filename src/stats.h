@@ -13,6 +13,7 @@ struct LoadStats {
 struct BlockStats {
   Duration block_time{0};
   Time start_of_block{0};
+  bool is_blocked = false;
 };
 
 struct LostServedStats {

@@ -64,8 +64,12 @@ struct Group {
   void add_next_group(gsl::not_null<Group *> group);
   void set_end_time(Load &load);
   bool forward(Load load);
+  bool can_serve(const Load &load);
   bool can_serve(const Size &load_size);
-  bool is_blocked();
+  bool is_blocked(const Load &load);
+  void block(SourceId source_id, const Load &load);
+  void unblock(SourceId source_id, const Load &load);
+  void update_block_stat(const Load& load);
 
   Group(GroupName name, Capacity capacity);
 

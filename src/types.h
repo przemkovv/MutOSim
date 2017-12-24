@@ -68,6 +68,10 @@ struct Size : ts::strong_typedef<Size, count_t>,
   {
     return ts::get(*this) <= ts::get(c);
   }
+  constexpr bool operator>(const Capacity &c)
+  {
+    return ts::get(*this) > ts::get(c);
+  }
 };
 
 struct Count : ts::strong_typedef<Count, count_t>,

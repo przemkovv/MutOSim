@@ -14,7 +14,7 @@ World::World(uint64_t seed, Duration duration, Duration tick_length)
 
 World::~World()
 {
-  print("[World] {:^^100}\n", " End of the world ");
+  // print("[World] {:^^100}\n", " End of the world ");
 }
 
 void World::init()

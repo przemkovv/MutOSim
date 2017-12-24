@@ -20,26 +20,6 @@ struct Load {
   std::experimental::observer_ptr<Group> target_group{};
 };
 
-bool operator<(const Load &l1, const Load &l2);
-
-class by_send_time
-{
-public:
-  bool operator()(const Load &l1, const Load &l2)
-  {
-    return l1.send_time > l2.send_time;
-  }
-};
-
-class by_end_time
-{
-public:
-  bool operator()(const Load &l1, const Load &l2)
-  {
-    return l1.end_time > l2.end_time;
-  }
-};
-
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const Load &load);
