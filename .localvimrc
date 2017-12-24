@@ -16,7 +16,7 @@ set path=.,**/*
 let g:cmake_c_compiler = 'clang'
 let g:cmake_cxx_compiler = 'clang++'
 let g:cmake_build_dirs = [ "build" ]
-let g:cmake_build_type = "Debug"
+let g:cmake_build_type = "Release"
 let g:cmake_set_makeprg = 1
 
 let g:cmake_build_shared_libs = 1
@@ -35,4 +35,9 @@ let g:neomake_cpp_clangtidy_args = ['-p=build/',
 let g:clang_compilation_database = "build/"
 
 let g:gutentags_ctags_options_file ='.ctags'
-let g:gutentags_generate_on_write = 1
+let g:gutentags_generate_on_write = 0
+
+set makeprg=make\ -j3\ -C\ build/
+
+autocmd BufWritePost *.h,*.hpp,*.cpp,*.c :NeomakeSh! make -C build/ ctags > /dev/null
+
