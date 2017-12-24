@@ -6,7 +6,7 @@
 #include <cmath>
 #include <gsl/gsl>
 
-Group::Group(GroupName name, Size capacity)
+Group::Group(GroupName name, Capacity capacity)
   : name_(std::move(name)), capacity_(capacity), loss_group(name + "_LG")
 {
 }
@@ -14,10 +14,10 @@ Group::Group(GroupName name, Size capacity)
 void Group::set_end_time(Load &load)
 {
   auto serve_intensity = traffic_classes[load.produced_by->id].serve_intensity;
-  auto params = decltype(exponential)::param_type(serve_intensity);
+  auto params = decltype(exponential)::param_type(ts::get(serve_intensity));
   exponential.param(params);
 
-  Duration t_serv { exponential(world_->get_random_engine())};
+  Duration t_serv{exponential(world_->get_random_engine())};
   load.end_time = load.send_time + t_serv;
 }
 

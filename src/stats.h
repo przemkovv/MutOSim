@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 struct LoadStats {
-  Size count;
+  Count count;
   Size size;
 };
 

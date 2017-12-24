@@ -1,27 +1,25 @@
 #pragma once
 
 #include "load.h"
-#include "types.h"
 #include "stats.h"
-#include "world.h"
 #include "traffic_class.h"
-
+#include "types.h"
+#include "world.h"
 
 #include <experimental/memory>
 #include <gsl/gsl>
 #include <queue>
 #include <random>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 using std::experimental::make_observer;
 using std::experimental::observer_ptr;
 
-
 struct LossGroup {
   const GroupName name_;
 
-  LoadStats total_served{0, 0};
+  LoadStats total_served{Count(0), Size(0)};
   std::unordered_map<SourceId, LoadStats> served_by_source;
 
   observer_ptr<World> world_;
@@ -38,15 +36,14 @@ struct LossGroup {
 struct Group {
   GroupId id;
   const GroupName name_;
-  Size capacity_ = 1;
-  Size size_ = 0;
+  Capacity capacity_;
+  Size size_;
 
-  LoadStats total_served{0, 0};
+  LoadStats total_served{Count{0}, Size{0}};
   std::unordered_map<SourceId, LoadStats> served_by_source;
 
   std::unordered_map<SourceId, BlockStats> blocked_by_source;
   BlockStats block_stats_;
-
 
   std::uniform_real_distribution<> dis{0.0, 1.0};
   std::exponential_distribution<long double> exponential{};
@@ -70,9 +67,9 @@ struct Group {
   bool can_serve(const Size &load_size);
   bool is_blocked();
 
-  Group(GroupName name, Size capacity);
+  Group(GroupName name, Capacity capacity);
 
-  void add_traffic_class(const TrafficClass& tc);
+  void add_traffic_class(const TrafficClass &tc);
 
   bool try_serve(Load load);
   void take_off(const Load &load);
@@ -90,4 +87,3 @@ void format_arg(fmt::BasicFormatter<char> &f,
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const LossGroup &loss_group);
-

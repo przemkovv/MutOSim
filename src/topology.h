@@ -2,6 +2,7 @@
 
 #include "source_stream/source_stream.h"
 #include "types.h"
+#include "traffic_class.h"
 
 #include <gsl/gsl>
 #include <memory>
@@ -18,6 +19,8 @@ struct Topology {
   std::unordered_map<GroupName, std::unique_ptr<Group>> groups;
   std::unordered_map<SourceName, std::unique_ptr<SourceStream>> sources;
 
+  std::vector<TrafficClass> traffic_classes;
+
   Group &add_group(std::unique_ptr<Group> group);
 
   SourceStream &add_source(std::unique_ptr<SourceStream> source_stream);
@@ -25,6 +28,9 @@ struct Topology {
   void connect_groups(GroupName from, GroupName to);
 
   void attach_source_to_group(SourceName source, GroupName group);
+  void add_traffic_class(SourceName source,
+                         GroupName group,
+                         Intensity serve_intensity);
 
   void set_world(gsl::not_null<World *> world);
 

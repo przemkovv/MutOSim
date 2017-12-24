@@ -7,7 +7,7 @@
 
 PascalSourceStream::PascalSourceStream(const SourceName &name,
                                        Intensity intensity,
-                                       Size sources_number,
+                                       Count sources_number,
                                        Size load_size)
   : SourceStream(name),
     intensity_(intensity),
@@ -53,9 +53,17 @@ void PascalSourceStream::notify_on_produce(const LoadProduceEvent *event)
     linked_sources_.erase(it);
   }
 }
+Size PascalSourceStream::get_load_size()
+{
+  return load_size_;
+}
+Intensity PascalSourceStream::get_intensity()
+{
+  return intensity_;
+}
 void PascalSourceStream::init()
 {
-  for (Size i = 0; i < sources_number_; ++i) {
+  for (auto i = Count(0); i < sources_number_; ++i) {
     world_->schedule(produce_load(world_->get_time()));
   }
 }

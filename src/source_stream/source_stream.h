@@ -31,6 +31,9 @@ public:
   virtual void notify_on_accept(const LoadSendEvent *event);
   virtual void notify_on_produce(const LoadProduceEvent *event);
 
+  virtual Size get_load_size() = 0;
+  virtual Intensity get_intensity() = 0;
+
   SourceStream(const SourceName &name) : name_(name) {}
   virtual ~SourceStream() = default;
 

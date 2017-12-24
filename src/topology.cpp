@@ -27,6 +27,18 @@ void Topology::attach_source_to_group(SourceName source, GroupName group)
 {
   sources[source]->attach_to_group(groups[group].get());
 }
+
+void Topology::add_traffic_class(SourceName source_name,
+                                 GroupName group_name,
+                                 Intensity serve_intensity)
+{
+  auto &source = sources[source_name];
+  auto &tc = traffic_classes.emplace_back(
+      TrafficClass{source->id, source->get_intensity(), serve_intensity,
+                   source->get_load_size()});
+  groups[group_name]->add_traffic_class(tc);
+}
+
 void Topology::set_world(gsl::not_null<World *> world)
 {
   for (auto & [ name, group ] : groups) {

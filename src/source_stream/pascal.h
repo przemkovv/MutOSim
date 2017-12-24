@@ -3,26 +3,25 @@
 
 #include "source_stream.h"
 
-#include <unordered_map>
 #include <random>
+#include <unordered_map>
 
 class PascalSourceStream : public SourceStream
 {
   Intensity intensity_;
   Size load_size_;
-  Size sources_number_;
-  Size active_sources_ = 0;
+  Count sources_number_;
+  Count active_sources_ {0};
 
   std::unordered_map<LoadId, observer_ptr<LoadProduceEvent>> linked_sources_;
 
-  std::exponential_distribution<long double> exponential{intensity_};
+  std::exponential_distribution<long double> exponential{ts::get(intensity_)};
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,
                          const PascalSourceStream &source);
 
   std::unique_ptr<LoadProduceEvent> create_produce_load_event(Time time);
-
 
   EventPtr produce_load(Time time);
 
@@ -33,9 +32,11 @@ public:
   void notify_on_accept(const LoadSendEvent *event) override;
   void notify_on_produce(const LoadProduceEvent *event) override;
 
+  Size get_load_size() override;
+  Intensity get_intensity() override;
   PascalSourceStream(const SourceName &name,
                      Intensity intensity,
-                     Size sources_number,
+                     Count sources_number,
                      Size load_size);
 };
 

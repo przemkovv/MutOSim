@@ -4,7 +4,7 @@
 
 EngsetSourceStream::EngsetSourceStream(const SourceName &name,
                                        Intensity intensity,
-                                       Size sources_number,
+                                       Count sources_number,
                                        Size load_size)
   : SourceStream(name),
     intensity_(intensity),
@@ -23,7 +23,7 @@ void EngsetSourceStream::notify_on_serve(const LoadServeEvent *event)
   active_sources_--;
   debug_print("{} Load has been served {}\n", *this, event->load);
 
-  if (active_sources_ < 0) {
+  if (active_sources_ < Count(0)) {
     print("{} Number of active sources is less than zero. Load {}\n", *this,
           event->load);
     std::abort();
@@ -32,9 +32,17 @@ void EngsetSourceStream::notify_on_serve(const LoadServeEvent *event)
   world_->schedule(create_produce_load_event(event->load.end_time));
 }
 
+Size EngsetSourceStream::get_load_size()
+{
+  return load_size_;
+}
+Intensity EngsetSourceStream::get_intensity()
+{
+  return intensity_;
+}
 void EngsetSourceStream::init()
 {
-  for (Size i = 0; i < sources_number_; ++i) {
+  for (auto i = Count(0); i < sources_number_; ++i) {
     world_->schedule(create_produce_load_event(world_->get_time()));
   }
 }

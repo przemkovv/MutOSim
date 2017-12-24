@@ -40,49 +40,48 @@ uint64_t seed()
   return rd();
 }
 
-SimulationSettings erlang_model(const Intensity lambda, const Size V)
+SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
 {
-  TrafficClass tc1;
-  tc1.source_intensity = lambda;
-  tc1.serve_intensity = Intensity(1.0);
-  tc1.size = Size(1);
+  auto serve_intensity = Intensity(1.0L);
 
   SimulationSettings sim_settings{duration, tick_length, "Erlang model"};
 
-  const auto micro = tc1.serve_intensity;
-  const auto A = lambda / micro;
+  const auto A = lambda / serve_intensity;
   sim_settings.do_before = [=]() {
-    print("[Erlang] P_loss = P_block = E_V(A) = {}\n", erlang_pk(A, V, V));
+    print("[Erlang] P_loss = P_block = E_V(A) = {}\n",
+          erlang_pk(A, ts::get(V), ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 
   auto &topology = sim_settings.topology;
 
-  tc1.source_id = topology
-                      .add_source(std::make_unique<PoissonSourceStream>(
-                          SourceName("SPo1"), lambda, tc1.size))
-                      .id;
+  SourceName s1{"SPo1"};
+  topology.add_source(
+      std::make_unique<PoissonSourceStream>(s1, lambda, Size(1)));
 
   GroupName g1{"G1"};
-  topology.add_group(std::make_unique<Group>(g1, V)).add_traffic_class(tc1);
-  topology.attach_source_to_group(SourceName("SPo1"), g1);
+  topology.add_group(std::make_unique<Group>(g1, V));
+  topology.attach_source_to_group(s1, g1);
+
+  topology.add_traffic_class(s1, g1, serve_intensity);
 
   return sim_settings;
 }
 
 SimulationSettings
-engset_model(const Intensity gamma, const Size V, const Size N)
+engset_model(const Intensity gamma, const Capacity V, const Count N)
 { // Engset model
 
   SimulationSettings sim_settings{duration, tick_length, "Engset model"};
 
-  const auto micro = Intensity(1.0);
+  const auto micro = Intensity(1.0L);
   const auto alpha = gamma / micro;
 
   sim_settings.do_before = [=]() {
-    print("[Engset] P_block = E(alfa, V, N) = {}\n", engset_pi(alpha, V, N, V));
+    print("[Engset] P_block = E(alfa, V, N) = {}\n",
+          engset_pi(alpha, ts::get(V), ts::get(N), ts::get(V)));
     print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          engset_pi(alpha, V, N - 1, V));
+          engset_pi(alpha, ts::get(V), ts::get(N) - 1, ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 
@@ -96,7 +95,7 @@ engset_model(const Intensity gamma, const Size V, const Size N)
 
   return sim_settings;
 }
-SimulationSettings pascal_source_model(Intensity gamma, Size V, Size N)
+SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
 { // Pascal source
 
   auto name = fmt::format("Pascal source. gamma={}, V={}, N={} ", gamma, V, N);
@@ -134,10 +133,10 @@ SimulationSettings single_overflow()
   auto &topology = sim_settings.topology;
   GroupName g1{"G1"};
   GroupName g2{"G2"};
-  topology.add_group(std::make_unique<Group>(g1, Size(1)));
-  topology.add_group(std::make_unique<Group>(g2, Size(1)));
+  topology.add_group(std::make_unique<Group>(g1, Capacity(1)));
+  topology.add_group(std::make_unique<Group>(g2, Capacity(1)));
   topology.add_source(std::make_unique<PoissonSourceStream>(
-      SourceName("SPo1"), Intensity(3.0), Size(1)));
+      SourceName("SPo1"), Intensity(3.0L), Size(1)));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(SourceName("SPo1"), g1);
@@ -148,10 +147,10 @@ SimulationSettings single_overflow()
 SimulationSettings multiple_sources_single_overflow()
 {
   const auto lambda = Intensity(3);
-  const auto N = Size(2);
+  const auto N = Count(2);
   const auto gamma = lambda / N;
   // const auto micro = Intensity(1.0);
-  const auto V = Size(1);
+  const auto V = Capacity(1);
   // const auto alpha = gamma / micro;
 
   SimulationSettings sim_settings{duration, tick_length,
@@ -180,7 +179,7 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    scenarios.emplace_back(erlang_model(Intensity(3.0), Size(1)));
+    scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
     // scenarios.emplace_back(engset_model(Intensity(1.0), Size(1), Size(3)));
     // scenarios.emplace_back(single_overflow());
     // scenarios.emplace_back(multiple_sources_single_overflow());

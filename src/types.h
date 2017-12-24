@@ -10,6 +10,10 @@
 
 #include <string>
 
+// TODO(PW): when possible: remove this
+using std::experimental::make_observer;
+using std::experimental::observer_ptr;
+
 namespace ts = type_safe;
 
 using uuid_t = uint64_t;
@@ -17,12 +21,78 @@ using name_t = std::string;
 
 using time_type = long double;
 using duration_t = long double;
+using count_t = int64_t;
+
 // using time_type = boost::multiprecision::static_mpfr_float_100;
 // using duration_t = boost::multiprecision::static_mpfr_float_100;
-using Size = int64_t;
-using Intensity = long double;
+// using Size = int64_t;
+using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
+
+struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
+                   ts::strong_typedef_op::output_operator<Intensity> {
+  using strong_typedef::strong_typedef;
+  constexpr auto operator/(const Intensity &intensity) const
+  {
+    return ts::get(*this) / ts::get(intensity);
+  }
+};
+
+struct Capacity : ts::strong_typedef<Capacity, count_t>,
+                  ts::strong_typedef_op::equality_comparison<Capacity>,
+                  ts::strong_typedef_op::output_operator<Capacity> {
+  using strong_typedef::strong_typedef;
+};
+
+struct Size : ts::strong_typedef<Size, count_t>,
+              ts::strong_typedef_op::equality_comparison<Size>,
+              ts::strong_typedef_op::addition<Size>,
+              ts::strong_typedef_op::output_operator<Size> {
+  using strong_typedef::strong_typedef;
+  constexpr Size &operator-=(const Size &s)
+  {
+    ts::get(*this) -= ts::get(s);
+    return *this;
+  }
+  constexpr Size &operator+=(const Size &s)
+  {
+    ts::get(*this) += ts::get(s);
+    return *this;
+  }
+  constexpr bool operator==(const Capacity &c)
+  {
+    return ts::get(*this) == ts::get(c);
+  }
+  constexpr bool operator<=(const Capacity &c)
+  {
+    return ts::get(*this) <= ts::get(c);
+  }
+};
+
+struct Count : ts::strong_typedef<Count, count_t>,
+               ts::strong_typedef_op::equality_comparison<Count>,
+               ts::strong_typedef_op::increment<Count>,
+               ts::strong_typedef_op::decrement<Count>,
+               ts::strong_typedef_op::subtraction<Count>,
+               ts::strong_typedef_op::relational_comparison<Count>,
+               ts::strong_typedef_op::output_operator<Count> {
+  using strong_typedef::strong_typedef;
+
+  constexpr auto operator*(const Intensity &intensity)
+  {
+    return ts::get(*this) * ts::get(intensity);
+  }
+};
+
+constexpr auto operator/(const long double &x, const Count &c)
+{
+  return x / ts::get(c);
+}
+constexpr auto operator/(const Intensity &intensity, const Count &count)
+{
+  return Intensity{ts::get(intensity) / ts::get(count)};
+}
 
 struct Duration : ts::strong_typedef<Duration, duration_t>,
                   ts::strong_typedef_op::equality_comparison<Duration>,
@@ -99,10 +169,6 @@ struct LoadId : ts::strong_typedef<LoadId, uuid_t>,
                 ts::strong_typedef_op::output_operator<LoadId> {
   using strong_typedef::strong_typedef;
 };
-
-// TODO(PW): when possible: remove this
-using std::experimental::make_observer;
-using std::experimental::observer_ptr;
 
 template <typename T>
 void format_arg(fmt::BasicFormatter<char> &f,

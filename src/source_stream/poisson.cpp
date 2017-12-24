@@ -15,6 +15,14 @@ void PoissonSourceStream::notify_on_send(const LoadSendEvent *event)
   world_->schedule(produce_load(event->load.send_time));
 }
 
+Size PoissonSourceStream::get_load_size()
+{
+  return load_size_;
+}
+Intensity PoissonSourceStream::get_intensity()
+{
+  return intensity_;
+}
 void PoissonSourceStream::init()
 {
   world_->schedule(produce_load(world_->get_time()));
