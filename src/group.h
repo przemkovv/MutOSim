@@ -43,7 +43,6 @@ struct Group {
   std::unordered_map<SourceId, LoadStats> served_by_source;
 
   std::unordered_map<SourceId, BlockStats> blocked_by_source;
-  BlockStats block_stats_;
 
   std::uniform_real_distribution<> dis{0.0, 1.0};
   std::exponential_distribution<long double> exponential{};

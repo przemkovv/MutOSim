@@ -1,4 +1,3 @@
-
 #include "stats.h"
 
 #include "math.h"
@@ -27,7 +26,14 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const Stats &stats)
 {
-  f.writer().write("{}, P_block: {}", stats.total,
+  f.writer().write("{}", stats.total);
+}
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&/* format_str */,
+                const TrafficClassStats &stats)
+{
+  f.writer().write("{}, P_block = {}", stats.lost_served_stats,
                    stats.block_time / stats.simulation_time);
 }
 

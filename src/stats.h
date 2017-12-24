@@ -21,17 +21,27 @@ struct LostServedStats {
   LoadStats served;
 };
 
-struct Stats {
-  LostServedStats total;
+struct TrafficClassStats {
+  LostServedStats lost_served_stats;
   Duration block_time;
   Duration simulation_time;
+};
 
-  std::unordered_map<SourceId, LostServedStats> by_source;
+struct Stats {
+  LostServedStats total;
+  // Duration block_time;
+  // Duration simulation_time;
+
+  std::unordered_map<SourceId, TrafficClassStats> by_source;
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const Stats &stats);
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const TrafficClassStats &stats);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,

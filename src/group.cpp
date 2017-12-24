@@ -129,17 +129,20 @@ bool Group::forward(Load load)
 Stats Group::get_stats()
 {
   Stats stats{{loss_group.total_served, total_served},
-              block_stats_.block_time,
-              Duration{world_->get_time()},
+              // block_stats_.block_time,
+              // Duration{world_->get_time()},
               {}};
 
   if (loss_group.served_by_source.size() != served_by_source.size()) {
     print("{} Stats: source number in the group and loss group is different.\n",
           *this);
   }
+  auto sim_duration = Duration{world_->get_time()};
   for (auto & [ source_id, load_stats ] : served_by_source) {
-    stats.by_source[source_id] = {loss_group.served_by_source[source_id],
-                                  served_by_source[source_id]};
+    stats.by_source[source_id] = {
+        {loss_group.served_by_source[source_id], served_by_source[source_id]},
+        blocked_by_source[source_id].block_time,
+        sim_duration};
   }
   return stats;
 }
