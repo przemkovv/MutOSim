@@ -2,7 +2,7 @@
 
 #include "group.h"
 
-EngsetSourceStream::EngsetSourceStream(const Name &name,
+EngsetSourceStream::EngsetSourceStream(const SourceName &name,
                                        Intensity intensity,
                                        Size sources_number,
                                        Size load_size)
@@ -42,7 +42,7 @@ void EngsetSourceStream::init()
 std::unique_ptr<LoadProduceEvent>
 EngsetSourceStream::create_produce_load_event(Time time)
 {
-  auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
+  Duration dt{exponential(world_->get_random_engine())};
   return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt,
                                             this);
 }

@@ -9,10 +9,10 @@ struct Group;
 class SourceStream;
 
 struct Load {
-  Uuid id;
+  LoadId id;
   Time send_time;
   Size size;
-  Time end_time = -1;
+  Time end_time{-1};
   bool drop = false;
 
   std::experimental::observer_ptr<Group> served_by{};

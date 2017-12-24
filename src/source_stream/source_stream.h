@@ -12,8 +12,8 @@ struct Group;
 class SourceStream
 {
 public:
-  const Name name_;
-  Uuid id = 0;
+  const SourceName name_;
+  SourceId id{0};
 
 protected:
   observer_ptr<World> world_;
@@ -31,14 +31,14 @@ public:
   virtual void notify_on_accept(const LoadSendEvent *event);
   virtual void notify_on_produce(const LoadProduceEvent *event);
 
-  SourceStream(const Name &name) : name_(name) {}
+  SourceStream(const SourceName &name) : name_(name) {}
   virtual ~SourceStream() = default;
 
   void set_world(gsl::not_null<World *> world);
   void attach_to_group(gsl::not_null<Group *> target_group);
   void pause() { pause_ = true; }
 
-  const Name &get_name() { return name_; }
+  const SourceName &get_name() { return name_; }
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

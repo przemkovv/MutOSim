@@ -23,8 +23,9 @@ class World
   using RandomEngine = std::mt19937_64;
 
   uint64_t seed_;
-  Time time_ = 0;
+  Time time_{0};
   Duration duration_;
+  Time finish_time_ = time_ + duration_;
   Duration tick_length_;
 
   Uuid last_id = 0;
@@ -44,7 +45,7 @@ public:
   RandomEngine &get_random_engine();
   Duration get_tick_length() { return tick_length_; }
   Time get_time() { return time_; }
-  auto get_progress() { return time_ / duration_; }
+  auto get_progress() { return Duration{time_} / duration_; }
 
   void set_topology(gsl::not_null<Topology *> topology);
   void schedule(std::unique_ptr<Event> event);

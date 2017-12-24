@@ -5,8 +5,8 @@
 
 Load SourceStream::create_load(Time time, Size size)
 {
-  return {world_->get_uuid(),  time,         size, -1, false, {},
-          make_observer(this), target_group_};
+  return {LoadId{world_->get_uuid()}, time,         size, Time{-1}, false, {},
+          make_observer(this),        target_group_};
 }
 
 void SourceStream::notify_on_produce(const LoadProduceEvent * /* event */)
@@ -34,7 +34,6 @@ void SourceStream::attach_to_group(gsl::not_null<Group *> target_group)
 void SourceStream::set_world(gsl::not_null<World *> world)
 {
   world_ = make_observer(world.get());
-  id = world->get_uuid();
 }
 
 //----------------------------------------------------------------------

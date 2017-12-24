@@ -19,7 +19,6 @@ add_compile_options(
 add_definitions(
     -DSPDLOG_FMT_EXTERNAL
     -DSIM_DEBUG=${SIM_DEBUG}
-    -D_GLIBCXX_PARALLEL
     )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -33,6 +32,13 @@ include(ExternalProject)
 
 ExternalProject_Add(json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
+    INSTALL_DIR ${PROJECT_BINARY_DIR}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBuildTests=OFF
+    UPDATE_COMMAND ""
+    )
+
+ExternalProject_Add(type_safe
+    GIT_REPOSITORY https://github.com/foonathan/type_safe
     INSTALL_DIR ${PROJECT_BINARY_DIR}
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBuildTests=OFF
     UPDATE_COMMAND ""
@@ -80,6 +86,7 @@ ADD_CUSTOM_TARGET(release
     COMMENT "Switch CMAKE_BUILD_TYPE to Release"
     )
 
+include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
 add_subdirectory(src)
 # add_subdirectory(tests)
 

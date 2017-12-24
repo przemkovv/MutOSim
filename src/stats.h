@@ -2,8 +2,8 @@
 
 #include "types.h"
 
-#include <unordered_map>
 #include <fmt/format.h>
+#include <unordered_map>
 
 struct LoadStats {
   Size count;
@@ -11,8 +11,8 @@ struct LoadStats {
 };
 
 struct BlockStats {
-  Duration block_time = 0;
-  Time start_of_block = 0;
+  Duration block_time{0};
+  Time start_of_block{0};
 };
 
 struct LostServedStats {
@@ -25,7 +25,7 @@ struct Stats {
   Duration block_time;
   Duration simulation_time;
 
-  std::unordered_map<Uuid, LostServedStats> by_source;
+  std::unordered_map<SourceId, LostServedStats> by_source;
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,
@@ -36,14 +36,16 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const LoadStats &load_stats);
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const std::unordered_map<Uuid, LoadStats> &served_by_source);
+void format_arg(
+    fmt::BasicFormatter<char> &f,
+    const char *&format_str,
+    const std::unordered_map<SourceId, LoadStats> &served_by_source);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const LostServedStats &stats);
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const std::unordered_map<Uuid, LostServedStats> &lost_served_stats);
+void format_arg(
+    fmt::BasicFormatter<char> &f,
+    const char *& /* format_str */,
+    const std::unordered_map<SourceId, LostServedStats> &lost_served_stats);

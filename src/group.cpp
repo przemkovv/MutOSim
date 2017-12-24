@@ -6,23 +6,29 @@
 #include <cmath>
 #include <gsl/gsl>
 
-Group::Group(Name name, Size capacity, Intensity serve_intensity)
-  : name_(std::move(name)),
-    capacity_(capacity),
-    serve_intensity_(serve_intensity),
-    loss_group(name + "_LG")
+Group::Group(GroupName name, Size capacity)
+  : name_(std::move(name)), capacity_(capacity), loss_group(name + "_LG")
 {
 }
 
 void Group::set_end_time(Load &load)
 {
-  auto t_serv = exponential(world_->get_random_engine());
-  load.end_time = load.send_time + static_cast<Time>(t_serv);
+  auto serve_intensity = traffic_classes[load.produced_by->id].serve_intensity;
+  auto params = decltype(exponential)::param_type(serve_intensity);
+  exponential.param(params);
+
+  Duration t_serv { exponential(world_->get_random_engine())};
+  load.end_time = load.send_time + t_serv;
 }
 
 void Group::add_next_group(gsl::not_null<Group *> group)
 {
   next_groups_.emplace_back(make_observer(group.get()));
+}
+
+void Group::add_traffic_class(const TrafficClass &tc)
+{
+  traffic_classes[tc.source_id] = tc;
 }
 
 void Group::notify_on_serve(LoadServeEvent *event)
@@ -94,7 +100,7 @@ Stats Group::get_stats()
 {
   Stats stats{{loss_group.total_served, total_served},
               block_stats_.block_time,
-              world_->get_time(),
+              Duration{world_->get_time()},
               {}};
 
   if (loss_group.served_by_source.size() != served_by_source.size()) {
@@ -110,7 +116,7 @@ Stats Group::get_stats()
 
 //----------------------------------------------------------------------
 
-LossGroup::LossGroup(Name name) : name_(std::move(name))
+LossGroup::LossGroup(GroupName name) : name_(std::move(name))
 {
 }
 bool LossGroup::serve(Load load)

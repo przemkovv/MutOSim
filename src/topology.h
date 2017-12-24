@@ -1,30 +1,35 @@
 #pragma once
 
-#include "types.h"
 #include "source_stream/source_stream.h"
+#include "types.h"
 
 #include <gsl/gsl>
-#include <unordered_map>
 #include <memory>
 #include <optional>
+#include <unordered_map>
 
 struct Group;
 class SourceStream;
 class World;
 
 struct Topology {
-  std::unordered_map<Name, std::unique_ptr<Group>> groups;
-  std::unordered_map<Name, std::unique_ptr<SourceStream>> sources;
+  Uuid last_id = 0;
 
-  void add_group(std::unique_ptr<Group> group);
+  std::unordered_map<GroupName, std::unique_ptr<Group>> groups;
+  std::unordered_map<SourceName, std::unique_ptr<SourceStream>> sources;
 
-  void add_source(std::unique_ptr<SourceStream> source_stream);
+  Group &add_group(std::unique_ptr<Group> group);
 
-  void connect_groups(Name from, Name to);
+  SourceStream &add_source(std::unique_ptr<SourceStream> source_stream);
 
-  void attach_source_to_group(Name source, Name group);
+  void connect_groups(GroupName from, GroupName to);
+
+  void attach_source_to_group(SourceName source, GroupName group);
 
   void set_world(gsl::not_null<World *> world);
 
-  std::optional<SourceStream *> find_source_by_id(Uuid id);
+  std::optional<SourceStream *> find_source_by_id(SourceId id);
+  std::optional<SourceId> get_source_id(const SourceName &name);
+
+  Uuid get_uuid() { return ++last_id; }
 };

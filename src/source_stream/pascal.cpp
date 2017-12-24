@@ -5,7 +5,7 @@
 #include "types.h"
 #include "world.h"
 
-PascalSourceStream::PascalSourceStream(const Name &name,
+PascalSourceStream::PascalSourceStream(const SourceName &name,
                                        Intensity intensity,
                                        Size sources_number,
                                        Size load_size)
@@ -63,7 +63,7 @@ void PascalSourceStream::init()
 std::unique_ptr<LoadProduceEvent>
 PascalSourceStream::create_produce_load_event(Time time)
 {
-  auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
+  Duration dt{exponential(world_->get_random_engine())};
   return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt,
                                             this);
 }
@@ -74,7 +74,7 @@ EventPtr PascalSourceStream::produce_load(Time time)
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
   }
 
-  auto dt = static_cast<Time>(exponential(world_->get_random_engine()));
+  Duration dt{exponential(world_->get_random_engine())};
   auto load = create_load(time + dt, load_size_);
   debug_print("{} Produced: {}\n", *this, load);
 

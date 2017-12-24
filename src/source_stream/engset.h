@@ -6,12 +6,12 @@
 
 class EngsetSourceStream : public SourceStream
 {
-  double intensity_;
+  Intensity intensity_;
   Size load_size_;
   Size sources_number_;
   Size active_sources_ = 0;
 
-  std::exponential_distribution<> exponential{intensity_};
+  std::exponential_distribution<long double> exponential{intensity_};
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,
@@ -26,7 +26,7 @@ public:
   void notify_on_serve(const LoadServeEvent *event) override;
   void notify_on_produce(const LoadProduceEvent *event) override;
 
-  EngsetSourceStream(const Name &name,
+  EngsetSourceStream(const SourceName &name,
                      Intensity intensity,
                      Size sources_number,
                      Size load_size);
