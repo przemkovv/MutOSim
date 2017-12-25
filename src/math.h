@@ -9,12 +9,16 @@ namespace Math
 template <typename T>
 T ratio_to_sum(T s1, T s2)
 {
-  return s1 / (s1 + s2);
+  if (auto sum = s1 + s2; sum == 0) {
+    return 0;
+  } else {
+    return s1 / sum;
+  }
 }
 
 constexpr long double pow(long double x, int64_t y)
 {
-return y == 0 ? 1.0L : x * pow(x, y - 1);
+  return y == 0 ? 1.0L : x * pow(x, y - 1);
 }
 
 constexpr int64_t factorial(int64_t x)

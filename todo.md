@@ -1,7 +1,6 @@
 
 # Todo
 
-- Block time per traffic class
 - Reserved capacity
 - divide simulation into epochs?
 - Analytical model MIMS
@@ -10,5 +9,6 @@
 # Done
 
 - Big decimal - using GMP, MPFR libraries
+- Block time per traffic class
 - fix math computing
 - Service intensity per class

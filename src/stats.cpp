@@ -3,6 +3,29 @@
 #include "math.h"
 #include <fmt/ostream.h>
 
+LoadStats operator+(const LoadStats &s1, const LoadStats &s2)
+{
+  return {s1.count + s2.count, s1.size + s2.size};
+}
+
+LoadStats& operator+=(LoadStats &s1, const LoadStats &s2)
+{
+  s1.count += s2.count;
+  s1.size += s2.size;
+  return s1;
+}
+
+LostServedStats operator+(const LostServedStats &s1, const LostServedStats &s2)
+{
+  return {s1.lost + s2.lost, s1.served + s2.served};
+}
+
+LostServedStats& operator+=(LostServedStats &s1, const LostServedStats &s2)
+{
+  s1.lost += s2.lost;
+  s1.served += s2.served;
+  return s1;
+}
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const LoadStats &load_stats)
@@ -30,7 +53,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&/* format_str */,
+                const char *& /* format_str */,
                 const TrafficClassStats &stats)
 {
   f.writer().write("{}, P_block = {}", stats.lost_served_stats,

@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include "type_safe/strong_typedef.hpp"
 #include <boost/multiprecision/mpfr.hpp>
 #include <cstdint>
 #include <experimental/memory>
 #include <fmt/ostream.h>
 #include <string_view>
+#include <type_safe/strong_typedef.hpp>
 
 #include <string>
 
@@ -79,6 +79,7 @@ struct Count : ts::strong_typedef<Count, count_t>,
                ts::strong_typedef_op::increment<Count>,
                ts::strong_typedef_op::decrement<Count>,
                ts::strong_typedef_op::subtraction<Count>,
+               ts::strong_typedef_op::addition<Count>,
                ts::strong_typedef_op::relational_comparison<Count>,
                ts::strong_typedef_op::output_operator<Count> {
   using strong_typedef::strong_typedef;

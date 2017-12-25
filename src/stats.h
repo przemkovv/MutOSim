@@ -29,11 +29,13 @@ struct TrafficClassStats {
 
 struct Stats {
   LostServedStats total;
-  // Duration block_time;
-  // Duration simulation_time;
-
   std::unordered_map<SourceId, TrafficClassStats> by_source;
 };
+
+LoadStats operator+(const LoadStats &s1, const LoadStats &s2);
+LoadStats& operator+=(LoadStats &s1, const LoadStats &s2);
+LostServedStats operator+(const LostServedStats &s1, const LostServedStats &s2);
+LostServedStats& operator+=(LostServedStats &s1, const LostServedStats &s2);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,

@@ -133,19 +133,45 @@ SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
   return sim_settings;
 }
 
-SimulationSettings single_overflow()
+SimulationSettings
+single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
 {
   auto serve_intensity = Intensity(1.0L);
-  SimulationSettings sim_settings{duration, tick_length, "Single overflow"};
+  SimulationSettings sim_settings{duration, tick_length,
+                                  "Single overflow Engset"};
 
   auto &topology = sim_settings.topology;
   GroupName g1{"G1"};
   GroupName g2{"G2"};
   SourceName s1{"Spo1"};
-  topology.add_group(std::make_unique<Group>(g1, Capacity(1)));
-  topology.add_group(std::make_unique<Group>(g2, Capacity(1)));
+  topology.add_group(std::make_unique<Group>(g1, V));
+  topology.add_group(std::make_unique<Group>(g2, V));
   topology.add_source(
-      std::make_unique<PoissonSourceStream>(s1, Intensity(3.0L), Size(1)));
+      std::make_unique<EngsetSourceStream>(s1, gamma, N, Size(1)));
+
+  topology.connect_groups(g1, g2);
+  topology.attach_source_to_group(s1, g1);
+  topology.add_traffic_class(s1, g1, serve_intensity);
+  topology.add_traffic_class(s1, g2, serve_intensity);
+
+  return sim_settings;
+}
+
+SimulationSettings single_overflow_poisson(const Intensity lambda,
+                                           const Capacity V)
+{
+  auto serve_intensity = Intensity(1.0L);
+  SimulationSettings sim_settings{duration, tick_length,
+                                  "Single overflow Poisson"};
+
+  auto &topology = sim_settings.topology;
+  GroupName g1{"G1"};
+  GroupName g2{"G2"};
+  SourceName s1{"Spo1"};
+  topology.add_group(std::make_unique<Group>(g1, V));
+  topology.add_group(std::make_unique<Group>(g2, V));
+  topology.add_source(
+      std::make_unique<PoissonSourceStream>(s1, lambda, Size(1)));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(s1, g1);
@@ -161,7 +187,7 @@ SimulationSettings multiple_sources_single_overflow()
   const auto lambda = Intensity(3);
   const auto N = Count(2);
   const auto gamma = lambda / N;
-  const auto V = Capacity(1);
+  const auto V = Capacity(2);
   // const auto alpha = gamma / micro;
 
   SimulationSettings sim_settings{duration, tick_length,
@@ -178,7 +204,7 @@ SimulationSettings multiple_sources_single_overflow()
   topology.add_source(
       std::make_unique<PoissonSourceStream>(s1, lambda, Size(1)));
   topology.add_source(
-      std::make_unique<EngsetSourceStream>(s2, gamma, N, Size(1)));
+      std::make_unique<EngsetSourceStream>(s2, gamma, N, Size(2)));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(s1, g1);
@@ -200,8 +226,14 @@ int main()
     scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
     scenarios.emplace_back(
         engset_model(Intensity(1.0L), Capacity(1), Count(3)));
-    scenarios.emplace_back(single_overflow());
+
+    scenarios.emplace_back(
+        single_overflow_poisson(Intensity(3.0L), Capacity(1)));
+    scenarios.emplace_back(
+        single_overflow_engset(Intensity(1.0L), Capacity(1), Count(3)));
+
     scenarios.emplace_back(multiple_sources_single_overflow());
+
     scenarios.emplace_back(
         pascal_source_model(Intensity(1), Capacity(10), Count(1)));
     scenarios.emplace_back(
@@ -232,13 +264,13 @@ int main()
         run_scenario(scenario, true);
       }
       for (auto &scenario : scenarios) {
-        print("[Main] {:-^100}\n", scenario.name);
+        print("\n[Main] {:-^100}\n", scenario.name);
         scenario.world->print_stats();
         print("[Main] {:^^100}\n", scenario.name);
       }
     } else {
       for (auto &scenario : scenarios) {
-        print("[Main] {:-^100}\n", scenario.name);
+        print("\n[Main] {:-^100}\n", scenario.name);
         run_scenario(scenario);
       }
     }

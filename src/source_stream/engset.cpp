@@ -62,7 +62,7 @@ EventPtr EngsetSourceStream::produce_load(Time time)
   }
 
   auto load = create_load(time, load_size_);
-  if (target_group_->can_serve(load)) {
+  if (target_group_->can_serve(load.size)) {
     debug_print("{} Produced: {}\n", *this, load);
     active_sources_++;
   } else {

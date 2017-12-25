@@ -39,7 +39,7 @@ class World
 
 public:
   World(uint64_t seed, Duration duration, Duration tick_length);
-  ~World();
+  ~World() =default;
 
   Uuid get_uuid();
   RandomEngine &get_random_engine();

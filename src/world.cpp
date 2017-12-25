@@ -12,11 +12,6 @@ World::World(uint64_t seed, Duration duration, Duration tick_length)
   print("[World] {:=^100}\n", " New world ");
 }
 
-World::~World()
-{
-  // print("[World] {:^^100}\n", " End of the world ");
-}
-
 void World::init()
 {
   for (auto & [ name, source ] : topology_->sources) {
@@ -26,9 +21,7 @@ void World::init()
 
 bool World::next_iteration()
 {
-  debug_print("[World] Time = {:-<80} "
-              "\n",
-              time_);
+  debug_print("[World] Time = {:-<80}\n", time_);
 
   Time next_event{0};
   if (!events_.empty()) {
@@ -85,7 +78,7 @@ void World::print_stats()
 
 void World::run(bool quiet)
 {
-  long double stats_freq = 0.2L;
+  long double stats_freq = 0.25L;
   int i = 1;
   while (next_iteration()) {
     if (!quiet && get_progress() > stats_freq * i) {

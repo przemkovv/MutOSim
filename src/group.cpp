@@ -7,7 +7,9 @@
 #include <gsl/gsl>
 
 Group::Group(GroupName name, Capacity capacity)
-  : name_(std::move(name)), capacity_(capacity), loss_group(name + "_LG")
+  : name_(std::move(name)),
+    capacity_(capacity),
+    loss_group(name + "_LG", served_by_source)
 {
 }
 
@@ -30,6 +32,7 @@ void Group::add_traffic_class(const TrafficClass &tc)
 {
   traffic_classes[tc.source_id] = tc;
   blocked_by_source.emplace(tc.source_id, BlockStats{});
+  served_by_source.emplace(tc.source_id, LostServedStats{});
 }
 
 void Group::notify_on_serve(LoadServeEvent *event)
@@ -39,7 +42,7 @@ void Group::notify_on_serve(LoadServeEvent *event)
 
 bool Group::try_serve(Load load)
 {
-  if (can_serve(load)) {
+  if (can_serve(load.size)) {
     debug_print("{} Serving load: {}\n", *this, load);
     size_ += load.size;
     load.served_by.reset(this);
@@ -60,10 +63,9 @@ void Group::take_off(const Load &load)
   debug_print("{} Load has been served: {}\n", *this, load);
   size_ -= load.size;
   update_block_stat(load);
-  total_served.size += load.size;
-  total_served.count++;
-  served_by_source[load.produced_by->id].size += load.size;
-  served_by_source[load.produced_by->id].count++;
+  auto &served = served_by_source[load.produced_by->id].served;
+  served.size += load.size;
+  served.count++;
 }
 
 void Group::update_block_stat(const Load &load)
@@ -82,8 +84,8 @@ void Group::block(SourceId source_id, const Load &load)
   if (!block_stats.is_blocked) {
     block_stats.is_blocked = true;
     block_stats.start_of_block = load.send_time;
-    debug_print("{} Blocking bt={}, sobt={}\n", *this, block_stats.block_time,
-                block_stats.start_of_block);
+    debug_print("{} Load: {}, Blocking bt={}, sobt={}\n", *this, load,
+                block_stats.block_time, block_stats.start_of_block);
   }
 }
 
@@ -92,26 +94,16 @@ void Group::unblock(SourceId source_id, const Load &load)
   auto &block_stats = blocked_by_source[source_id];
   if (block_stats.is_blocked) {
     block_stats.is_blocked = false;
-    block_stats.start_of_block = load.send_time;
     auto block_time = load.end_time - block_stats.start_of_block;
     block_stats.block_time += block_time;
-    debug_print("{} Unblocking bt={}, dt={}\n", *this, block_stats.block_time,
-                block_time);
+    debug_print("{} Load: {}, Unblocking bt={}, dt={}\n", *this, load,
+                block_stats.block_time, block_time);
   }
-}
-
-bool Group::is_blocked(const Load &load)
-{
-  return size_ + load.size > capacity_;
 }
 
 bool Group::can_serve(const Size &load_size)
 {
   return size_ + load_size <= capacity_;
-}
-bool Group::can_serve(const Load &load)
-{
-  return size_ + load.size <= capacity_;
 }
 
 bool Group::forward(Load load)
@@ -128,10 +120,7 @@ bool Group::forward(Load load)
 
 Stats Group::get_stats()
 {
-  Stats stats{{loss_group.total_served, total_served},
-              // block_stats_.block_time,
-              // Duration{world_->get_time()},
-              {}};
+  Stats stats;
 
   if (loss_group.served_by_source.size() != served_by_source.size()) {
     print("{} Stats: source number in the group and loss group is different.\n",
@@ -139,30 +128,17 @@ Stats Group::get_stats()
   }
   auto sim_duration = Duration{world_->get_time()};
   for (auto & [ source_id, load_stats ] : served_by_source) {
-    stats.by_source[source_id] = {
-        {loss_group.served_by_source[source_id], served_by_source[source_id]},
-        blocked_by_source[source_id].block_time,
-        sim_duration};
+    auto &serve_stats = served_by_source[source_id];
+    stats.by_source[source_id] = {{serve_stats.lost, serve_stats.served},
+                                  blocked_by_source[source_id].block_time,
+                                  sim_duration};
+    stats.total += serve_stats;
   }
   return stats;
 }
 
 //----------------------------------------------------------------------
 
-LossGroup::LossGroup(GroupName name) : name_(std::move(name))
-{
-}
-bool LossGroup::serve(Load load)
-{
-  debug_print("{} Load droped. {}\n", *this, load);
-  total_served.size += load.size;
-  total_served.count++;
-  served_by_source[load.produced_by->id].size += load.size;
-  served_by_source[load.produced_by->id].count++;
-  return false;
-}
-
-//----------------------------------------------------------------------
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
@@ -171,11 +147,4 @@ void format_arg(fmt::BasicFormatter<char> &f,
 {
   f.writer().write("[Group {}, cap={}/{}]", group.name_, group.size_,
                    group.capacity_);
-}
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const LossGroup &loss_group)
-{
-  f.writer().write("[LossGroup {}, lost={}]", loss_group.name_,
-                   loss_group.total_served.count);
 }
