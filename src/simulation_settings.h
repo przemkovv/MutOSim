@@ -8,8 +8,6 @@
 class World;
 
 struct SimulationSettings {
-  Duration duration;
-  Duration tick_length;
   Name name;
 
   Topology topology{};

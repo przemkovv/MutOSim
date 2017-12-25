@@ -12,7 +12,10 @@
 #include "types.h"
 #include "world.h"
 
-#include "nlohmann/json.hpp"
+#include "scenarios/simple.h"
+#include "scenarios/single_overflow.h"
+
+#include <nlohmann/json.hpp>
 
 #include <experimental/memory>
 #include <fmt/format.h>
@@ -23,8 +26,9 @@
 #include <random>
 
 // const auto duration = Duration(20'000'000);
-// constexpr auto duration = 5'000'000;
-constexpr Duration duration{500'000};
+// constexpr Duration duration { 5'000'000};
+constexpr Duration duration { 1'000'000};
+// constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
 // const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
@@ -40,71 +44,13 @@ uint64_t seed()
   return rd();
 }
 
-SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
-{
-  auto serve_intensity = Intensity(1.0L);
-
-  SimulationSettings sim_settings{duration, tick_length, "Erlang model"};
-
-  const auto A = lambda / serve_intensity;
-  sim_settings.do_before = [=]() {
-    print("[Erlang] P_loss = P_block = E_V(A) = {}\n",
-          erlang_pk(A, ts::get(V), ts::get(V)));
-  };
-  sim_settings.do_after = sim_settings.do_before;
-
-  auto &topology = sim_settings.topology;
-
-  SourceName s1{"SPo1"};
-  topology.add_source(
-      std::make_unique<PoissonSourceStream>(s1, lambda, Size(1)));
-
-  GroupName g1{"G1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-  topology.attach_source_to_group(s1, g1);
-
-  topology.add_traffic_class(s1, g1, serve_intensity);
-
-  return sim_settings;
-}
-
-SimulationSettings
-engset_model(const Intensity gamma, const Capacity V, const Count N)
-{ // Engset model
-
-  SimulationSettings sim_settings{duration, tick_length, "Engset model"};
-
-  const auto serve_intensity = Intensity(1.0L);
-  const auto alpha = gamma / serve_intensity;
-
-  sim_settings.do_before = [=]() {
-    print("[Engset] P_block = E(alfa, V, N) = {}\n",
-          engset_pi(alpha, ts::get(V), ts::get(N), ts::get(V)));
-    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          engset_pi(alpha, ts::get(V), ts::get(N) - 1, ts::get(V)));
-  };
-  sim_settings.do_after = sim_settings.do_before;
-
-  auto &topology = sim_settings.topology;
-  GroupName g1{"G1"};
-  SourceName s1{"SEn1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-
-  topology.add_source(
-      std::make_unique<EngsetSourceStream>(s1, gamma, N, Size(1)));
-  topology.attach_source_to_group(s1, g1);
-  topology.add_traffic_class(s1, g1, serve_intensity);
-
-  return sim_settings;
-}
-
 SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
 { // Pascal source
 
   auto serve_intensity = Intensity(1.0L);
 
   auto name = fmt::format("Pascal source. gamma={}, V={}, N={} ", gamma, V, N);
-  SimulationSettings sim_settings{duration, tick_length, name};
+  SimulationSettings sim_settings{name};
 
   // const auto lambda = Intensity(5);
   // const auto N = Size(5);
@@ -133,54 +79,6 @@ SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
   return sim_settings;
 }
 
-SimulationSettings
-single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
-{
-  auto serve_intensity = Intensity(1.0L);
-  SimulationSettings sim_settings{duration, tick_length,
-                                  "Single overflow Engset"};
-
-  auto &topology = sim_settings.topology;
-  GroupName g1{"G1"};
-  GroupName g2{"G2"};
-  SourceName s1{"Spo1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-  topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(
-      std::make_unique<EngsetSourceStream>(s1, gamma, N, Size(1)));
-
-  topology.connect_groups(g1, g2);
-  topology.attach_source_to_group(s1, g1);
-  topology.add_traffic_class(s1, g1, serve_intensity);
-  topology.add_traffic_class(s1, g2, serve_intensity);
-
-  return sim_settings;
-}
-
-SimulationSettings single_overflow_poisson(const Intensity lambda,
-                                           const Capacity V)
-{
-  auto serve_intensity = Intensity(1.0L);
-  SimulationSettings sim_settings{duration, tick_length,
-                                  "Single overflow Poisson"};
-
-  auto &topology = sim_settings.topology;
-  GroupName g1{"G1"};
-  GroupName g2{"G2"};
-  SourceName s1{"Spo1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-  topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(
-      std::make_unique<PoissonSourceStream>(s1, lambda, Size(1)));
-
-  topology.connect_groups(g1, g2);
-  topology.attach_source_to_group(s1, g1);
-  topology.add_traffic_class(s1, g1, serve_intensity);
-  topology.add_traffic_class(s1, g2, serve_intensity);
-
-  return sim_settings;
-}
-
 SimulationSettings multiple_sources_single_overflow()
 {
   auto serve_intensity = Intensity(1.0L);
@@ -190,8 +88,7 @@ SimulationSettings multiple_sources_single_overflow()
   const auto V = Capacity(2);
   // const auto alpha = gamma / micro;
 
-  SimulationSettings sim_settings{duration, tick_length,
-                                  "Multiple sources - Single overflow"};
+  SimulationSettings sim_settings{"Multiple sources - Single overflow"};
 
   auto &topology = sim_settings.topology;
 
@@ -223,27 +120,37 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
-    scenarios.emplace_back(
-        engset_model(Intensity(1.0L), Capacity(1), Count(3)));
+    scenarios.emplace_back(single_overflow_poisson(
+        Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
+        {{Size{1}, Size{2}, Size{6}},
+         {Size{1}, Size{2}, Size{6}},
+         {Size{1}, Size{2}, Size{6}}},
+        Capacity{42}));
+    // scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
+    // scenarios.emplace_back(
+    // engset_model(Intensity(1.0L), Capacity(1), Count(3)));
 
-    scenarios.emplace_back(
-        single_overflow_poisson(Intensity(3.0L), Capacity(1)));
-    scenarios.emplace_back(
-        single_overflow_engset(Intensity(1.0L), Capacity(1), Count(3)));
+    // scenarios.emplace_back(
+    // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
+    // scenarios.emplace_back(
+    // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
+    // scenarios.emplace_back(
+    // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
 
-    scenarios.emplace_back(multiple_sources_single_overflow());
+    // scenarios.emplace_back(
+    // single_overflow_engset(Intensity(1.0L), Capacity(1), Count(3)));
 
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1), Capacity(10), Count(1)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1), Capacity(10), Count(5)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1), Capacity(10), Count(10)));
+    // scenarios.emplace_back(multiple_sources_single_overflow());
 
-    auto run_scenario = [](auto &scenario, bool quiet = false) {
-      scenario.world = std::make_unique<World>(seed(), scenario.duration,
-                                               scenario.tick_length);
+    // scenarios.emplace_back(
+    // pascal_source_model(Intensity(1), Capacity(10), Count(1)));
+    // scenarios.emplace_back(
+    // pascal_source_model(Intensity(1), Capacity(10), Count(5)));
+    // scenarios.emplace_back(
+    // pascal_source_model(Intensity(1), Capacity(10), Count(10)));
+
+    auto run_scenario = [&](auto &scenario, bool quiet = false) {
+      scenario.world = std::make_unique<World>(seed(), duration, tick_length);
       auto &world = *scenario.world;
       world.set_topology(&scenario.topology);
 

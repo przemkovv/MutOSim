@@ -42,5 +42,5 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const SourceStream &source)
 {
-  f.writer().write("[Source {} (id={})]", source.name_, source.id);
+  f.writer().write("[Source {} (id={}, t={}, int={})]", source.name_, source.id, source.get_load_size(), source.get_intensity());
 }

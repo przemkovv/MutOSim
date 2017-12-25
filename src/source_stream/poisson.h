@@ -18,8 +18,8 @@ public:
   void init() override;
   void notify_on_send(const LoadSendEvent *event) override;
 
-  Size get_load_size() override;
-  Intensity get_intensity() override;
+  Size get_load_size() const override;
+  Intensity get_intensity() const override;
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

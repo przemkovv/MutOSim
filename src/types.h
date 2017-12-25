@@ -30,14 +30,6 @@ using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
 
-struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
-                   ts::strong_typedef_op::output_operator<Intensity> {
-  using strong_typedef::strong_typedef;
-  constexpr auto operator/(const Intensity &intensity) const
-  {
-    return ts::get(*this) / ts::get(intensity);
-  }
-};
 
 struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,
@@ -48,18 +40,10 @@ struct Capacity : ts::strong_typedef<Capacity, count_t>,
 struct Size : ts::strong_typedef<Size, count_t>,
               ts::strong_typedef_op::equality_comparison<Size>,
               ts::strong_typedef_op::addition<Size>,
+              ts::strong_typedef_op::subtraction<Size>,
               ts::strong_typedef_op::output_operator<Size> {
   using strong_typedef::strong_typedef;
-  constexpr Size &operator-=(const Size &s)
-  {
-    ts::get(*this) -= ts::get(s);
-    return *this;
-  }
-  constexpr Size &operator+=(const Size &s)
-  {
-    ts::get(*this) += ts::get(s);
-    return *this;
-  }
+
   constexpr bool operator==(const Capacity &c)
   {
     return ts::get(*this) == ts::get(c);
@@ -74,6 +58,18 @@ struct Size : ts::strong_typedef<Size, count_t>,
   }
 };
 
+struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
+                   ts::strong_typedef_op::output_operator<Intensity> {
+  using strong_typedef::strong_typedef;
+  constexpr auto operator/(const Intensity &intensity) const
+  {
+    return ts::get(*this) / ts::get(intensity);
+  }
+  constexpr auto operator/(const Size &size) const
+  {
+    return Intensity(ts::get(*this) / ts::get(size));
+  }
+};
 struct Count : ts::strong_typedef<Count, count_t>,
                ts::strong_typedef_op::equality_comparison<Count>,
                ts::strong_typedef_op::increment<Count>,
@@ -83,16 +79,11 @@ struct Count : ts::strong_typedef<Count, count_t>,
                ts::strong_typedef_op::relational_comparison<Count>,
                ts::strong_typedef_op::output_operator<Count> {
   using strong_typedef::strong_typedef;
-
-  constexpr auto operator*(const Intensity &intensity)
-  {
-    return ts::get(*this) * ts::get(intensity);
-  }
 };
 
-constexpr auto operator/(const long double &x, const Count &c)
+constexpr auto operator*(const Count &count, const Intensity &intensity)
 {
-  return x / ts::get(c);
+  return ts::get(count) * ts::get(intensity);
 }
 constexpr auto operator/(const Intensity &intensity, const Count &count)
 {
@@ -101,21 +92,10 @@ constexpr auto operator/(const Intensity &intensity, const Count &count)
 
 struct Duration : ts::strong_typedef<Duration, duration_t>,
                   ts::strong_typedef_op::equality_comparison<Duration>,
+                  ts::strong_typedef_op::subtraction<Duration>,
+                  ts::strong_typedef_op::addition<Duration>,
                   ts::strong_typedef_op::output_operator<Duration> {
   using strong_typedef::strong_typedef;
-  constexpr Duration &operator+=(const Duration &d)
-  {
-    ts::get(*this) += ts::get(d);
-    return *this;
-  }
-  constexpr Duration operator+(const Duration &d) const
-  {
-    return Duration{ts::get(*this) + ts::get(d)};
-  }
-  constexpr Duration operator-(const Duration &d) const
-  {
-    return Duration{ts::get(*this) - ts::get(d)};
-  }
   constexpr auto operator/(const Duration &duration) const
   {
     return ts::get(*this) / ts::get(duration);

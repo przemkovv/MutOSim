@@ -32,11 +32,11 @@ void EngsetSourceStream::notify_on_serve(const LoadServeEvent *event)
   world_->schedule(create_produce_load_event(event->load.end_time));
 }
 
-Size EngsetSourceStream::get_load_size()
+Size EngsetSourceStream::get_load_size() const
 {
   return load_size_;
 }
-Intensity EngsetSourceStream::get_intensity()
+Intensity EngsetSourceStream::get_intensity() const
 {
   return intensity_;
 }

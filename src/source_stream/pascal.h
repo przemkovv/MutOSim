@@ -32,8 +32,8 @@ public:
   void notify_on_accept(const LoadSendEvent *event) override;
   void notify_on_produce(const LoadProduceEvent *event) override;
 
-  Size get_load_size() override;
-  Intensity get_intensity() override;
+  Size get_load_size() const override;
+  Intensity get_intensity() const override;
   PascalSourceStream(const SourceName &name,
                      Intensity intensity,
                      Count sources_number,

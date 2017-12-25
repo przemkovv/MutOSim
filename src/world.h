@@ -15,9 +15,6 @@
 struct Group;
 class SourceStream;
 
-using std::experimental::make_observer;
-using std::experimental::observer_ptr;
-
 class World
 {
   using RandomEngine = std::mt19937_64;
@@ -39,7 +36,7 @@ class World
 
 public:
   World(uint64_t seed, Duration duration, Duration tick_length);
-  ~World() =default;
+  ~World() = default;
 
   Uuid get_uuid();
   RandomEngine &get_random_engine();

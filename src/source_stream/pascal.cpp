@@ -53,11 +53,11 @@ void PascalSourceStream::notify_on_produce(const LoadProduceEvent *event)
     linked_sources_.erase(it);
   }
 }
-Size PascalSourceStream::get_load_size()
+Size PascalSourceStream::get_load_size() const
 {
   return load_size_;
 }
-Intensity PascalSourceStream::get_intensity()
+Intensity PascalSourceStream::get_intensity() const
 {
   return intensity_;
 }
