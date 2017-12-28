@@ -39,5 +39,7 @@ let g:gutentags_generate_on_write = 0
 
 set makeprg=make\ -j3\ -C\ build/
 
-autocmd BufWritePost *.h,*.hpp,*.cpp,*.c :NeomakeSh! make -C build/ ctags > /dev/null
+" autocmd BufWritePost *.h,*.hpp,*.cpp,*.c :Start! make -C build/ ctags >/dev/null
+autocmd BufWritePost *.h,*.hpp,*.cpp,*.c call jobstart("make -C build/ ctags", {'cwd': '.'})
+" autocmd BufWritePost *.h,*.hpp,*.cpp,*.c :NeomakeSh! make -C build/ ctags > /dev/null
 
