@@ -1,13 +1,13 @@
 
 #include "simple.h"
 
-#include "topology.h"
 #include "calculation.h"
-#include "logger.h"
 #include "group.h"
+#include "logger.h"
+#include "topology.h"
 
-#include "source_stream/poisson.h"
 #include "source_stream/engset.h"
+#include "source_stream/poisson.h"
 
 SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
 {
@@ -63,6 +63,33 @@ engset_model(const Intensity gamma, const Capacity V, const Count N)
       std::make_unique<EngsetSourceStream>(s1, gamma, N, Size(1)));
   topology.attach_source_to_group(s1, g1);
   topology.add_traffic_class(s1, g1, serve_intensity);
+
+  return sim_settings;
+}
+
+SimulationSettings poisson_streams(std::vector<Intensity> As,
+                                   std::vector<Size> sizes,
+                                   Capacity primary_V)
+{
+  auto serve_intensity = Intensity(1.0L);
+  SimulationSettings sim_settings{"Single group with Poisson streams"};
+
+  auto &topology = sim_settings.topology;
+
+  std::vector<SourceName> source_names;
+
+  GroupName g1{"G1"};
+  topology.add_group(std::make_unique<Group>(g1, primary_V));
+
+  for (auto source_number = 0u; source_number < As.size(); ++source_number) {
+    SourceName sn{fmt::format("S{}", source_number)};
+    Size z = sizes[source_number];
+    topology.add_source(
+        std::make_unique<PoissonSourceStream>(sn, As[source_number], z));
+
+    topology.attach_source_to_group(sn, g1);
+    topology.add_traffic_class(sn, g1, serve_intensity);
+  }
 
   return sim_settings;
 }

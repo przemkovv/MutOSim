@@ -26,9 +26,9 @@
 #include <random>
 
 // const auto duration = Duration(20'000'000);
-// constexpr Duration duration { 5'000'000};
+constexpr Duration duration { 5'000'000};
 // constexpr Duration duration { 1'000'000};
-constexpr Duration duration{500'000};
+// constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
 // const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
@@ -121,12 +121,23 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    scenarios.emplace_back(single_overflow_poisson(
-        Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
-        {{Size{1}, Size{2}, Size{6}},
-         {Size{1}, Size{2}, Size{6}},
-         {Size{1}, Size{2}, Size{6}}},
-        Capacity{42}));
+    std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
+    auto A = Intensity{1.0L};
+    auto V = Capacity{50};
+
+    std::vector<Intensity> intensities{sizes.size()};
+    for (auto i = 0u; i < sizes.size(); ++i) {
+      intensities[i] =
+          Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) / sizes.size()};
+    }
+    scenarios.emplace_back(poisson_streams(intensities, sizes, Capacity{50}));
+
+    // scenarios.emplace_back(single_overflow_poisson(
+    // Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
+    // {{Size{1}, Size{2}, Size{6}},
+    // {Size{1}, Size{2}, Size{6}},
+    // {Size{1}, Size{2}, Size{6}}},
+    // Capacity{42}));
     // scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
     // scenarios.emplace_back(
     // engset_model(Intensity(1.0L), Capacity(1), Count(3)));
