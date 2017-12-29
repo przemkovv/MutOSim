@@ -6,6 +6,7 @@
 - Analytical model MIMS
 - graphs
 - verify Pascal stream correctness
+- add traffic class id
 
 # Done
 
