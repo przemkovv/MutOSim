@@ -26,11 +26,11 @@
 #include <random>
 
 // const auto duration = Duration(20'000'000);
-constexpr Duration duration { 5'000'000};
+// constexpr Duration duration{5'000'000};
 // constexpr Duration duration { 1'000'000};
 // constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
-// const auto duration = Duration(100'000);
+const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(100);
 constexpr Duration tick_length{5};
@@ -121,16 +121,23 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
-    auto A = Intensity{1.0L};
-    auto V = Capacity{50};
+    for (auto A = Intensity{0.5L}; A <= Intensity{1.5L}; A += Intensity{0.1L}) {
+      std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
+      std::vector<int64_t> ratios{1, 1, 1, 1};
+      auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
+      std::vector<long double> ratios_d(begin(ratios), end(ratios));
+      for_each(begin(ratios_d), end(ratios_d),
+               [ratios_sum](auto &x) { x /= ratios_sum; });
 
-    std::vector<Intensity> intensities{sizes.size()};
-    for (auto i = 0u; i < sizes.size(); ++i) {
-      intensities[i] =
-          Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) / sizes.size()};
+      auto V = Capacity{50};
+
+      std::vector<Intensity> intensities{sizes.size()};
+      for (auto i = 0u; i < sizes.size(); ++i) {
+        intensities[i] = Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) *
+                                   ratios_d[i]};
+      }
+      scenarios.emplace_back(poisson_streams(intensities, sizes, Capacity{50}));
     }
-    scenarios.emplace_back(poisson_streams(intensities, sizes, Capacity{50}));
 
     // scenarios.emplace_back(single_overflow_poisson(
     // Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
@@ -176,7 +183,7 @@ int main()
       }
     };
 
-    if ((false)) {
+    if ((true)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         auto &scenario = scenarios[i];

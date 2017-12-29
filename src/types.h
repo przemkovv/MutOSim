@@ -30,7 +30,6 @@ using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
 
-
 struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,
                   ts::strong_typedef_op::output_operator<Capacity> {
@@ -59,6 +58,7 @@ struct Size : ts::strong_typedef<Size, count_t>,
 };
 
 struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
+                   ts::strong_typedef_op::relational_comparison<Intensity>,
                    ts::strong_typedef_op::output_operator<Intensity> {
   using strong_typedef::strong_typedef;
   constexpr auto operator/(const Intensity &intensity) const
@@ -68,6 +68,11 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   constexpr auto operator/(const Size &size) const
   {
     return Intensity(ts::get(*this) / ts::get(size));
+  }
+  constexpr auto operator+=(const Intensity &other)
+  {
+    ts::get(*this) += ts::get(other);
+    return *this;
   }
 };
 struct Count : ts::strong_typedef<Count, count_t>,
