@@ -27,8 +27,8 @@
 
 // const auto duration = Duration(20'000'000);
 // constexpr Duration duration { 5'000'000};
-constexpr Duration duration { 1'000'000};
-// constexpr Duration duration{500'000};
+// constexpr Duration duration { 1'000'000};
+constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
 // const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
@@ -117,6 +117,7 @@ SimulationSettings multiple_sources_single_overflow()
 
 int main()
 {
+  setlocale(LC_NUMERIC, "en_US.UTF-8");
   std::vector<SimulationSettings> scenarios;
 
   {

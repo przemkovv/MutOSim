@@ -30,7 +30,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const LoadStats &load_stats)
 {
-  f.writer().write("{} ({}u)", load_stats.count, load_stats.size);
+  f.writer().write("{:n} ({:n}u)", ts::get(load_stats.count), ts::get(load_stats.size));
 }
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

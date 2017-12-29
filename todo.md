@@ -5,6 +5,7 @@
 - divide simulation into epochs?
 - Analytical model MIMS
 - graphs
+- verify Pascal stream correctness
 
 # Done
 
