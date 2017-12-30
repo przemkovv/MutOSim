@@ -12,6 +12,7 @@ add_compile_options(
     -Werror
     -Weffc++
     -Weverything
+    # -Wpedantic
     -Wno-c++98-compat
     -Wno-padded
     )

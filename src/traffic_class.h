@@ -3,9 +3,14 @@
 #include "types.h"
 
 struct TrafficClass {
-  SourceId source_id;
+  TrafficClassId id;
   Intensity source_intensity;
   Intensity serve_intensity;
   Size size;
 };
 
+using TrafficClasses = std::vector<TrafficClass>;
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const TrafficClass &tc);

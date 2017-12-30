@@ -1,6 +1,7 @@
 #pragma once
 
 #include "event.h"
+#include "traffic_class.h"
 #include "types.h"
 
 #include <fmt/format.h>
@@ -14,6 +15,7 @@ class SourceStream
 public:
   const SourceName name_;
   SourceId id{0};
+  const TrafficClass tc_;
 
 protected:
   observer_ptr<World> world_;
@@ -31,10 +33,13 @@ public:
   virtual void notify_on_accept(const LoadSendEvent *event);
   virtual void notify_on_produce(const LoadProduceEvent *event);
 
-  virtual Size get_load_size() const = 0;
-  virtual Intensity get_intensity() const = 0;
+  virtual Size get_load_size() const { return tc_.size; }
+  virtual Intensity get_intensity() const { return tc_.serve_intensity; }
 
-  SourceStream(const SourceName &name) : name_(name) {}
+  SourceStream(const SourceName &name, const TrafficClass &tc)
+    : name_(name), tc_(tc)
+  {
+  }
   virtual ~SourceStream() = default;
 
   void set_world(gsl::not_null<World *> world);

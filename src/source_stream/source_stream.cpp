@@ -5,8 +5,9 @@
 
 Load SourceStream::create_load(Time time, Size size)
 {
-  return {LoadId{world_->get_uuid()}, time,         size, Time{-1}, false, {},
-          make_observer(this),        target_group_};
+  return {
+      LoadId{world_->get_uuid()}, tc_.id,       time, size, Time{-1}, false, {},
+      make_observer(this),        target_group_};
 }
 
 void SourceStream::notify_on_produce(const LoadProduceEvent * /* event */)
@@ -42,5 +43,6 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const SourceStream &source)
 {
-  f.writer().write("[Source {} (id={}, t={}, int={})]", source.name_, source.id, source.get_load_size(), source.get_intensity());
+  f.writer().write("[Source {} (id={}, t={}, int={})]", source.name_, source.id,
+                   source.get_load_size(), source.get_intensity());
 }

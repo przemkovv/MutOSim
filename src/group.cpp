@@ -9,13 +9,14 @@
 Group::Group(GroupName name, Capacity capacity)
   : name_(std::move(name)),
     capacity_(capacity),
-    loss_group(name + "_LG", served_by_source)
+    loss_group(name + "_LG", served_by_tc)
 {
 }
 
 void Group::set_end_time(Load &load)
 {
-  auto serve_intensity = traffic_classes[load.produced_by->id].serve_intensity;
+  auto &tcs = *traffic_classes_.get();
+  auto serve_intensity = tcs[ts::get(load.tc_id)].serve_intensity;
   auto params = decltype(exponential)::param_type(ts::get(serve_intensity));
   exponential.param(params);
 
@@ -28,12 +29,16 @@ void Group::add_next_group(gsl::not_null<Group *> group)
   next_groups_.emplace_back(make_observer(group.get()));
 }
 
-void Group::add_traffic_class(const TrafficClass &tc)
+void Group::set_traffic_classes(const TrafficClasses &traffic_classes)
 {
-  traffic_classes[tc.source_id] = tc;
-  blocked_by_source.emplace(tc.source_id, BlockStats{});
-  served_by_source.emplace(tc.source_id, LostServedStats{});
+  traffic_classes_ = make_observer(&traffic_classes);
 }
+// void Group::add_traffic_class(const TrafficClass &tc)
+// {
+// traffic_classes[tc.source_id] = tc;
+// blocked_by_tc.emplace(tc.source_id, BlockStats{});
+// served_by_tc.emplace(tc.source_id, LostServedStats{});
+// }
 
 void Group::notify_on_serve(LoadServeEvent *event)
 {
@@ -63,24 +68,24 @@ void Group::take_off(const Load &load)
   debug_print("{} Load has been served: {}\n", *this, load);
   size_ -= load.size;
   update_block_stat(load);
-  auto &served = served_by_source[load.produced_by->id].served;
+  auto &served = served_by_tc[load.tc_id].served;
   served.size += load.size;
   served.count++;
 }
 
 void Group::update_block_stat(const Load &load)
 {
-  for (const auto & [ source_id, traffic_class ] : traffic_classes) {
-    if (can_serve(traffic_class.size)) {
-      unblock(source_id, load);
+  for (const auto &   tc  : *traffic_classes_) {
+    if (can_serve(tc.size)) {
+      unblock(tc.id, load);
     } else {
-      block(source_id, load);
+      block(tc.id, load);
     }
   }
 }
-void Group::block(SourceId source_id, const Load &load)
+void Group::block(TrafficClassId tc_id, const Load &load)
 {
-  auto &block_stats = blocked_by_source[source_id];
+  auto &block_stats = blocked_by_tc[tc_id];
   if (!block_stats.is_blocked) {
     block_stats.is_blocked = true;
     block_stats.start_of_block = load.send_time;
@@ -89,9 +94,9 @@ void Group::block(SourceId source_id, const Load &load)
   }
 }
 
-void Group::unblock(SourceId source_id, const Load &load)
+void Group::unblock(TrafficClassId tc_id, const Load &load)
 {
-  auto &block_stats = blocked_by_source[source_id];
+  auto &block_stats = blocked_by_tc[tc_id];
   if (block_stats.is_blocked) {
     block_stats.is_blocked = false;
     auto block_time = load.end_time - block_stats.start_of_block;
@@ -122,15 +127,15 @@ Stats Group::get_stats()
 {
   Stats stats;
 
-  if (loss_group.served_by_source.size() != served_by_source.size()) {
+  if (loss_group.served_by_tc.size() != served_by_tc.size()) {
     print("{} Stats: source number in the group and loss group is different.\n",
           *this);
   }
   auto sim_duration = Duration{world_->get_time()};
-  for (auto & [ source_id, load_stats ] : served_by_source) {
-    auto &serve_stats = served_by_source[source_id];
-    stats.by_source[source_id] = {{serve_stats.lost, serve_stats.served},
-                                  blocked_by_source[source_id].block_time,
+  for (auto & [ tc_id, load_stats ] : served_by_tc) {
+    auto &serve_stats = served_by_tc[tc_id];
+    stats.by_traffic_class[tc_id] = {{serve_stats.lost, serve_stats.served},
+                                  blocked_by_tc[tc_id].block_time,
                                   sim_duration};
     stats.total += serve_stats;
   }
@@ -138,7 +143,6 @@ Stats Group::get_stats()
 }
 
 //----------------------------------------------------------------------
-
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

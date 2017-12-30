@@ -6,12 +6,9 @@
 #include "world.h"
 
 PascalSourceStream::PascalSourceStream(const SourceName &name,
-                                       Intensity intensity,
-                                       Count sources_number,
-                                       Size load_size)
-  : SourceStream(name),
-    intensity_(intensity),
-    load_size_(load_size),
+                    const TrafficClass &tc,
+                     Count sources_number)
+  : SourceStream(name, tc),
     sources_number_(sources_number)
 {
 }
@@ -53,14 +50,6 @@ void PascalSourceStream::notify_on_produce(const LoadProduceEvent *event)
     linked_sources_.erase(it);
   }
 }
-Size PascalSourceStream::get_load_size() const
-{
-  return load_size_;
-}
-Intensity PascalSourceStream::get_intensity() const
-{
-  return intensity_;
-}
 void PascalSourceStream::init()
 {
   for (auto i = Count(0); i < sources_number_; ++i) {
@@ -83,7 +72,7 @@ EventPtr PascalSourceStream::produce_load(Time time)
   }
 
   Duration dt{exponential(world_->get_random_engine())};
-  auto load = create_load(time + dt, load_size_);
+  auto load = create_load(time + dt, tc_.size);
   debug_print("{} Produced: {}\n", *this, load);
 
   return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
@@ -98,6 +87,6 @@ void format_arg(fmt::BasicFormatter<char> &f,
   f.writer().write(
       "[PascalSource {} (id={}), active={}/{}, gamma={}, lambda={}]",
       source.name_, source.id, source.active_sources_, source.sources_number_,
-      source.intensity_,
-      (source.sources_number_ - source.active_sources_) * source.intensity_);
+      source.tc_.serve_intensity,
+      (source.sources_number_ - source.active_sources_) * source.tc_.serve_intensity);
 }

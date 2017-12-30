@@ -11,11 +11,12 @@
 
 SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
 {
-  auto serve_intensity = Intensity(1.0L);
+  const auto serve_intensity = Intensity(1.0L);
+  const auto A = lambda / serve_intensity;
+  const auto size = Size(1);
 
   SimulationSettings sim_settings{"Erlang model"};
 
-  const auto A = lambda / serve_intensity;
   sim_settings.do_before = [=]() {
     print("[Erlang] P_loss = P_block = E_V(A) = {}\n",
           erlang_pk(A, ts::get(V), ts::get(V)));
@@ -24,15 +25,14 @@ SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
 
   auto &topology = sim_settings.topology;
 
+  auto &tc = topology.add_traffic_class(lambda, serve_intensity, size);
+
   SourceName s1{"SPo1"};
-  topology.add_source(
-      std::make_unique<PoissonSourceStream>(s1, lambda, Size(1)));
+  topology.add_source(std::make_unique<PoissonSourceStream>(s1, tc));
 
   GroupName g1{"G1"};
   topology.add_group(std::make_unique<Group>(g1, V));
   topology.attach_source_to_group(s1, g1);
-
-  topology.add_traffic_class(s1, g1, serve_intensity);
 
   return sim_settings;
 }
@@ -45,6 +45,7 @@ engset_model(const Intensity gamma, const Capacity V, const Count N)
 
   const auto serve_intensity = Intensity(1.0L);
   const auto alpha = gamma / serve_intensity;
+  const auto size = Size(1);
 
   sim_settings.do_before = [=]() {
     print("[Engset] P_block = E(alfa, V, N) = {}\n",
@@ -55,14 +56,13 @@ engset_model(const Intensity gamma, const Capacity V, const Count N)
   sim_settings.do_after = sim_settings.do_before;
 
   auto &topology = sim_settings.topology;
+  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
   GroupName g1{"G1"};
   SourceName s1{"SEn1"};
   topology.add_group(std::make_unique<Group>(g1, V));
 
-  topology.add_source(
-      std::make_unique<EngsetSourceStream>(s1, gamma, N, Size(1)));
+  topology.add_source(std::make_unique<EngsetSourceStream>(s1, tc, N));
   topology.attach_source_to_group(s1, g1);
-  topology.add_traffic_class(s1, g1, serve_intensity);
 
   return sim_settings;
 }

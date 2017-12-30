@@ -3,16 +3,17 @@
 #include "types.h"
 #include "stats.h"
 #include "load.h"
+#include "traffic_class.h"
 
 #include <fmt/format.h>
 
 struct LossGroup {
   const GroupName name_;
 
-  std::unordered_map<SourceId, LostServedStats> &served_by_source;
+  std::unordered_map<TrafficClassId, LostServedStats> &served_by_tc;
 
   LossGroup(GroupName name,
-            std::unordered_map<SourceId, LostServedStats> &served_by_source);
+            std::unordered_map<TrafficClassId, LostServedStats> &served_by_tc);
   bool serve(Load load);
 };
 

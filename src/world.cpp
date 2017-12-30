@@ -69,9 +69,10 @@ void World::print_stats()
   for (auto & [ name, group ] : topology_->groups) {
     const auto &group_stats = group->get_stats();
     print("[World] Stats for {}: {}\n", *group, group_stats);
-    for (auto & [ source_id, stats ] : group_stats.by_source) {
-      print("[World] Stats for {}: {}: {}\n", *group,
-            *topology_->find_source_by_id(source_id).value(), stats);
+    for (auto & [ tc_id, stats ] : group_stats.by_traffic_class) {
+      print("[World] Stats for {}/{}: {}: {}\n", *group,
+            *topology_->find_source_by_tc_id(tc_id).value(),
+            topology_->get_traffic_class(tc_id), stats);
     }
   }
 }

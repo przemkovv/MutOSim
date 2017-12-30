@@ -7,6 +7,8 @@
 - graphs
 - verify Pascal stream correctness
 - add traffic class id
+- elastic traffic
+- adaptive traffic
 
 # Done
 

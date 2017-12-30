@@ -29,7 +29,7 @@ struct TrafficClassStats {
 
 struct Stats {
   LostServedStats total;
-  std::unordered_map<SourceId, TrafficClassStats> by_source;
+  std::unordered_map<TrafficClassId, TrafficClassStats> by_traffic_class;
 };
 
 LoadStats operator+(const LoadStats &s1, const LoadStats &s2);
@@ -52,7 +52,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
 void format_arg(
     fmt::BasicFormatter<char> &f,
     const char *&format_str,
-    const std::unordered_map<SourceId, LoadStats> &served_by_source);
+    const std::unordered_map<SourceId, LoadStats> &served_by_traffic_class);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
@@ -61,4 +61,4 @@ void format_arg(fmt::BasicFormatter<char> &f,
 void format_arg(
     fmt::BasicFormatter<char> &f,
     const char *& /* format_str */,
-    const std::unordered_map<SourceId, LostServedStats> &lost_served_stats);
+    const std::unordered_map<TrafficClassId, LostServedStats> &lost_served_stats);

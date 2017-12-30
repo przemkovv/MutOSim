@@ -28,30 +28,32 @@ void Topology::attach_source_to_group(SourceName source, GroupName group)
   sources[source]->attach_to_group(groups[group].get());
 }
 
-void Topology::add_traffic_class(SourceName source_name,
-                                 GroupName group_name,
-                                 Intensity serve_intensity)
+TrafficClass &Topology::add_traffic_class(Intensity source_intensity,
+                                          Intensity serve_intensity,
+                                          Size size)
 {
-  auto &source = sources[source_name];
+  auto tc_id = TrafficClassId{traffic_classes.size()};
   auto &tc = traffic_classes.emplace_back(
-      TrafficClass{source->id, source->get_intensity(), serve_intensity,
-                   source->get_load_size()});
-  groups[group_name]->add_traffic_class(tc);
+      TrafficClass{tc_id, source_intensity, serve_intensity, size});
+
+  return tc;
 }
 
 void Topology::set_world(gsl::not_null<World *> world)
 {
   for (auto & [ name, group ] : groups) {
     group->set_world(world.get());
+    group->set_traffic_classes(traffic_classes);
   }
   for (auto & [ name, source ] : sources) {
     source->set_world(world.get());
   }
 }
-std::optional<SourceStream *> Topology::find_source_by_id(SourceId id)
+std::optional<SourceStream *> Topology::find_source_by_tc_id(TrafficClassId id)
 {
+  // TODO(PW): use std::find_if
   for (auto & [ name, source ] : sources) {
-    if (source->id == id) {
+    if (source->tc_.id == id) {
       return source.get();
     }
   }
@@ -65,4 +67,9 @@ std::optional<SourceId> Topology::get_source_id(const SourceName &name)
   } else {
     return {};
   }
+}
+
+const TrafficClass &Topology::get_traffic_class(TrafficClassId id)
+{
+  return traffic_classes[ts::get(id)];
 }

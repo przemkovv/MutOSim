@@ -19,9 +19,5 @@ void add_sources(World &world,
 
 void set_topology(World &world, Topology &topology);
 
-SimulationSettings erlang_model(Intensity lambda, Capacity V);
-SimulationSettings engset_model(Intensity gamma, Capacity V, Count N);
-SimulationSettings single_overflow_poisson(Intensity lambda, Capacity V);
 SimulationSettings multiple_sources_single_overflow();
 SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N);
-SimulationSettings single_overflow_engset(Intensity gamma, Capacity V, Count N);

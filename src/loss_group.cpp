@@ -6,14 +6,14 @@
 
 LossGroup::LossGroup(
     GroupName name,
-    std::unordered_map<SourceId, LostServedStats> &served_by_source_)
-  : name_(std::move(name)), served_by_source(served_by_source_)
+    std::unordered_map<TrafficClassId, LostServedStats> &served_by_tc_)
+  : name_(std::move(name)), served_by_tc(served_by_tc_)
 {
 }
 bool LossGroup::serve(Load load)
 {
   debug_print("{} Load droped. {}\n", *this, load);
-  auto &lost = served_by_source[load.produced_by->id].lost;
+  auto &lost = served_by_tc[load.tc_id].lost;
   lost.size += load.size;
   lost.count++;
   return false;

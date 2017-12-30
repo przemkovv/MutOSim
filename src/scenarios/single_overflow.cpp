@@ -14,21 +14,20 @@ SimulationSettings single_overflow_poisson(const Intensity lambda,
                                            const Capacity V)
 {
   auto serve_intensity = Intensity(1.0L);
+  auto size = Size(1);
   SimulationSettings sim_settings{"Single overflow Poisson"};
 
   auto &topology = sim_settings.topology;
+  auto &tc1 = topology.add_traffic_class(lambda, serve_intensity, size);
   GroupName g1{"G1"};
   GroupName g2{"G2"};
   SourceName s1{"Spo1"};
   topology.add_group(std::make_unique<Group>(g1, V));
   topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(
-      std::make_unique<PoissonSourceStream>(s1, lambda, Size(1)));
+  topology.add_source(std::make_unique<PoissonSourceStream>(s1, tc1));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(s1, g1);
-  topology.add_traffic_class(s1, g1, serve_intensity);
-  topology.add_traffic_class(s1, g2, serve_intensity);
 
   return sim_settings;
 }
@@ -63,14 +62,13 @@ SimulationSettings single_overflow_poisson(
     for (auto class_number = 0u;
          class_number < size_per_class_per_source[source_number].size();
          ++class_number) {
-      SourceName sn{fmt::format("S{}{}", class_number, source_number)};
       Size t = size_per_class_per_source[source_number][class_number];
-      topology.add_source(std::make_unique<PoissonSourceStream>(sn, A/t, t));
+      auto &tc = topology.add_traffic_class(A / t, serve_intensity, t);
+
+      SourceName sn{fmt::format("S{}{}", class_number, source_number)};
+      topology.add_source(std::make_unique<PoissonSourceStream>(sn, tc));
 
       topology.attach_source_to_group(sn, group_names[source_number]);
-      topology.add_traffic_class(sn, group_names[source_number],
-                                 serve_intensity);
-      topology.add_traffic_class(sn, gvo, serve_intensity);
     }
   }
 
@@ -86,21 +84,20 @@ SimulationSettings
 single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
 {
   auto serve_intensity = Intensity(1.0L);
+  auto size = Size(1);
   SimulationSettings sim_settings{"Single overflow Engset"};
 
   auto &topology = sim_settings.topology;
+  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
   GroupName g1{"G1"};
   GroupName g2{"G2"};
   SourceName s1{"Spo1"};
   topology.add_group(std::make_unique<Group>(g1, V));
   topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(
-      std::make_unique<EngsetSourceStream>(s1, gamma, N, Size(1)));
+  topology.add_source(std::make_unique<EngsetSourceStream>(s1, tc, N));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(s1, g1);
-  topology.add_traffic_class(s1, g1, serve_intensity);
-  topology.add_traffic_class(s1, g2, serve_intensity);
 
   return sim_settings;
 }

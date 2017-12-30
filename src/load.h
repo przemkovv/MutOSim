@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "traffic_class.h"
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <gsl/gsl>
@@ -10,6 +11,7 @@ class SourceStream;
 
 struct Load {
   LoadId id;
+  TrafficClassId tc_id;
   Time send_time;
   Size size;
   Time end_time{-1};

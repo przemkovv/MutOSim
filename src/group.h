@@ -20,9 +20,9 @@ struct Group {
   Capacity capacity_;
   Size size_;
 
-  std::unordered_map<SourceId, LostServedStats> served_by_source;
-  std::unordered_map<SourceId, BlockStats> blocked_by_source;
-  std::unordered_map<SourceId, TrafficClass> traffic_classes;
+  std::unordered_map<TrafficClassId, LostServedStats> served_by_tc;
+  std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
+  observer_ptr<const TrafficClasses> traffic_classes_;
 
   std::exponential_distribution<long double> exponential{};
 
@@ -42,13 +42,13 @@ struct Group {
   bool forward(Load load);
 
   bool can_serve(const Size &load_size);
-  void block(SourceId source_id, const Load &load);
-  void unblock(SourceId source_id, const Load &load);
+  void block(TrafficClassId tc_id, const Load &load);
+  void unblock(TrafficClassId tc_id, const Load &load);
   void update_block_stat(const Load &load);
 
   Group(GroupName name, Capacity capacity);
 
-  void add_traffic_class(const TrafficClass &tc);
+  void set_traffic_classes(const TrafficClasses& traffic_classes);
 
   bool try_serve(Load load);
   void take_off(const Load &load);

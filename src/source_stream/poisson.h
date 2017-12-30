@@ -6,20 +6,15 @@
 
 class PoissonSourceStream : public SourceStream
 {
-  Intensity intensity_;
-  Size load_size_;
-
-  std::exponential_distribution<long double> exponential{ts::get(intensity_)};
+  std::exponential_distribution<long double> exponential{ts::get(tc_.source_intensity)};
 
   EventPtr produce_load(Time time);
 public:
-  PoissonSourceStream(const SourceName &name, Intensity intensity, Size load_size);
+  PoissonSourceStream(const SourceName &name, const TrafficClass& tc);
 
   void init() override;
   void notify_on_send(const LoadSendEvent *event) override;
 
-  Size get_load_size() const override;
-  Intensity get_intensity() const override;
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,
