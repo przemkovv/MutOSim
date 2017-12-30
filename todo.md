@@ -6,7 +6,6 @@
 - Analytical model MIMS
 - graphs
 - verify Pascal stream correctness
-- add traffic class id
 - elastic traffic
 - adaptive traffic
 
@@ -16,3 +15,4 @@
 - Block time per traffic class
 - fix math computing
 - Service intensity per class
+- add traffic class id

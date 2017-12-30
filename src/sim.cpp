@@ -148,11 +148,11 @@ int main()
     // engset_model(Intensity(1.0L), Capacity(1), Count(3)));
 
     // scenarios.emplace_back(single_overflow_poisson(
-        // Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
-        // {{Size{1}, Size{2}, Size{6}},
-         // {Size{1}, Size{2}, Size{6}},
-         // {Size{1}, Size{2}, Size{6}}},
-        // Capacity{42}));
+    // Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
+    // {{Size{1}, Size{2}, Size{6}},
+    // {Size{1}, Size{2}, Size{6}},
+    // {Size{1}, Size{2}, Size{6}}},
+    // Capacity{42}));
     scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
     scenarios.emplace_back(
         engset_model(Intensity(1.0L), Capacity(1), Count(3)));
@@ -200,6 +200,9 @@ int main()
       for (auto &scenario : scenarios) {
         print("\n[Main] {:-^100}\n", scenario.name);
         scenario.world->print_stats();
+        if (scenario.do_after) {
+          scenario.do_after();
+        }
         print("[Main] {:^^100}\n", scenario.name);
       }
     } else {

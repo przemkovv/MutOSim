@@ -84,11 +84,11 @@ SimulationSettings poisson_streams(std::vector<Intensity> As,
   for (auto source_number = 0u; source_number < As.size(); ++source_number) {
     SourceName sn{fmt::format("S{}", source_number)};
     Size z = sizes[source_number];
-    topology.add_source(
-        std::make_unique<PoissonSourceStream>(sn, As[source_number], z));
+    auto &tc =
+        topology.add_traffic_class(As[source_number], serve_intensity, z);
+    topology.add_source(std::make_unique<PoissonSourceStream>(sn, tc));
 
     topology.attach_source_to_group(sn, g1);
-    topology.add_traffic_class(sn, g1, serve_intensity);
   }
 
   return sim_settings;
