@@ -46,42 +46,6 @@ uint64_t seed()
   return rd();
 }
 
-SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
-{ // Pascal source
-
-  auto serve_intensity = Intensity(1.0L);
-  auto size = Size(1);
-
-  auto name = fmt::format("Pascal source. gamma={}, V={}, N={} ", gamma, V, N);
-  SimulationSettings sim_settings{name};
-
-  // const auto lambda = Intensity(5);
-  // const auto N = Size(5);
-  // const auto gamma = lambda / N;
-  // const auto micro = Intensity(1.0);
-  // const auto V = Size(7);
-  // const auto alpha = gamma / serve_intensity;
-
-  sim_settings.do_before = [=]() {
-    // print("[Pascal] P_block = E(alfa, V, N) = {}\n",
-          // engset_pi(-alpha, ts::get(V), -ts::get(N), ts::get(V)));
-    // print("[Pascal] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          // engset_pi(-alpha, ts::get(V), -ts::get(N) + 1, ts::get(V)));
-  };
-  sim_settings.do_after = sim_settings.do_before;
-
-  auto &topology = sim_settings.topology;
-  auto &tc = topology.add_traffic_class(gamma/N, serve_intensity, size);
-  GroupName g1{"G1"};
-  SourceName s1{"SPa1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-
-  topology.add_source(std::make_unique<Pascal2SourceStream>(s1, tc, N));
-  topology.attach_source_to_group(s1, g1);
-
-  return sim_settings;
-}
-
 SimulationSettings multiple_sources_single_overflow()
 {
   auto serve_intensity = Intensity(1.0L);
@@ -180,8 +144,12 @@ int main()
     // {Size{1}, Size{2}, Size{6}}},
     // Capacity{42}));
     // scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
-    // scenarios.emplace_back(
-    // engset_model(Intensity(1.0L), Capacity(1), Count(3)));
+
+    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
+    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(2)));
+    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(3), Count(2)));
+    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(3)));
+    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(4)));
 
     // scenarios.emplace_back(
     // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
@@ -191,7 +159,7 @@ int main()
     // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
 
     // scenarios.emplace_back(
-    // single_overflow_engset(Intensity(1.0L), Capacity(1), Count(3)));
+    // single_overflow_engset(Intensity(1.0L), Capacity(4), Count(5)));
 
     // scenarios.emplace_back(multiple_sources_single_overflow());
 
@@ -202,6 +170,7 @@ int main()
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
+
     // scenarios.emplace_back(
     // pascal_source_model(Intensity(1), Capacity(10), Count(5)));
     // scenarios.emplace_back(

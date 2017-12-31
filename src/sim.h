@@ -20,4 +20,3 @@ void add_sources(World &world,
 void set_topology(World &world, Topology &topology);
 
 SimulationSettings multiple_sources_single_overflow();
-SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N);
