@@ -41,15 +41,17 @@ SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
   return sim_settings;
 }
 
-SimulationSettings engset_model(const Intensity gamma, const Capacity V, const Count N)
+SimulationSettings engset_model(const Intensity lambda, const Capacity V, const Count N)
 { // Engset model
 
   const auto serve_intensity = Intensity(1.0L);
+  const auto gamma = lambda / N;
   const auto alpha = gamma / serve_intensity;
   const auto size = Size(1);
 
-  auto name = fmt::format("Engset model. lambda={}, gamma={}, mu={}, V={}, N={} ", gamma,
-                          gamma / N, serve_intensity, V, N);
+  auto name =
+      fmt::format("Engset model. alpha={}, lambda={}, gamma={}, mu={}, V={}, N={} ",
+                  alpha, lambda, gamma, serve_intensity, V, N);
   SimulationSettings sim_settings{name};
 
   sim_settings.do_before = [=]() {
@@ -100,38 +102,39 @@ poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity pri
 
 //----------------------------------------------------------------------
 
-SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
+SimulationSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
 { // Pascal source
 
   auto serve_intensity = Intensity(1.0L);
+  auto gamma = lambda / S;
   auto size = Size(1);
 
-  auto name = fmt::format("Pascal source. lambda={}, gamma={}, mu={}, V={}, N={} ", gamma,
-                          gamma / N, serve_intensity, V, N);
+  auto name = fmt::format("Pascal source. lambda={}, gamma={}, mu={}, V={}, S={} ",
+                          lambda, gamma, serve_intensity, V, S);
   SimulationSettings sim_settings{name};
 
   // const auto lambda = Intensity(5);
-  // const auto N = Size(5);
-  // const auto gamma = lambda / N;
+  // const auto S = Size(5);
+  // const auto gamma = lambda / S;
   // const auto micro = Intensity(1.0);
   // const auto V = Size(7);
   // const auto alpha = gamma / serve_intensity;
 
   sim_settings.do_before = [=]() {
-    // print("[Pascal] P_block = E(alfa, V, N) = {}\n",
-    // engset_pi(-alpha, ts::get(V), -ts::get(N), ts::get(V)));
-    // print("[Pascal] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-    // engset_pi(-alpha, ts::get(V), -ts::get(N) + 1, ts::get(V)));
+    // print("[Pascal] P_block = E(alfa, V, S) = {}\n",
+    // engset_pi(-alpha, ts::get(V), -ts::get(S), ts::get(V)));
+    // print("[Pascal] P_loss = B(alpha, V, S) = E(alfa, V, S-1) = {}\n",
+    // engset_pi(-alpha, ts::get(V), -ts::get(S) + 1, ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 
   auto &topology = sim_settings.topology;
-  auto &tc = topology.add_traffic_class(gamma / N, serve_intensity, size);
+  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
   GroupName g1{"G1"};
   SourceName s1{"SPa1"};
   topology.add_group(std::make_unique<Group>(g1, V));
 
-  topology.add_source(std::make_unique<PascalSourceStream>(s1, tc, N));
+  topology.add_source(std::make_unique<PascalSourceStream>(s1, tc, S));
   topology.attach_source_to_group(s1, g1);
 
   return sim_settings;

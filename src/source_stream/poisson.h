@@ -6,7 +6,7 @@
 
 class PoissonSourceStream : public SourceStream
 {
-  std::exponential_distribution<long double> exponential{ts::get(tc_.source_intensity)};
+  std::exponential_distribution<time_type> exponential{ts::get(tc_.source_intensity)};
 
   EventPtr produce_load(Time time);
 public:

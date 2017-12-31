@@ -28,9 +28,9 @@
 // const auto duration = Duration(20'000'000);
 // constexpr Duration duration { 5'000'000};
 // constexpr Duration duration{1'000'000};
-// constexpr Duration duration{500'000};
+constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
-const auto duration = Duration(100'000);
+// const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(500);
 // const auto duration = Duration(100);
@@ -85,8 +85,7 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    /*
-    for (auto A = Intensity{0.5L}; A <= Intensity{1.5L}; A += Intensity{0.1L}) {
+    for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.1L}) {
       std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
       std::vector<int64_t> ratios{1, 1, 1, 1};
       auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
@@ -101,9 +100,9 @@ int main()
         intensities[i] = Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) *
                                    ratios_d[i]};
       }
-      scenarios.emplace_back(poisson_streams(intensities, sizes, Capacity{50}));
+      auto &scenario = scenarios.emplace_back(poisson_streams(intensities, sizes, V));
+      scenario.name += fmt::format(" A={}", A);
     }
-    */
 
     /*
     for (auto A = Intensity{1.5L}; A <= Intensity{1.5L}; A += Intensity{0.1L}) {
@@ -144,12 +143,10 @@ int main()
     // Capacity{42}));
     // scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
 
-    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
-    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(2)));
-    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(3), Count(2)));
-    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(3)));
-    // scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(4)));
-
+    /* scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
+    scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(3)));
+    scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(4)));
+ */
     // scenarios.emplace_back(
     // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
     // scenarios.emplace_back(
@@ -162,14 +159,14 @@ int main()
 
     // scenarios.emplace_back(multiple_sources_single_overflow());
 
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
+    /* scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
-
+ */
     // scenarios.emplace_back(
     // pascal_source_model(Intensity(1), Capacity(10), Count(5)));
     // scenarios.emplace_back(
@@ -190,7 +187,7 @@ int main()
       }
     };
 
-    if ((false)) {
+    if ((true)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         auto &scenario = scenarios[i];

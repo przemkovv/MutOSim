@@ -24,7 +24,7 @@ struct Group {
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
   observer_ptr<const TrafficClasses> traffic_classes_;
 
-  std::exponential_distribution<long double> exponential{};
+  std::exponential_distribution<time_type> exponential{};
 
   observer_ptr<World> world_;
 

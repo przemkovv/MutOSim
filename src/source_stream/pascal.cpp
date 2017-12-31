@@ -8,8 +8,8 @@
 #include <optional>
 
 PascalSourceStream::PascalSourceStream(const SourceName &name,
-                                         const TrafficClass &tc,
-                                         Count sources_number)
+                                       const TrafficClass &tc,
+                                       Count sources_number)
   : SourceStream(name, tc), sources_number_(sources_number)
 {
 }
@@ -28,12 +28,6 @@ std::optional<typename M::const_iterator> find_event(const M &map, const Event *
 
 void PascalSourceStream::notify_on_skip_processing(const Event * /* event */)
 {
-  // if (auto linked_event = find_event(linked_sources_, event); linked_event) {
-  // auto &it = linked_event.value();
-  // debug_print("{} Removing skipped event {} linked to load id {}\n", *this,
-  // *it->second.get(), it->first);
-  // linked_sources_.erase(it);
-  // }
 }
 void PascalSourceStream::notify_on_service_start(const LoadServiceRequestEvent *event)
 {

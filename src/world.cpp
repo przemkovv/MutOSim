@@ -32,14 +32,14 @@ bool World::next_iteration()
 
   time_ = std::max(next_event, time_);
 
-  // if (time_ > finish_time_) {
-  // for (auto & [ name, source ] : topology_->sources) {
-  // source->pause();
-  // }
-  // }
+  if (time_ > finish_time_) {
+  for (auto & [ name, source ] : topology_->sources) {
+  source->pause();
+  }
+  }
 
   process_event();
-  return time_ <= finish_time_; //|| !events_.empty();
+  return time_ <= finish_time_ || !events_.empty();
 }
 
 void World::process_event()

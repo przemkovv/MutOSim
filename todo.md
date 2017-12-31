@@ -16,3 +16,8 @@
 - fix math computing
 - Service intensity per class
 - add traffic class id
+
+
+# Pytania
+
+ - jak traktować intensywność lambda/gamma, itp.?

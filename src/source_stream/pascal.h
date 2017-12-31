@@ -13,9 +13,8 @@ class PascalSourceStream : public SourceStream
 
   Count linked_sources_count_{0};
   std::unordered_multimap<LoadId, observer_ptr<Event>> linked_sources_;
-  std::unordered_map<LoadId, observer_ptr<Event>> closing_linked_sources_;
 
-  std::exponential_distribution<long double> exponential{ts::get(tc_.source_intensity)};
+  std::exponential_distribution<time_type> exponential{ts::get(tc_.source_intensity)};
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,
@@ -35,8 +34,8 @@ public:
   void notify_on_skip_processing(const Event *event) override;
 
   PascalSourceStream(const SourceName &name,
-                      const TrafficClass &tc,
-                      Count sources_number);
+                     const TrafficClass &tc,
+                     Count sources_number);
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,
