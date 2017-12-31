@@ -21,9 +21,11 @@ struct Event {
   EventType type;
   Uuid id;
   Time time;
+  bool skip = false;
 
   Event(EventType type_, Uuid id_, Time time_);
   void clear_type();
+  void skip_event();
 
   virtual void process();
 
@@ -32,37 +34,37 @@ struct Event {
 
 //----------------------------------------------------------------------
 
-struct LoadSendEvent : public Event {
+struct LoadServiceRequestEvent : public Event {
   Load load;
 
-  LoadSendEvent(Uuid id, Load load_);
+  LoadServiceRequestEvent(Uuid id, Load load_);
 
   void process() override;
 
-  ~LoadSendEvent() override = default;
+  ~LoadServiceRequestEvent() override = default;
 };
 
 //----------------------------------------------------------------------
 
-struct LoadServeEvent : public Event {
+struct LoadServiceEndEvent : public Event {
   Load load;
 
-  LoadServeEvent(Uuid id, Load load_);
+  LoadServiceEndEvent(Uuid id, Load load_);
 
   void process() override;
 
-  ~LoadServeEvent() override = default;
+  ~LoadServiceEndEvent() override = default;
 };
 
 //----------------------------------------------------------------------
 
-struct LoadProduceEvent : public Event {
+struct ProduceServiceRequestEvent : public Event {
   std::experimental::observer_ptr<SourceStream> source_stream;
 
-  LoadProduceEvent(Uuid id, Time time_, SourceStream *source_stream_);
+  ProduceServiceRequestEvent(Uuid id, Time time_, SourceStream *source_stream_);
 
   void process() override;
-  ~LoadProduceEvent() override = default;
+  ~ProduceServiceRequestEvent() override = default;
 };
 
 //----------------------------------------------------------------------

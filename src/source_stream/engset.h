@@ -15,14 +15,14 @@ class EngsetSourceStream : public SourceStream
                          const char *&format_str,
                          const EngsetSourceStream &source);
 
-  std::unique_ptr<LoadProduceEvent> create_produce_load_event(Time time);
+  std::unique_ptr<ProduceServiceRequestEvent> create_produce_service_request(Time time);
 
   EventPtr produce_load(Time time);
 
 public:
   void init() override;
-  void notify_on_serve(const LoadServeEvent *event) override;
-  void notify_on_produce(const LoadProduceEvent *event) override;
+  void notify_on_service_end(const LoadServiceEndEvent *event) override;
+  void notify_on_produce(const ProduceServiceRequestEvent *event) override;
 
   EngsetSourceStream(const SourceName &name,
                      const TrafficClass &tc,

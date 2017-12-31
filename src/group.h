@@ -31,6 +31,7 @@ struct Group {
   void set_world(gsl::not_null<World *> world)
   {
     world_ = make_observer(world.get());
+    loss_group.world_ = world_;
   }
 
   std::vector<observer_ptr<Group>> next_groups_{};
@@ -53,7 +54,7 @@ struct Group {
   bool try_serve(Load load);
   void take_off(const Load &load);
 
-  void notify_on_serve(LoadServeEvent *event);
+  void notify_on_service_end(LoadServiceEndEvent *event);
 
   Stats get_stats();
   const GroupName &get_name() { return name_; }

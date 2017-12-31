@@ -8,7 +8,9 @@
 
 #include "source_stream/engset.h"
 #include "source_stream/poisson.h"
+#include "source_stream/pascal.h"
 
+//----------------------------------------------------------------------
 SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
 {
   const auto serve_intensity = Intensity(1.0L);
@@ -67,6 +69,7 @@ engset_model(const Intensity gamma, const Capacity V, const Count N)
   return sim_settings;
 }
 
+//----------------------------------------------------------------------
 SimulationSettings poisson_streams(std::vector<Intensity> As,
                                    std::vector<Size> sizes,
                                    Capacity primary_V)
@@ -90,6 +93,30 @@ SimulationSettings poisson_streams(std::vector<Intensity> As,
 
     topology.attach_source_to_group(sn, g1);
   }
+
+  return sim_settings;
+}
+
+//----------------------------------------------------------------------
+
+SimulationSettings pascal_model(Intensity gamma, Capacity V, Count N)
+{
+  const auto serve_intensity = Intensity(1.0L);
+  // const auto A = gamma / serve_intensity;
+  const auto size = Size(1);
+
+  SimulationSettings sim_settings{"Pascal model"};
+
+  auto &topology = sim_settings.topology;
+
+  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
+
+  SourceName s1{"SPa1"};
+  topology.add_source(std::make_unique<PascalSourceStream>(s1, tc, N));
+
+  GroupName g1{"G1"};
+  topology.add_group(std::make_unique<Group>(g1, V));
+  topology.attach_source_to_group(s1, g1);
 
   return sim_settings;
 }

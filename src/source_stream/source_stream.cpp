@@ -5,22 +5,24 @@
 
 Load SourceStream::create_load(Time time, Size size)
 {
-  return {
-      LoadId{world_->get_uuid()}, tc_.id,       time, size, Time{-1}, false, {},
-      make_observer(this),        target_group_};
+  return {LoadId{world_->get_uuid()}, tc_.id,       time, size, Time{-1}, false, {},
+          make_observer(this),        target_group_};
 }
 
-void SourceStream::notify_on_produce(const LoadProduceEvent * /* event */)
+void SourceStream::notify_on_produce(const ProduceServiceRequestEvent * /* event */)
 {
 }
-void SourceStream::notify_on_send(const LoadSendEvent * /* event */)
+void SourceStream::notify_on_service_start(const LoadServiceRequestEvent * /* event */)
 {
 }
-void SourceStream::notify_on_serve(const LoadServeEvent * /* event */)
+void SourceStream::notify_on_service_end(const LoadServiceEndEvent * /* event */)
 {
 }
 
-void SourceStream::notify_on_accept(const LoadSendEvent * /* event */)
+void SourceStream::notify_on_service_accept(const LoadServiceRequestEvent * /* event */)
+{
+}
+void SourceStream::notify_on_service_drop(const LoadServiceRequestEvent * /* event */)
 {
 }
 void SourceStream::init()
@@ -43,6 +45,6 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const SourceStream &source)
 {
-  f.writer().write("[Source {} (id={}, t={}, int={})]", source.name_, source.id,
-                   source.get_load_size(), source.get_intensity());
+  f.writer().write("t={} [Source {} (id={})]", source.world_->get_current_time(),
+                   source.name_, source.id);
 }

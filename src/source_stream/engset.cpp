@@ -9,12 +9,12 @@ EngsetSourceStream::EngsetSourceStream(const SourceName &name,
 {
 }
 
-void EngsetSourceStream::notify_on_produce(const LoadProduceEvent *event)
+void EngsetSourceStream::notify_on_produce(const ProduceServiceRequestEvent *event)
 {
   world_->schedule(produce_load(event->time));
 }
 
-void EngsetSourceStream::notify_on_serve(const LoadServeEvent *event)
+void EngsetSourceStream::notify_on_service_end(const LoadServiceEndEvent *event)
 {
   active_sources_--;
   debug_print("{} Load has been served {}\n", *this, event->load);
@@ -25,21 +25,21 @@ void EngsetSourceStream::notify_on_serve(const LoadServeEvent *event)
     std::abort();
   }
 
-  world_->schedule(create_produce_load_event(event->load.end_time));
+  world_->schedule(create_produce_service_request(event->load.end_time));
 }
 
 void EngsetSourceStream::init()
 {
   for (auto i = Count(0); i < sources_number_; ++i) {
-    world_->schedule(create_produce_load_event(world_->get_time()));
+    world_->schedule(create_produce_service_request(world_->get_time()));
   }
 }
 
-std::unique_ptr<LoadProduceEvent>
-EngsetSourceStream::create_produce_load_event(Time time)
+std::unique_ptr<ProduceServiceRequestEvent>
+EngsetSourceStream::create_produce_service_request(Time time)
 {
   Duration dt{exponential(world_->get_random_engine())};
-  return std::make_unique<LoadProduceEvent>(world_->get_uuid(), time + dt,
+  return std::make_unique<ProduceServiceRequestEvent>(world_->get_uuid(), time + dt,
                                             this);
 }
 
@@ -56,9 +56,9 @@ EventPtr EngsetSourceStream::produce_load(Time time)
   } else {
     debug_print("{} Produced ghost: {}\n", *this, load);
     load.drop = true;
-    world_->schedule(create_produce_load_event(time));
+    world_->schedule(create_produce_service_request(time));
   }
-  return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
+  return std::make_unique<LoadServiceRequestEvent>(world_->get_uuid(), load);
 }
 
 //----------------------------------------------------------------------

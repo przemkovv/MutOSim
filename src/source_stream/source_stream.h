@@ -28,18 +28,16 @@ protected:
 
 public:
   virtual void init();
-  virtual void notify_on_send(const LoadSendEvent *event);
-  virtual void notify_on_serve(const LoadServeEvent *event);
-  virtual void notify_on_accept(const LoadSendEvent *event);
-  virtual void notify_on_produce(const LoadProduceEvent *event);
+  virtual void notify_on_service_start(const LoadServiceRequestEvent *event);
+  virtual void notify_on_service_end(const LoadServiceEndEvent *event);
+  virtual void notify_on_service_accept(const LoadServiceRequestEvent *event);
+  virtual void notify_on_service_drop(const LoadServiceRequestEvent *event);
+  virtual void notify_on_produce(const ProduceServiceRequestEvent *event);
 
   virtual Size get_load_size() const { return tc_.size; }
   virtual Intensity get_intensity() const { return tc_.serve_intensity; }
 
-  SourceStream(const SourceName &name, const TrafficClass &tc)
-    : name_(name), tc_(tc)
-  {
-  }
+  SourceStream(const SourceName &name, const TrafficClass &tc) : name_(name), tc_(tc) {}
   virtual ~SourceStream() = default;
 
   void set_world(gsl::not_null<World *> world);
@@ -47,6 +45,10 @@ public:
   void pause() { pause_ = true; }
 
   const SourceName &get_name() { return name_; }
+
+  friend void format_arg(fmt::BasicFormatter<char> &f,
+                         const char *& /* format_str */,
+                         const SourceStream &source);
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

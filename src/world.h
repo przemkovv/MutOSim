@@ -25,6 +25,8 @@ class World
   Time finish_time_ = time_ + duration_;
   Duration tick_length_;
 
+  Time current_time_{0}; // TODO(PW): find better name either for this or for time_ field
+
   Uuid last_id = 0;
 
   std::priority_queue<EventPtr, std::vector<EventPtr>, by_time> events_;
@@ -41,8 +43,9 @@ public:
   Uuid get_uuid();
   RandomEngine &get_random_engine();
   Duration get_tick_length() { return tick_length_; }
-  Time get_time() { return time_; }
-  auto get_progress() { return Duration{time_} / duration_; }
+  Time get_time() const { return time_; }
+  Time get_current_time() const { return current_time_; }
+  auto get_progress() const { return Duration{time_} / duration_; }
 
   void set_topology(gsl::not_null<Topology *> topology);
   void schedule(std::unique_ptr<Event> event);
@@ -53,3 +56,7 @@ public:
 
   void print_stats();
 };
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const World &world);

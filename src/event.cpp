@@ -16,50 +16,57 @@ void Event::clear_type()
   type = EventType::None;
 }
 
+void Event::skip_event()
+{
+  skip = true;
+}
+
 void Event::process()
 {
 }
 //----------------------------------------------------------------------
 
-LoadSendEvent::LoadSendEvent(Uuid id, Load load_)
+LoadServiceRequestEvent::LoadServiceRequestEvent(Uuid id, Load load_)
   : Event(EventType::LoadSend, id, load_.send_time), load(load_)
 {
 }
 
-void LoadSendEvent::process()
+void LoadServiceRequestEvent::process()
 {
-  load.produced_by->notify_on_send(this);
+  load.produced_by->notify_on_service_start(this);
 
   if (load.target_group->try_serve(load)) {
-    load.produced_by->notify_on_accept(this);
+    load.produced_by->notify_on_service_accept(this);
+  } else {
+    load.produced_by->notify_on_service_drop(this);
   }
 }
 
 //----------------------------------------------------------------------
 
-LoadProduceEvent::LoadProduceEvent(Uuid id,
+ProduceServiceRequestEvent::ProduceServiceRequestEvent(Uuid id,
                                    Time time_,
                                    SourceStream *source_stream_)
   : Event(EventType::LoadProduce, id, time_), source_stream(source_stream_)
 {
 }
 
-void LoadProduceEvent::process()
+void ProduceServiceRequestEvent::process()
 {
   source_stream->notify_on_produce(this);
 }
 
 //----------------------------------------------------------------------
 
-LoadServeEvent::LoadServeEvent(Uuid id, Load load_)
+LoadServiceEndEvent::LoadServiceEndEvent(Uuid id, Load load_)
   : Event(EventType::LoadServe, id, load_.end_time), load((load_))
 {
 }
 
-void LoadServeEvent::process()
+void LoadServiceEndEvent::process()
 {
-  load.produced_by->notify_on_serve(this);
-  load.served_by->notify_on_serve(this);
+  load.served_by->notify_on_service_end(this);
+  load.produced_by->notify_on_service_end(this);
 }
 
 //----------------------------------------------------------------------

@@ -7,8 +7,12 @@
 
 #include <fmt/format.h>
 
+class World;
+
 struct LossGroup {
   const GroupName name_;
+
+  observer_ptr<World> world_;
 
   std::unordered_map<TrafficClassId, LostServedStats> &served_by_tc;
 

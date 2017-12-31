@@ -43,18 +43,9 @@ struct Size : ts::strong_typedef<Size, count_t>,
               ts::strong_typedef_op::output_operator<Size> {
   using strong_typedef::strong_typedef;
 
-  constexpr bool operator==(const Capacity &c)
-  {
-    return ts::get(*this) == ts::get(c);
-  }
-  constexpr bool operator<=(const Capacity &c)
-  {
-    return ts::get(*this) <= ts::get(c);
-  }
-  constexpr bool operator>(const Capacity &c)
-  {
-    return ts::get(*this) > ts::get(c);
-  }
+  constexpr bool operator==(const Capacity &c) { return ts::get(*this) == ts::get(c); }
+  constexpr bool operator<=(const Capacity &c) { return ts::get(*this) <= ts::get(c); }
+  constexpr bool operator>(const Capacity &c) { return ts::get(*this) > ts::get(c); }
 };
 
 struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
@@ -112,7 +103,7 @@ struct Time : ts::strong_typedef<Time, time_type>,
               ts::strong_typedef_op::relational_comparison<Time>,
               ts::strong_typedef_op::output_operator<Time> {
   using strong_typedef::strong_typedef;
-  explicit constexpr operator Duration() { return Duration(ts::get(*this)); }
+  explicit constexpr operator Duration() const { return Duration(ts::get(*this)); }
   constexpr Time &operator+=(const Duration &d)
   {
     ts::get(*this) += ts::get(d);
@@ -161,8 +152,8 @@ struct LoadId : ts::strong_typedef<LoadId, uuid_t>,
 };
 
 struct TrafficClassId : ts::strong_typedef<TrafficClassId, uuid_t>,
-                ts::strong_typedef_op::equality_comparison<TrafficClassId>,
-                ts::strong_typedef_op::output_operator<TrafficClassId> {
+                        ts::strong_typedef_op::equality_comparison<TrafficClassId>,
+                        ts::strong_typedef_op::output_operator<TrafficClassId> {
   using strong_typedef::strong_typedef;
 };
 

@@ -53,6 +53,9 @@ constexpr int64_t product(int64_t from, int64_t to)
 
 constexpr int64_t n_over_k(const int64_t n, const int64_t k)
 {
+  if (n < 0) {
+    return n_over_k(-n + k - 1, k);
+  }
   if (k > n - k) {
     return product(k + 1, n) / factorial(n - k);
   } else {

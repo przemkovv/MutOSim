@@ -9,7 +9,7 @@ PoissonSourceStream::PoissonSourceStream(const SourceName &name,
 {
 }
 
-void PoissonSourceStream::notify_on_send(const LoadSendEvent *event)
+void PoissonSourceStream::notify_on_service_start(const LoadServiceRequestEvent *event)
 {
   world_->schedule(produce_load(event->load.send_time));
 }
@@ -28,7 +28,7 @@ EventPtr PoissonSourceStream::produce_load(Time time)
   auto load = create_load(time + dt, tc_.size);
   debug_print("{} Produced: {}\n", *this, load);
 
-  return std::make_unique<LoadSendEvent>(world_->get_uuid(), load);
+  return std::make_unique<LoadServiceRequestEvent>(world_->get_uuid(), load);
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,

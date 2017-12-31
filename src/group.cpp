@@ -7,9 +7,7 @@
 #include <gsl/gsl>
 
 Group::Group(GroupName name, Capacity capacity)
-  : name_(std::move(name)),
-    capacity_(capacity),
-    loss_group(name + "_LG", served_by_tc)
+  : name_(std::move(name)), capacity_(capacity), loss_group(name + "_LG", served_by_tc)
 {
 }
 
@@ -40,7 +38,7 @@ void Group::set_traffic_classes(const TrafficClasses &traffic_classes)
 // served_by_tc.emplace(tc.source_id, LostServedStats{});
 // }
 
-void Group::notify_on_serve(LoadServeEvent *event)
+void Group::notify_on_service_end(LoadServiceEndEvent *event)
 {
   take_off(event->load);
 }
@@ -55,8 +53,7 @@ bool Group::try_serve(Load load)
 
     update_block_stat(load);
 
-    world_->schedule(
-        std::make_unique<LoadServeEvent>(world_->get_uuid(), load));
+    world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
   }
   debug_print("{} Forwarding load: {}\n", *this, load);
@@ -75,7 +72,7 @@ void Group::take_off(const Load &load)
 
 void Group::update_block_stat(const Load &load)
 {
-  for (const auto &   tc  : *traffic_classes_) {
+  for (const auto &tc : *traffic_classes_) {
     if (can_serve(tc.size)) {
       unblock(tc.id, load);
     } else {
@@ -128,15 +125,14 @@ Stats Group::get_stats()
   Stats stats;
 
   if (loss_group.served_by_tc.size() != served_by_tc.size()) {
-    print("{} Stats: source number in the group and loss group is different.\n",
-          *this);
+    print("{} Stats: source number in the group and loss group is different.\n", *this);
   }
   auto sim_duration = Duration{world_->get_time()};
   for (auto & [ tc_id, load_stats ] : served_by_tc) {
     auto &serve_stats = served_by_tc[tc_id];
     stats.by_traffic_class[tc_id] = {{serve_stats.lost, serve_stats.served},
-                                  blocked_by_tc[tc_id].block_time,
-                                  sim_duration};
+                                     blocked_by_tc[tc_id].block_time,
+                                     sim_duration};
     stats.total += serve_stats;
   }
   return stats;
@@ -149,6 +145,6 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const Group &group)
 
 {
-  f.writer().write("[Group {}, cap={}/{}]", group.name_, group.size_,
-                   group.capacity_);
+  f.writer().write("t={} [Group {}, cap={}/{}]", group.world_->get_current_time(),
+                   group.name_, group.size_, group.capacity_);
 }

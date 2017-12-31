@@ -13,7 +13,7 @@ public:
   PoissonSourceStream(const SourceName &name, const TrafficClass& tc);
 
   void init() override;
-  void notify_on_send(const LoadSendEvent *event) override;
+  void notify_on_service_start(const LoadServiceRequestEvent *event) override;
 
 };
 

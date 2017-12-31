@@ -6,7 +6,7 @@
 #include <random>
 #include <unordered_map>
 
-class PascalSourceStream : public SourceStream
+class Pascal2SourceStream : public SourceStream
 {
   Count sources_number_;
   Count active_sources_{0};
@@ -15,15 +15,13 @@ class PascalSourceStream : public SourceStream
   std::unordered_map<LoadId, observer_ptr<Event>> linked_sources_;
   std::unordered_map<LoadId, observer_ptr<Event>> closing_linked_sources_;
 
-  std::exponential_distribution<long double> exponential{
-      ts::get(tc_.source_intensity)};
+  std::exponential_distribution<long double> exponential{ts::get(tc_.source_intensity)};
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,
-                         const PascalSourceStream &source);
+                         const Pascal2SourceStream &source);
 
-  std::unique_ptr<ProduceServiceRequestEvent>
-  create_produce_service_request(Time time);
+  std::unique_ptr<ProduceServiceRequestEvent> create_produce_service_request(Time time);
 
   EventPtr produce_load(Time time);
 
@@ -35,11 +33,11 @@ public:
   void notify_on_service_accept(const LoadServiceRequestEvent *event) override;
   void notify_on_produce(const ProduceServiceRequestEvent *event) override;
 
-  PascalSourceStream(const SourceName &name,
-                     const TrafficClass &tc,
-                     Count sources_number);
+  Pascal2SourceStream(const SourceName &name,
+                      const TrafficClass &tc,
+                      Count sources_number);
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
-                const PascalSourceStream &source);
+                const Pascal2SourceStream &source);

@@ -21,7 +21,7 @@ void World::init()
 
 bool World::next_iteration()
 {
-  debug_print("[World] Time = {:-<80}\n", time_);
+  debug_print("{} Time = {:-<80}\n", *this, time_);
 
   Time next_event{0};
   if (!events_.empty()) {
@@ -32,22 +32,27 @@ bool World::next_iteration()
 
   time_ = std::max(next_event, time_);
 
-  if (time_ > finish_time_) {
-    for (auto & [ name, source ] : topology_->sources) {
-      source->pause();
-    }
-  }
+  // if (time_ > finish_time_) {
+  // for (auto & [ name, source ] : topology_->sources) {
+  // source->pause();
+  // }
+  // }
 
   process_event();
-  return time_ <= finish_time_ || !events_.empty();
+  return time_ <= finish_time_; //|| !events_.empty();
 }
 
 void World::process_event()
 {
   while (!events_.empty() && events_.top()->time <= time_) {
     auto &event = events_.top();
-    event->process();
-
+    current_time_ = event->time;
+    if (!event->skip) {
+      debug_print("{} Processing event {}\n", *this, *event);
+      event->process();
+    } else {
+      debug_print("{} Event {} is not processed\n", *this, *event);
+    }
     events_.pop();
   }
 }
@@ -64,13 +69,13 @@ std::mt19937_64 &World::get_random_engine()
 
 void World::print_stats()
 {
-  print("[World] Time = {}\n", time_);
-  print("[World] In queue left {} events\n", events_.size());
+  print("{} Time = {}\n", *this, time_);
+  print("{} In queue left {} events\n", *this, events_.size());
   for (auto & [ name, group ] : topology_->groups) {
     const auto &group_stats = group->get_stats();
-    print("[World] Stats for {}: {}\n", *group, group_stats);
+    print("{} Stats for {}: {}\n", *this, *group, group_stats);
     for (auto & [ tc_id, stats ] : group_stats.by_traffic_class) {
-      print("[World] Stats for {}/{}: {}: {}\n", *group,
+      print("{} Stats for {}/{}: {}: {}\n", *this, *group,
             *topology_->find_source_by_tc_id(tc_id).value(),
             topology_->get_traffic_class(tc_id), stats);
     }
@@ -99,6 +104,13 @@ void World::set_topology(gsl::not_null<Topology *> topology)
 
 void World::schedule(std::unique_ptr<Event> event)
 {
-  debug_print("[World] Schedule: {}\n", *event);
+  debug_print("{} Scheduled: {}\n", *this, *event);
   events_.emplace(std::move(event));
+}
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const World &world)
+{
+  f.writer().write("t={} [World]", world.get_current_time());
 }
