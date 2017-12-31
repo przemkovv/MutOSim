@@ -46,7 +46,7 @@ void Group::notify_on_service_end(LoadServiceEndEvent *event)
 bool Group::try_serve(Load load)
 {
   if (can_serve(load.size)) {
-    debug_print("{} Serving load: {}\n", *this, load);
+    debug_print("{} Start serving request: {}\n", *this, load);
     size_ += load.size;
     load.served_by.reset(this);
     set_end_time(load);
@@ -56,13 +56,13 @@ bool Group::try_serve(Load load)
     world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
   }
-  debug_print("{} Forwarding load: {}\n", *this, load);
+  debug_print("{} Forwarding request: {}\n", *this, load);
   return forward(load);
 }
 
 void Group::take_off(const Load &load)
 {
-  debug_print("{} Load has been served: {}\n", *this, load);
+  debug_print("{} Request has been served: {}\n", *this, load);
   size_ -= load.size;
   update_block_stat(load);
   auto &served = served_by_tc[load.tc_id].served;

@@ -29,9 +29,9 @@
 // const auto duration = Duration(20'000'000);
 // constexpr Duration duration { 5'000'000};
 // constexpr Duration duration{1'000'000};
-constexpr Duration duration{500'000};
+// constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
-// const auto duration = Duration(100'000);
+const auto duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(500);
 // const auto duration = Duration(100);
@@ -71,7 +71,7 @@ SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
   sim_settings.do_after = sim_settings.do_before;
 
   auto &topology = sim_settings.topology;
-  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
+  auto &tc = topology.add_traffic_class(gamma/N, serve_intensity, size);
   GroupName g1{"G1"};
   SourceName s1{"SPa1"};
   topology.add_group(std::make_unique<Group>(g1, V));
@@ -198,6 +198,10 @@ int main()
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
+    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
+    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
+    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
+    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
     // scenarios.emplace_back(
     // pascal_source_model(Intensity(1), Capacity(10), Count(5)));
     // scenarios.emplace_back(

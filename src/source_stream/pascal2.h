@@ -12,7 +12,7 @@ class Pascal2SourceStream : public SourceStream
   Count active_sources_{0};
 
   Count linked_sources_count_{0};
-  std::unordered_map<LoadId, observer_ptr<Event>> linked_sources_;
+  std::unordered_multimap<LoadId, observer_ptr<Event>> linked_sources_;
   std::unordered_map<LoadId, observer_ptr<Event>> closing_linked_sources_;
 
   std::exponential_distribution<long double> exponential{ts::get(tc_.source_intensity)};
@@ -32,6 +32,7 @@ public:
   void notify_on_service_drop(const LoadServiceRequestEvent *event) override;
   void notify_on_service_accept(const LoadServiceRequestEvent *event) override;
   void notify_on_produce(const ProduceServiceRequestEvent *event) override;
+  void notify_on_skip_processing(const Event *event) override;
 
   Pascal2SourceStream(const SourceName &name,
                       const TrafficClass &tc,

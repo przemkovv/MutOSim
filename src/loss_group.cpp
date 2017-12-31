@@ -12,7 +12,7 @@ LossGroup::LossGroup(GroupName name,
 }
 bool LossGroup::serve(Load load)
 {
-  debug_print("{} Load dropped. {}\n", *this, load);
+  debug_print("{} Service request dropped. {}\n", *this, load);
   auto &lost = served_by_tc[load.tc_id].lost;
   lost.size += load.size;
   lost.count++;

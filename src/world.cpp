@@ -52,6 +52,7 @@ void World::process_event()
       event->process();
     } else {
       debug_print("{} Event {} is not processed\n", *this, *event);
+      event->skip_notify();
     }
     events_.pop();
   }

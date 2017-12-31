@@ -33,6 +33,7 @@ public:
   virtual void notify_on_service_accept(const LoadServiceRequestEvent *event);
   virtual void notify_on_service_drop(const LoadServiceRequestEvent *event);
   virtual void notify_on_produce(const ProduceServiceRequestEvent *event);
+  virtual void notify_on_skip_processing(const Event *event);
 
   virtual Size get_load_size() const { return tc_.size; }
   virtual Intensity get_intensity() const { return tc_.serve_intensity; }

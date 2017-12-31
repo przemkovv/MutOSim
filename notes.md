@@ -2,7 +2,7 @@
 
 on_produce(t):
  - produce new load and send (t)
- - if produced for linked source, extend linked source on LoadSend
+ - if produced for linked source, extend linked source on LoadServiceRequest
 
 on_send(t):
  - if load is from closing source do nothing ???

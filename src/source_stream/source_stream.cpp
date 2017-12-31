@@ -25,6 +25,9 @@ void SourceStream::notify_on_service_accept(const LoadServiceRequestEvent * /* e
 void SourceStream::notify_on_service_drop(const LoadServiceRequestEvent * /* event */)
 {
 }
+void SourceStream::notify_on_skip_processing(const Event * /* event */)
+{
+}
 void SourceStream::init()
 {
 }

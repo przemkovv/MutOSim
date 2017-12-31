@@ -84,7 +84,7 @@ void PascalSourceStream::notify_on_service_end(const LoadServiceEndEvent *event)
 
   if (auto it = linked_sources_.find(event->load.id);
       it != end(linked_sources_)) {
-    // if (it->second->type == EventType::LoadSend) {
+    // if (it->second->type == EventType::LoadServiceRequest) {
       // // Load using linked source was already send
       // closing_linked_sources_.insert(*it);
       // debug_print(
