@@ -7,7 +7,7 @@
 #include "topology.h"
 
 #include "source_stream/engset.h"
-#include "source_stream/pascal2.h"
+#include "source_stream/pascal.h"
 #include "source_stream/poisson.h"
 
 //----------------------------------------------------------------------
@@ -131,7 +131,7 @@ SimulationSettings pascal_source_model(Intensity gamma, Capacity V, Count N)
   SourceName s1{"SPa1"};
   topology.add_group(std::make_unique<Group>(g1, V));
 
-  topology.add_source(std::make_unique<Pascal2SourceStream>(s1, tc, N));
+  topology.add_source(std::make_unique<PascalSourceStream>(s1, tc, N));
   topology.attach_source_to_group(s1, g1);
 
   return sim_settings;

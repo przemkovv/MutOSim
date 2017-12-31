@@ -6,7 +6,6 @@
 #include "sim.h"
 #include "source_stream/engset.h"
 #include "source_stream/pascal.h"
-#include "source_stream/pascal2.h"
 #include "source_stream/poisson.h"
 #include "source_stream/source_stream.h"
 #include "traffic_class.h"
