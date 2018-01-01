@@ -31,19 +31,35 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 include(ExternalProject)
 
+ExternalProject_Add(gsl
+    GIT_REPOSITORY https://github.com/Microsoft/GSL.git
+    INSTALL_DIR ${PROJECT_BINARY_DIR}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DGSL_TEST=0
+    UPDATE_COMMAND ""
+    )
+
 ExternalProject_Add(json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
     INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBuildTests=OFF
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0
     UPDATE_COMMAND ""
     )
 
 ExternalProject_Add(type_safe
     GIT_REPOSITORY https://github.com/foonathan/type_safe
     INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBuildTests=OFF
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0
     UPDATE_COMMAND ""
     )
+
+ExternalProject_Add(fmt
+    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+    INSTALL_DIR ${PROJECT_BINARY_DIR}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DFMT_TEST=0 -DFMT_INSTALL=1
+    UPDATE_COMMAND ""
+)
+
+set(FMT_LIB fmt.a)
 
 find_package(OpenMP)
 
@@ -51,7 +67,6 @@ if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
-find_library(FMT fmt libfmt)
 find_package(Threads REQUIRED)
 find_package(Boost 1.65 COMPONENTS system program_options)
 find_library(GMP gmp libgmp)
@@ -88,6 +103,8 @@ ADD_CUSTOM_TARGET(release
     )
 
 include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
+link_directories(${PROJECT_BINARY_DIR}/lib64 ${PROJECT_BINARY_DIR}/lib)
+
 add_subdirectory(src)
 # add_subdirectory(tests)
 
