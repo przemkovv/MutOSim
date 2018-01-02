@@ -11,9 +11,10 @@ let g:easytags_opts = ["--options=./.ctags"]
 
 ":UpdateTags -R
 
+" set omnifunc=lsp#complete
 set colorcolumn=91
 
-set path=.,**/*
+" set path=.,**/*
 
 let g:cmake_c_compiler = 'clang'
 let g:cmake_cxx_compiler = 'clang++'
@@ -40,6 +41,8 @@ let g:gutentags_ctags_options_file ='.ctags'
 let g:gutentags_generate_on_write = 0
 
 set makeprg=make\ -j3\ -C\ build/
+
+setlocal path=.,build/include,/usr/include,/usr/include/c++/7.2.1,src/,
 
 " autocmd BufWritePost *.h,*.hpp,*.cpp,*.c :Start! make -C build/ ctags >/dev/null
 " autocmd BufWritePost *.h,*.hpp,*.cpp,*.c call jobstart("make -C build/ ctags", {'cwd': '.'})

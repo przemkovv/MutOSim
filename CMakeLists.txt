@@ -7,12 +7,13 @@ check_ipo_supported()
 add_compile_options(
     -std=c++17
     -g
+    -glldb
     # -pg
     # -Wall
     -Werror
     -Weffc++
     -Weverything
-    # -Wpedantic
+    -Wpedantic
     -Wno-c++98-compat
     -Wno-padded
     )
