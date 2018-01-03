@@ -17,8 +17,9 @@ struct TrafficClass {
 };
 
 struct Source {
+  SourceName name;
   SourceType type;
-  TrafficClass id;
+  TrafficClassId tc_id;
   GroupName attached;
 };
 
@@ -34,5 +35,6 @@ struct Topology {
 };
 
 Topology parse_topology_config(std::string_view filename);
+void dump(const Topology& topology);
 
 } // namespace Config

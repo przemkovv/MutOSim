@@ -1,17 +1,48 @@
 
+#include "logger.h"
 #include "topology_parser.h"
 
+#include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
 using nlohmann::json;
 
+void to_json(json &j, const Capacity &s);
+void from_json(const json &j, Capacity &s);
+
 void to_json(json &j, const Intensity &s);
 void from_json(const json &j, Intensity &s);
+
+void to_json(json &j, const TrafficClassId &s);
+void from_json(const json &j, TrafficClassId &s);
 
 void to_json(json &j, const Size &s);
 void from_json(const json &j, Size &s);
 
+void to_json(json &j, const GroupName &gn);
+void from_json(const json &j, GroupName &gn);
+
+void to_json(json &j, const SourceName &gn);
+void from_json(const json &j, SourceName &gn);
+
+void to_json(json &j, const TrafficClassId &s)
+{
+  j = ts::get(s);
+}
+void from_json(const json &j, TrafficClassId &s)
+{
+  s = TrafficClassId(j.get<ts::underlying_type<TrafficClassId>>());
+}
+
+void to_json(json &j, const Capacity &s)
+{
+  j = ts::get(s);
+}
+void from_json(const json &j, Capacity &s)
+{
+  s = Capacity(j.get<ts::underlying_type<Capacity>>());
+}
 void to_json(json &j, const Intensity &s)
 {
   j = ts::get(s);
@@ -30,6 +61,24 @@ void from_json(const json &j, Size &s)
   s = Size(j.get<ts::underlying_type<Size>>());
 }
 
+void to_json(json &j, const SourceName &gn)
+{
+  j = ts::get(gn);
+}
+void from_json(const json &j, SourceName &gn)
+{
+  gn = SourceName(j.get<ts::underlying_type<SourceName>>());
+}
+
+void to_json(json &j, const GroupName &gn)
+{
+  j = ts::get(gn);
+}
+void from_json(const json &j, GroupName &gn)
+{
+  gn = GroupName(j.get<ts::underlying_type<GroupName>>());
+}
+
 namespace Config
 {
 void to_json(json &j, const SourceType &st);
@@ -40,6 +89,9 @@ void from_json(const json &j, TrafficClass &st);
 
 void to_json(json &j, const Source &st);
 void from_json(const json &j, Source &st);
+
+void to_json(json &j, const Topology &t);
+void from_json(const json &j, Topology &t);
 
 void to_json(json &j, const Group &st);
 void from_json(const json &j, Group &st);
@@ -81,15 +133,75 @@ void from_json(const json &j, TrafficClass &st)
   st.weight = Weight(j.at("weight"));
 }
 
-void to_json(json &j, const Source &st);
-void from_json(const json &j, Source &st);
-
-void to_json(json &j, const Group &st);
-void from_json(const json &j, Group &st);
-
-Topology parse_topology_config(std::string_view /* filename */)
+void to_json(json &j, const Source &s)
 {
-  return {};
+  j = {{"type", s.type}, {"traffic_class", s.tc_id}, {"attached", s.attached}};
+}
+void from_json(const json &j, Source &s)
+{
+  s.type = j.at("type");
+  s.tc_id = j.at("traffic_class");
+  s.attached = j.at("attached");
+}
+
+void to_json(json &j, const Group &g)
+{
+  j = {"capacity", g.capacity};
+}
+void from_json(const json &j, Group &g)
+{
+  g.capacity = j.at("capacity");
+}
+
+void to_json(json &j, const Topology &t)
+{
+  json tcs_j = {};
+  for (const auto &tc : t.traffic_classes) {
+    tcs_j[std::to_string(ts::get(tc.id))] = tc;
+  }
+  j["traffic_classes"] = tcs_j;
+
+  json sources_j;
+  for (const auto &source : t.sources) {
+    sources_j[ts::get(source.name)] = source;
+  }
+  j["sources"] = sources_j;
+
+  json groups_j;
+  for (const auto &group : t.groups) {
+    groups_j[ts::get(group.name)] = group;
+  }
+  j["groups"] = groups_j;
+}
+void from_json(const json &j, Topology &t)
+{
+  for (const auto &tc_j : json::iterator_wrapper(j["traffic_classes"])) {
+    TrafficClass tc = tc_j.value();
+    tc.id = TrafficClassId{stoul(tc_j.key())};
+    t.traffic_classes.push_back(tc);
+  }
+  for (const auto &source_j : json::iterator_wrapper(j["sources"])) {
+    Source source = source_j.value();
+    source.name = SourceName{source_j.key()};
+    t.sources.push_back(source);
+  }
+  for (const auto &group_j : json::iterator_wrapper(j["groups"])) {
+    Group group = group_j.value();
+    group.name = GroupName{group_j.key()};
+    t.groups.push_back(group);
+  }
+}
+
+Topology parse_topology_config(std::string_view filename)
+{
+  std::ifstream file(std::string{filename});
+  return json::parse(file);
+}
+
+void dump(const Topology &topology)
+{
+  json j = topology;
+  print("[Topology]: {}", j.dump(2));
 }
 
 } // namespace Config

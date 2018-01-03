@@ -8,6 +8,7 @@
 #include "source_stream/pascal.h"
 #include "source_stream/poisson.h"
 #include "source_stream/source_stream.h"
+#include "topology_parser.h"
 #include "traffic_class.h"
 #include "types.h"
 #include "world.h"
@@ -59,8 +60,13 @@ void run_scenario(SimulationSettings &scenario, bool quiet)
   }
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+  std::vector<std::string> args(argv, argv + argc);
+  if (args.size() > 1) {
+    auto t = Config::parse_topology_config(args[1]);
+    Config::dump(t);
+  }
   setlocale(LC_NUMERIC, "en_US.UTF-8");
   std::vector<SimulationSettings> scenarios;
 
@@ -146,9 +152,12 @@ int main()
     }
 
     if ((false)) {
-      scenarios.emplace_back(pascal_source_model(Intensity(15.0L), Capacity(30), Count(20)));
-      scenarios.emplace_back(pascal_source_model(Intensity(30.0L), Capacity(30), Count(20)));
-      scenarios.emplace_back(pascal_source_model(Intensity(45.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(
+          pascal_source_model(Intensity(15.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(
+          pascal_source_model(Intensity(30.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(
+          pascal_source_model(Intensity(45.0L), Capacity(30), Count(20)));
     }
 
     if ((true)) {
