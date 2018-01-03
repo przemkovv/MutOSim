@@ -18,4 +18,3 @@ void add_sources(World &world, const std::vector<std::unique_ptr<SourceStream>> 
 
 void set_topology(World &world, Topology &topology);
 
-SimulationSettings multiple_sources_single_overflow();

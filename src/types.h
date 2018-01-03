@@ -29,6 +29,7 @@ using count_t = int64_t;
 using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
+using Weight = uint64_t;
 
 struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,

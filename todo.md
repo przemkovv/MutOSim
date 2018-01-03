@@ -21,3 +21,10 @@
 # Pytania
 
  - jak traktować intensywność lambda/gamma, itp.?
+
+
+# Słownik
+
+- lambda - intensywność zgłoszeń - (ang. request intensity)
+- micro  - intensywność obsługi - (ang. serve intensity)
+- A - natężenie ruchu - (ang. traffic intensity)

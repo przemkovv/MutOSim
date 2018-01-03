@@ -10,3 +10,4 @@ SimulationSettings single_overflow_poisson(Intensity A,
                                            std::vector<Capacity> primary_Vs,
                                            std::vector<std::vector<Size>> t_c_s,
                                            Capacity secondary_V);
+SimulationSettings multiple_sources_single_overflow();

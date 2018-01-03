@@ -15,8 +15,6 @@
 #include "scenarios/simple.h"
 #include "scenarios/single_overflow.h"
 
-#include <nlohmann/json.hpp>
-
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <fmt/printf.h>
@@ -45,40 +43,6 @@ uint64_t seed()
   return rd();
 }
 
-SimulationSettings multiple_sources_single_overflow()
-{
-  auto serve_intensity = Intensity(1.0L);
-  const auto lambda = Intensity(3);
-  const auto N = Count(2);
-  const auto gamma = lambda / N;
-  const auto V = Capacity(2);
-  const auto size1 = Size(1);
-  const auto size2 = Size(2);
-  // const auto alpha = gamma / micro;
-
-  SimulationSettings sim_settings{"Multiple sources - Single overflow"};
-
-  auto &topology = sim_settings.topology;
-
-  auto &tc1 = topology.add_traffic_class(lambda, serve_intensity, size1);
-  auto &tc2 = topology.add_traffic_class(gamma, serve_intensity, size2);
-
-  GroupName g1{"G1"};
-  GroupName g2{"G2"};
-  SourceName s1{"SPo1"};
-  SourceName s2{"SEn2"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-  topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(std::make_unique<PoissonSourceStream>(s1, tc1));
-  topology.add_source(std::make_unique<EngsetSourceStream>(s2, tc2, N));
-
-  topology.connect_groups(g1, g2);
-  topology.attach_source_to_group(s1, g1);
-  topology.attach_source_to_group(s2, g1);
-
-  return sim_settings;
-}
-
 void run_scenario(SimulationSettings &scenario, bool quiet)
 {
   scenario.world = std::make_unique<World>(seed(), duration, tick_length);
@@ -101,24 +65,25 @@ int main()
   std::vector<SimulationSettings> scenarios;
 
   {
-    for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.1L}) {
-      std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
-      std::vector<int64_t> ratios{1, 1, 1, 1};
-      auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
-      std::vector<long double> ratios_d(begin(ratios), end(ratios));
-      for_each(begin(ratios_d), end(ratios_d),
-               [ratios_sum](auto &x) { x /= ratios_sum; });
+    if ((true))
+      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.1L}) {
+        std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
+        std::vector<int64_t> ratios{1, 1, 1, 1};
+        auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
+        std::vector<long double> ratios_d(begin(ratios), end(ratios));
+        for_each(begin(ratios_d), end(ratios_d),
+                 [ratios_sum](auto &x) { x /= ratios_sum; });
 
-      auto V = Capacity{50};
+        auto V = Capacity{50};
 
-      std::vector<Intensity> intensities{sizes.size()};
-      for (auto i = 0u; i < sizes.size(); ++i) {
-        intensities[i] =
-            Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) * ratios_d[i]};
+        std::vector<Intensity> intensities{sizes.size()};
+        for (auto i = 0u; i < sizes.size(); ++i) {
+          intensities[i] =
+              Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) * ratios_d[i]};
+        }
+        auto &scenario = scenarios.emplace_back(poisson_streams(intensities, sizes, V));
+        scenario.name += fmt::format(" A={}", A);
       }
-      auto &scenario = scenarios.emplace_back(poisson_streams(intensities, sizes, V));
-      scenario.name += fmt::format(" A={}", A);
-    }
 
     /*
     for (auto A = Intensity{1.5L}; A <= Intensity{1.5L}; A += Intensity{0.1L}) {
@@ -157,13 +122,7 @@ int main()
     // {Size{1}, Size{2}, Size{6}},
     // {Size{1}, Size{2}, Size{6}}},
     // Capacity{42}));
-    // scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
 
-    /*
-    scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
-    scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(3)));
-    scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(4)));
-    */
     // scenarios.emplace_back(
     // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
     // scenarios.emplace_back(
@@ -176,20 +135,28 @@ int main()
 
     // scenarios.emplace_back(multiple_sources_single_overflow());
 
-    /*
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
-    */
+    if ((false)) {
+      scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
+      scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
+      scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
+      scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
+      scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
+      scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
+      scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
+    }
 
-    // scenarios.emplace_back(
-    // pascal_source_model(Intensity(1), Capacity(10), Count(5)));
-    // scenarios.emplace_back(
-    // pascal_source_model(Intensity(1), Capacity(10), Count(10)));
+    if ((false)) {
+      scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
+      scenarios.emplace_back(erlang_model(Intensity(6.0L), Capacity(2)));
+      scenarios.emplace_back(erlang_model(Intensity(6.0L), Capacity(3)));
+      scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(2)));
+    }
+
+    if ((false)) {
+      scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
+      scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(3)));
+      scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(4)));
+    }
 
     if ((true)) {
 #pragma omp parallel for

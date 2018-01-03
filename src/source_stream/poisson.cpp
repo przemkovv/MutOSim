@@ -3,8 +3,7 @@
 
 #include "world.h"
 
-PoissonSourceStream::PoissonSourceStream(const SourceName &name,
-                                         const TrafficClass& tc)
+PoissonSourceStream::PoissonSourceStream(const SourceName &name, const TrafficClass &tc)
   : SourceStream(name, tc)
 {
 }
