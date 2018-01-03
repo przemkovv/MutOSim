@@ -46,7 +46,7 @@ SimulationSettings engset_model(const Intensity lambda, const Capacity V, const 
 
   const auto serve_intensity = Intensity(1.0L);
   const auto gamma = lambda / N;
-  const auto alpha = lambda; //gamma / serve_intensity;
+  const auto alpha = gamma / serve_intensity;
   const auto size = Size(1);
 
   auto name =
