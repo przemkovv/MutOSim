@@ -9,3 +9,4 @@
 --fields=+l
 --c-kinds=+pl
 --c++-kinds=+pl
+--totals=yes
