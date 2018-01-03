@@ -46,7 +46,7 @@ SimulationSettings engset_model(const Intensity lambda, const Capacity V, const 
 
   const auto serve_intensity = Intensity(1.0L);
   const auto gamma = lambda / N;
-  const auto alpha = gamma / serve_intensity;
+  const auto alpha = lambda; //gamma / serve_intensity;
   const auto size = Size(1);
 
   auto name =
@@ -119,14 +119,6 @@ SimulationSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
   // const auto micro = Intensity(1.0);
   // const auto V = Size(7);
   // const auto alpha = gamma / serve_intensity;
-
-  sim_settings.do_before = [=]() {
-    // print("[Pascal] P_block = E(alfa, V, S) = {}\n",
-    // engset_pi(-alpha, ts::get(V), -ts::get(S), ts::get(V)));
-    // print("[Pascal] P_loss = B(alpha, V, S) = E(alfa, V, S-1) = {}\n",
-    // engset_pi(-alpha, ts::get(V), -ts::get(S) + 1, ts::get(V)));
-  };
-  sim_settings.do_after = sim_settings.do_before;
 
   auto &topology = sim_settings.topology;
   auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);

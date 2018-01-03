@@ -23,7 +23,7 @@
 #include <optional>
 #include <random>
 
-// const auto duration = Duration(20'000'000);
+// constexpr auto duration = Duration(20'000'000);
 // constexpr Duration duration { 5'000'000};
 // constexpr Duration duration{1'000'000};
 // constexpr Duration duration{500'000};
@@ -74,7 +74,7 @@ int main()
         for_each(begin(ratios_d), end(ratios_d),
                  [ratios_sum](auto &x) { x /= ratios_sum; });
 
-        auto V = Capacity{50};
+        auto V = Capacity{30};
 
         std::vector<Intensity> intensities{sizes.size()};
         for (auto i = 0u; i < sizes.size(); ++i) {
@@ -146,16 +146,21 @@ int main()
     }
 
     if ((false)) {
-      scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
-      scenarios.emplace_back(erlang_model(Intensity(6.0L), Capacity(2)));
-      scenarios.emplace_back(erlang_model(Intensity(6.0L), Capacity(3)));
-      scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(2)));
+      scenarios.emplace_back(pascal_source_model(Intensity(15.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(pascal_source_model(Intensity(30.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(pascal_source_model(Intensity(45.0L), Capacity(30), Count(20)));
     }
 
-    if ((false)) {
-      scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
-      scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(3)));
-      scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(4)));
+    if ((true)) {
+      scenarios.emplace_back(erlang_model(Intensity(15.0L), Capacity(30)));
+      scenarios.emplace_back(erlang_model(Intensity(30.0L), Capacity(30)));
+      scenarios.emplace_back(erlang_model(Intensity(45.0L), Capacity(30)));
+    }
+
+    if ((true)) {
+      scenarios.emplace_back(engset_model(Intensity(15.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(engset_model(Intensity(45.0L), Capacity(30), Count(20)));
     }
 
     if ((true)) {
