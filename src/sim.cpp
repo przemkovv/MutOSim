@@ -30,7 +30,7 @@
 // constexpr Duration duration{1'000'000};
 // constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
-const auto duration = Duration(100'000);
+constexpr Duration duration = Duration(1'00'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(500);
 // const auto duration = Duration(100);
@@ -79,6 +79,22 @@ SimulationSettings multiple_sources_single_overflow()
   return sim_settings;
 }
 
+void run_scenario(SimulationSettings &scenario, bool quiet)
+{
+  scenario.world = std::make_unique<World>(seed(), duration, tick_length);
+  auto &world = *scenario.world;
+  world.set_topology(&scenario.topology);
+
+  world.init();
+  if (scenario.do_before) {
+    scenario.do_before();
+  }
+  world.run(quiet);
+  if (scenario.do_after) {
+    scenario.do_after();
+  }
+}
+
 int main()
 {
   setlocale(LC_NUMERIC, "en_US.UTF-8");
@@ -97,8 +113,8 @@ int main()
 
       std::vector<Intensity> intensities{sizes.size()};
       for (auto i = 0u; i < sizes.size(); ++i) {
-        intensities[i] = Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) *
-                                   ratios_d[i]};
+        intensities[i] =
+            Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) * ratios_d[i]};
       }
       auto &scenario = scenarios.emplace_back(poisson_streams(intensities, sizes, V));
       scenario.name += fmt::format(" A={}", A);
@@ -143,10 +159,11 @@ int main()
     // Capacity{42}));
     // scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
 
-    /* scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
+    /*
+    scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(1), Count(2)));
     scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(3)));
     scenarios.emplace_back(engset_model(Intensity(1.0L), Capacity(2), Count(4)));
- */
+    */
     // scenarios.emplace_back(
     // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
     // scenarios.emplace_back(
@@ -159,33 +176,20 @@ int main()
 
     // scenarios.emplace_back(multiple_sources_single_overflow());
 
-    /* scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
+    /*
+    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
- */
+    */
+
     // scenarios.emplace_back(
     // pascal_source_model(Intensity(1), Capacity(10), Count(5)));
     // scenarios.emplace_back(
     // pascal_source_model(Intensity(1), Capacity(10), Count(10)));
-
-    auto run_scenario = [&](auto &scenario, bool quiet = false) {
-      scenario.world = std::make_unique<World>(seed(), duration, tick_length);
-      auto &world = *scenario.world;
-      world.set_topology(&scenario.topology);
-
-      world.init();
-      if (scenario.do_before) {
-        scenario.do_before();
-      }
-      world.run(quiet);
-      if (scenario.do_after) {
-        scenario.do_after();
-      }
-    };
 
     if ((true)) {
 #pragma omp parallel for

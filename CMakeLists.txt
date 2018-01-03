@@ -15,6 +15,8 @@ add_compile_options(
     -Weverything
     -Wpedantic
     -Wno-c++98-compat
+    -Wno-c++98-compat-pedantic
+    -Wno-newline-eof
     -Wno-padded
     )
 
@@ -69,7 +71,7 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 find_package(Threads REQUIRED)
-find_package(Boost 1.65 COMPONENTS system program_options)
+find_package(Boost 1.66 COMPONENTS system program_options)
 find_library(GMP gmp libgmp)
 find_library(MPFR mpfr libmpfr)
 

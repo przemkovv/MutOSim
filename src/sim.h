@@ -10,12 +10,11 @@
 #include <memory>
 
 uint64_t seed();
+void run_scenario(SimulationSettings &scenario, bool quiet = false);
 
-void add_groups(World &world,
-                const std::vector<std::unique_ptr<Group>> &groups);
+void add_groups(World &world, const std::vector<std::unique_ptr<Group>> &groups);
 
-void add_sources(World &world,
-                 const std::vector<std::unique_ptr<SourceStream>> &sources);
+void add_sources(World &world, const std::vector<std::unique_ptr<SourceStream>> &sources);
 
 void set_topology(World &world, Topology &topology);
 
