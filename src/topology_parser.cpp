@@ -8,6 +8,9 @@
 
 using nlohmann::json;
 
+void to_json(json &j, const Weight &s);
+void from_json(const json &j, Weight &s);
+
 void to_json(json &j, const Capacity &s);
 void from_json(const json &j, Capacity &s);
 
@@ -16,6 +19,9 @@ void from_json(const json &j, Intensity &s);
 
 void to_json(json &j, const TrafficClassId &s);
 void from_json(const json &j, TrafficClassId &s);
+
+void to_json(json &j, const Count &s);
+void from_json(const json &j, Count &s);
 
 void to_json(json &j, const Size &s);
 void from_json(const json &j, Size &s);
@@ -35,6 +41,22 @@ void from_json(const json &j, TrafficClassId &s)
   s = TrafficClassId(j.get<ts::underlying_type<TrafficClassId>>());
 }
 
+void to_json(json &j, const Count &s)
+{
+  j = ts::get(s);
+}
+void from_json(const json &j, Count &s)
+{
+  s = Count(j.get<ts::underlying_type<Count>>());
+}
+void to_json(json &j, const Weight &s)
+{
+  j = ts::get(s);
+}
+void from_json(const json &j, Weight &s)
+{
+  s = Weight(j.get<ts::underlying_type<Weight>>());
+}
 void to_json(json &j, const Capacity &s)
 {
   j = ts::get(s);
@@ -136,12 +158,18 @@ void from_json(const json &j, TrafficClass &st)
 void to_json(json &j, const Source &s)
 {
   j = {{"type", s.type}, {"traffic_class", s.tc_id}, {"attached", s.attached}};
+  if (s.type == SourceType::Pascal || s.type == SourceType::Engset) {
+    j["source_number"] = s.source_number;
+  }
 }
 void from_json(const json &j, Source &s)
 {
   s.type = j.at("type");
   s.tc_id = j.at("traffic_class");
   s.attached = j.at("attached");
+  if (s.type == SourceType::Pascal || s.type == SourceType::Engset) {
+    s.source_number = j.at("source_number");
+  }
 }
 
 void to_json(json &j, const Group &g)

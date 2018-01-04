@@ -20,6 +20,7 @@ struct Source {
   SourceName name;
   SourceType type;
   TrafficClassId tc_id;
+  Count source_number;
   GroupName attached;
 };
 

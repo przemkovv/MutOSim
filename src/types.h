@@ -29,10 +29,30 @@ using count_t = int64_t;
 using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
-using Weight = uint64_t;
+using weight_t = uint64_t;
+using ratio_t = long double;
+
+struct Ratio : ts::strong_typedef<Ratio, ratio_t>,
+               ts::strong_typedef_op::equality_comparison<Ratio>,
+               ts::strong_typedef_op::multiplication<Ratio>,
+               ts::strong_typedef_op::output_operator<Ratio> {
+  using strong_typedef::strong_typedef;
+};
+
+struct Weight : ts::strong_typedef<Weight, weight_t>,
+                ts::strong_typedef_op::equality_comparison<Weight>,
+                ts::strong_typedef_op::addition<Weight>,
+                ts::strong_typedef_op::output_operator<Weight> {
+  using strong_typedef::strong_typedef;
+  constexpr Ratio operator/(const Weight &w) const
+  {
+    return Ratio{static_cast<ts::underlying_type<Ratio>>(ts::get(*this)) / ts::get(w)};
+  }
+};
 
 struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,
+                  ts::strong_typedef_op::addition<Capacity>,
                   ts::strong_typedef_op::output_operator<Capacity> {
   using strong_typedef::strong_typedef;
 };
@@ -60,6 +80,14 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   constexpr auto operator/(const Size &size) const
   {
     return Intensity(ts::get(*this) / ts::get(size));
+  }
+  constexpr auto operator*(const Capacity &capacity) const
+  {
+    return Intensity(ts::get(*this) * ts::get(capacity));
+  }
+  constexpr auto operator*(const Ratio &ratio) const
+  {
+    return Intensity(ts::get(*this) * ts::get(ratio));
   }
   constexpr auto operator+=(const Intensity &other)
   {

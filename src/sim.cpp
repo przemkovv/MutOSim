@@ -29,7 +29,7 @@
 // constexpr Duration duration{1'000'000};
 // constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
-constexpr Duration duration = Duration(1'00'000);
+constexpr Duration duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(500);
 // const auto duration = Duration(100);
@@ -60,19 +60,67 @@ void run_scenario(SimulationSettings &scenario, bool quiet)
   }
 }
 
+std::unique_ptr<SourceStream> create_stream(Config::SourceType type,
+                                            const Config::Source &source,
+                                            const TrafficClass &tc)
+{
+  switch (type) {
+  case Config::SourceType::Poisson:
+    return std::make_unique<PoissonSourceStream>(source.name, tc);
+  case Config::SourceType::Pascal:
+    return std::make_unique<PascalSourceStream>(source.name, tc, source.source_number);
+  case Config::SourceType::Engset:
+    return std::make_unique<EngsetSourceStream>(source.name, tc, source.source_number);
+  }
+}
+
+SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A)
+{
+  auto name = fmt::format("Custom scenario");
+  SimulationSettings sim_settings{name};
+  Capacity V{0};
+
+  auto &topology = sim_settings.topology;
+  for (const auto &group : config.groups) {
+    topology.add_group(std::make_unique<Group>(group.name, group.capacity));
+    V += group.capacity;
+  }
+  Weight sum = std::accumulate(
+      begin(config.traffic_classes), end(config.traffic_classes), Weight{0},
+      [](const auto x, const auto &tc) { return tc.weight + x; });
+
+  for (const auto &tc : config.traffic_classes) {
+    const auto ratio = tc.weight / sum;
+    Intensity offered_intensity = A * V * ratio / tc.size;
+    topology.add_traffic_class(offered_intensity, tc.serve_intensity, tc.size);
+  }
+
+  for (const auto &source : config.sources) {
+    auto &tc = topology.get_traffic_class(source.tc_id);
+    topology.add_source(create_stream(source.type, source, tc));
+    topology.attach_source_to_group(source.name, source.attached);
+  }
+
+  return sim_settings;
+}
+
 int main(int argc, char *argv[])
 {
   std::vector<std::string> args(argv, argv + argc);
-  if (args.size() > 1) {
-    auto t = Config::parse_topology_config(args[1]);
-    Config::dump(t);
-  }
   setlocale(LC_NUMERIC, "en_US.UTF-8");
   std::vector<SimulationSettings> scenarios;
 
   {
+    if (args.size() > 1) {
+      auto t = Config::parse_topology_config(args[1]);
+      Config::dump(t);
+      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.25L}) {
+        auto &scenario = scenarios.emplace_back(prepare_scenario(t, A));
+        scenario.name += fmt::format(" A={}", A);
+      }
+    }
     if ((true))
-      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.1L}) {
+      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.25L}) {
         std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
         std::vector<int64_t> ratios{1, 1, 1, 1};
         auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
@@ -160,13 +208,13 @@ int main(int argc, char *argv[])
           pascal_source_model(Intensity(45.0L), Capacity(30), Count(20)));
     }
 
-    if ((true)) {
+    if ((false)) {
       scenarios.emplace_back(erlang_model(Intensity(15.0L), Capacity(30)));
       scenarios.emplace_back(erlang_model(Intensity(30.0L), Capacity(30)));
       scenarios.emplace_back(erlang_model(Intensity(45.0L), Capacity(30)));
     }
 
-    if ((true)) {
+    if ((false)) {
       scenarios.emplace_back(engset_model(Intensity(15.0L), Capacity(30), Count(20)));
       scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(30), Count(20)));
       scenarios.emplace_back(engset_model(Intensity(45.0L), Capacity(30), Count(20)));
