@@ -5,12 +5,12 @@
 - divide simulation into epochs?
 - Analytical model MIMS
 - graphs
-- verify Pascal stream correctness
 - elastic traffic
 - adaptive traffic
 
 # Done
 
+- verify Pascal stream correctness
 - Big decimal - using GMP, MPFR libraries
 - Block time per traffic class
 - fix math computing
@@ -20,6 +20,7 @@
 
 # Pytania
 
+- jak działa strata przy przelewie. Kto powinien notować stratę pierwotny czy wtórny zasób?
  - jak traktować intensywność lambda/gamma, głównie chodzi o wzory
  - Topologia single_overflow_multiple_poissonX.json. Który poprawny czas
    blokady
