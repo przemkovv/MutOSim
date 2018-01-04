@@ -14,7 +14,8 @@ class PascalSourceStream : public SourceStream
   Count linked_sources_count_{0};
   std::unordered_multimap<LoadId, observer_ptr<Event>> linked_sources_;
 
-  std::exponential_distribution<time_type> exponential{ts::get(tc_.source_intensity)};
+  std::exponential_distribution<time_type> exponential{
+      ts::get(tc_.source_intensity / sources_number_)};
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,

@@ -76,8 +76,7 @@ std::unique_ptr<SourceStream> create_stream(Config::SourceType type,
 
 SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A)
 {
-  auto name = fmt::format("Custom scenario");
-  SimulationSettings sim_settings{name};
+  SimulationSettings sim_settings{config.name};
   Capacity V{0};
 
   auto &topology = sim_settings.topology;
@@ -106,20 +105,13 @@ SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A)
 
 int main(int argc, char *argv[])
 {
-  std::vector<std::string> args(argv, argv + argc);
+  std::vector<std::string> args(argv+1, argv + argc);
   setlocale(LC_NUMERIC, "en_US.UTF-8");
   std::vector<SimulationSettings> scenarios;
 
   {
-    if (args.size() > 1) {
-      auto t = Config::parse_topology_config(args[1]);
-      Config::dump(t);
-      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.25L}) {
-        auto &scenario = scenarios.emplace_back(prepare_scenario(t, A));
-        scenario.name += fmt::format(" A={}", A);
-      }
-    }
-    if ((true))
+
+    if ((false))
       for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.25L}) {
         std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
         std::vector<int64_t> ratios{1, 1, 1, 1};
@@ -215,12 +207,21 @@ int main(int argc, char *argv[])
     }
 
     if ((false)) {
-      scenarios.emplace_back(engset_model(Intensity(15.0L), Capacity(30), Count(20)));
-      scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(30), Count(20)));
-      scenarios.emplace_back(engset_model(Intensity(45.0L), Capacity(30), Count(20)));
+      scenarios.emplace_back(engset_model(Intensity(10.0L), Capacity(20), Count(40)));
+      scenarios.emplace_back(engset_model(Intensity(20.0L), Capacity(20), Count(40)));
+      scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(20), Count(40)));
     }
 
-    if ((true)) {
+    for (const auto& config_file : args) {
+      const auto t = Config::parse_topology_config(config_file);
+      Config::dump(t);
+      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.5L}) {
+        auto &scenario = scenarios.emplace_back(prepare_scenario(t, A));
+        scenario.name += fmt::format(" A={}", A);
+      }
+    }
+
+    if ((false)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         auto &scenario = scenarios[i];
@@ -237,7 +238,13 @@ int main(int argc, char *argv[])
     } else {
       for (auto &scenario : scenarios) {
         print("\n[Main] {:-^100}\n", scenario.name);
-        run_scenario(scenario);
+        run_scenario(scenario, true);
+
+        scenario.world->print_stats();
+        if (scenario.do_after) {
+          scenario.do_after();
+        }
+        print("[Main] {:^^100}\n", scenario.name);
       }
     }
   }

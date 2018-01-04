@@ -9,7 +9,7 @@ class EngsetSourceStream : public SourceStream
   Count sources_number_;
   Count active_sources_{0};
 
-  std::exponential_distribution<time_type> exponential{ts::get(tc_.source_intensity)};
+  std::exponential_distribution<time_type> exponential{ts::get(tc_.source_intensity/sources_number_)};
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *&format_str,

@@ -158,8 +158,10 @@ void from_json(const json &j, TrafficClass &st)
 void to_json(json &j, const Source &s)
 {
   j = {{"type", s.type}, {"traffic_class", s.tc_id}, {"attached", s.attached}};
-  if (s.type == SourceType::Pascal || s.type == SourceType::Engset) {
-    j["source_number"] = s.source_number;
+  if (s.type == SourceType::Pascal) {
+    j["S"] = s.source_number;
+  } else if (s.type == SourceType::Engset) {
+    j["N"] = s.source_number;
   }
 }
 void from_json(const json &j, Source &s)
@@ -167,14 +169,16 @@ void from_json(const json &j, Source &s)
   s.type = j.at("type");
   s.tc_id = j.at("traffic_class");
   s.attached = j.at("attached");
-  if (s.type == SourceType::Pascal || s.type == SourceType::Engset) {
-    s.source_number = j.at("source_number");
+  if (s.type == SourceType::Pascal) {
+    s.source_number = j.at("S");
+  } else if (s.type == SourceType::Engset) {
+    s.source_number = j.at("N");
   }
 }
 
 void to_json(json &j, const Group &g)
 {
-  j = {"capacity", g.capacity};
+  j = {{"capacity", g.capacity}};
 }
 void from_json(const json &j, Group &g)
 {
@@ -183,6 +187,7 @@ void from_json(const json &j, Group &g)
 
 void to_json(json &j, const Topology &t)
 {
+  j["name"] = t.name;
   json tcs_j = {};
   for (const auto &tc : t.traffic_classes) {
     tcs_j[std::to_string(ts::get(tc.id))] = tc;
@@ -203,6 +208,7 @@ void to_json(json &j, const Topology &t)
 }
 void from_json(const json &j, Topology &t)
 {
+  t.name = j["name"];
   for (const auto &tc_j : json::iterator_wrapper(j["traffic_classes"])) {
     TrafficClass tc = tc_j.value();
     tc.id = TrafficClassId{stoul(tc_j.key())};

@@ -30,6 +30,7 @@ struct Group {
 };
 
 struct Topology {
+  std::string name;
   std::vector<TrafficClass> traffic_classes;
   std::vector<Source> sources;
   std::vector<Group> groups;

@@ -45,7 +45,7 @@ SimulationSettings engset_model(const Intensity lambda, const Capacity V, const 
 { // Engset model
 
   const auto serve_intensity = Intensity(1.0L);
-  const auto gamma = lambda / N;
+  const auto gamma = lambda /N;
   const auto alpha = gamma / serve_intensity;
   const auto size = Size(1);
 
@@ -63,7 +63,7 @@ SimulationSettings engset_model(const Intensity lambda, const Capacity V, const 
   sim_settings.do_after = sim_settings.do_before;
 
   auto &topology = sim_settings.topology;
-  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
+  auto &tc = topology.add_traffic_class(lambda, serve_intensity, size);
   GroupName g1{"G1"};
   SourceName s1{"SEn1"};
   topology.add_group(std::make_unique<Group>(g1, V));
@@ -106,7 +106,7 @@ SimulationSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
 { // Pascal source
 
   auto serve_intensity = Intensity(1.0L);
-  auto gamma = lambda / S;
+  auto gamma = lambda /S;
   auto size = Size(1);
 
   auto name = fmt::format("Pascal source. lambda={}, gamma={}, mu={}, V={}, S={} ",
@@ -121,7 +121,7 @@ SimulationSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
   // const auto alpha = gamma / serve_intensity;
 
   auto &topology = sim_settings.topology;
-  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
+  auto &tc = topology.add_traffic_class(lambda, serve_intensity, size);
   GroupName g1{"G1"};
   SourceName s1{"SPa1"};
   topology.add_group(std::make_unique<Group>(g1, V));

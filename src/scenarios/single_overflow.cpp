@@ -105,7 +105,7 @@ SimulationSettings multiple_sources_single_overflow()
   auto serve_intensity = Intensity(1.0L);
   const auto lambda = Intensity(3);
   const auto N = Count(2);
-  const auto gamma = lambda / N;
+  // const auto gamma = lambda / N;
   const auto V = Capacity(2);
   const auto size1 = Size(1);
   const auto size2 = Size(2);
@@ -116,7 +116,7 @@ SimulationSettings multiple_sources_single_overflow()
   auto &topology = sim_settings.topology;
 
   auto &tc1 = topology.add_traffic_class(lambda, serve_intensity, size1);
-  auto &tc2 = topology.add_traffic_class(gamma, serve_intensity, size2);
+  auto &tc2 = topology.add_traffic_class(lambda, serve_intensity, size2);
 
   GroupName g1{"G1"};
   GroupName g2{"G2"};
