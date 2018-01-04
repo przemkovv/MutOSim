@@ -84,6 +84,11 @@ SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A)
     topology.add_group(std::make_unique<Group>(group.name, group.capacity));
     V += group.capacity;
   }
+  for (const auto &group : config.groups) {
+    for (const auto &connected_group : group.connected) {
+      topology.connect_groups(group.name, connected_group);
+    }
+  }
   Weight sum = std::accumulate(
       begin(config.traffic_classes), end(config.traffic_classes), Weight{0},
       [](const auto x, const auto &tc) { return tc.weight + x; });
@@ -105,12 +110,11 @@ SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A)
 
 int main(int argc, char *argv[])
 {
-  std::vector<std::string> args(argv+1, argv + argc);
+  std::vector<std::string> args(argv + 1, argv + argc);
   setlocale(LC_NUMERIC, "en_US.UTF-8");
   std::vector<SimulationSettings> scenarios;
 
   {
-
     if ((false))
       for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.25L}) {
         std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
@@ -152,29 +156,20 @@ int main(int argc, char *argv[])
     }
     */
 
-    // scenarios.emplace_back(single_overflow_poisson(
-    // Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
-    // {{Size{1}, Size{2}, Size{6}},
-    // {Size{1}, Size{2}, Size{6}},
-    // {Size{1}, Size{2}, Size{6}}},
-    // Capacity{42}));
-    // scenarios.emplace_back(erlang_model(Intensity(3.0L), Capacity(1)));
-    // scenarios.emplace_back(
-    // engset_model(Intensity(1.0L), Capacity(1), Count(3)));
+    if ((false)) {
+      scenarios.emplace_back(single_overflow_poisson(
+          Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
+          {{Size{1}, Size{2}, Size{6}},
+           {Size{1}, Size{2}, Size{6}},
+           {Size{1}, Size{2}, Size{6}}},
+          Capacity{42}));
+    }
 
-    // scenarios.emplace_back(single_overflow_poisson(
-    // Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
-    // {{Size{1}, Size{2}, Size{6}},
-    // {Size{1}, Size{2}, Size{6}},
-    // {Size{1}, Size{2}, Size{6}}},
-    // Capacity{42}));
-
-    // scenarios.emplace_back(
-    // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
-    // scenarios.emplace_back(
-    // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
-    // scenarios.emplace_back(
-    // single_overflow_poisson(Intensity(3.0L), Capacity(1)));
+    if ((false)) {
+      scenarios.emplace_back(single_overflow_poisson(Intensity(2.0L), Capacity(2)));
+      scenarios.emplace_back(single_overflow_poisson(Intensity(4.0L), Capacity(2)));
+      scenarios.emplace_back(single_overflow_poisson(Intensity(6.0L), Capacity(2)));
+    }
 
     // scenarios.emplace_back(
     // single_overflow_engset(Intensity(1.0L), Capacity(4), Count(5)));
@@ -212,16 +207,15 @@ int main(int argc, char *argv[])
       scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(20), Count(40)));
     }
 
-    for (const auto& config_file : args) {
+    for (const auto &config_file : args) {
       const auto t = Config::parse_topology_config(config_file);
-      Config::dump(t);
-      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.5L}) {
+      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.2L}) {
         auto &scenario = scenarios.emplace_back(prepare_scenario(t, A));
         scenario.name += fmt::format(" A={}", A);
       }
     }
 
-    if ((false)) {
+    if ((true)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         auto &scenario = scenarios[i];

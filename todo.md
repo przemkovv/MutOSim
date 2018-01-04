@@ -20,7 +20,9 @@
 
 # Pytania
 
- - jak traktować intensywność lambda/gamma, itp.?
+ - jak traktować intensywność lambda/gamma, głównie chodzi o wzory
+ - Topologia single_overflow_multiple_poissonX.json. Który poprawny czas
+   blokady
 
 
 # Słownik
