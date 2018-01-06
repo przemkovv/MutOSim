@@ -1,4 +1,4 @@
 #!/bin/sh
 while true; do
-    find src/ | entr -dcr ctags --options=.ctags src/
+    find src/ | entr -dcrs 'date; ctags --options=.ctags src/'
 done
