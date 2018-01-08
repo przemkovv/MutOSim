@@ -7,7 +7,7 @@
 #include <gsl/gsl>
 
 Group::Group(GroupName name, Capacity capacity)
-  : name_(std::move(name)), capacity_(capacity), loss_group(name + "_LG", served_by_tc)
+  : name_(std::move(name)), capacity_(capacity)
 {
 }
 
@@ -56,6 +56,7 @@ bool Group::try_serve(Load load)
     world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
   }
+  drop(load);
   debug_print("{} Forwarding request: {}\n", *this, load);
   return forward(load);
 }
@@ -68,6 +69,13 @@ void Group::take_off(const Load &load)
   auto &served = served_by_tc[load.tc_id].served;
   served.size += load.size;
   served.count++;
+}
+void Group::drop(const Load &load)
+{
+  debug_print("{} Request has been dropped: {}\n", *this, load);
+  auto &lost = served_by_tc[load.tc_id].lost;
+  lost.size += load.size;
+  lost.count++;
 }
 
 void Group::update_block_stat(const Load &load)
@@ -111,24 +119,21 @@ bool Group::can_serve(const Size &load_size)
 bool Group::forward(Load load)
 {
   if (load.drop) {
-    return loss_group.serve(load);
+    return false;
   }
   // TODO(PW): make it more intelligent
   if (!next_groups_.empty()) {
     return next_groups_.front()->try_serve(load);
   }
-  return loss_group.serve(load);
+  return false;
 }
 
 Stats Group::get_stats()
 {
   Stats stats;
 
-  if (loss_group.served_by_tc.size() != served_by_tc.size()) {
-    print("{} Stats: source number in the group and loss group is different.\n", *this);
-  }
   auto sim_duration = Duration{world_->get_time()};
-  for (auto & [ tc_id, load_stats ] : served_by_tc) {
+  for (auto &[tc_id, load_stats] : served_by_tc) {
     auto &serve_stats = served_by_tc[tc_id];
     stats.by_traffic_class[tc_id] = {{serve_stats.lost, serve_stats.served},
                                      blocked_by_tc[tc_id].block_time,

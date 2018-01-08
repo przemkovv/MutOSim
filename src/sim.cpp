@@ -74,7 +74,7 @@ std::unique_ptr<SourceStream> create_stream(Config::SourceType type,
   }
 }
 
-SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A)
+SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Intensity A)
 {
   SimulationSettings sim_settings{config.name};
   Capacity V{0};
@@ -105,6 +105,50 @@ SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A)
     topology.attach_source_to_group(source.name, source.attached);
   }
 
+  return sim_settings;
+}
+
+SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config,
+                                                  Intensity A)
+{
+  SimulationSettings sim_settings{config.name};
+  Capacity V{0};
+
+  auto &topology = sim_settings.topology;
+  for (const auto &group : config.groups) {
+    topology.add_group(std::make_unique<Group>(group.name, group.capacity));
+    V += group.capacity;
+  }
+  for (const auto &group : config.groups) {
+    for (const auto &connected_group : group.connected) {
+      topology.connect_groups(group.name, connected_group);
+    }
+  }
+
+  std::unordered_map<GroupName, Weight> weights_sum_per_group;
+  for (const auto &source : config.sources) {
+    weights_sum_per_group[source.attached] +=
+        config.traffic_classes[ts::get(source.tc_id)].weight;
+  }
+
+  Intensity traffic_intensity{0};
+  for (const auto &source : config.sources) {
+    const auto &cfg_tc = config.traffic_classes[ts::get(source.tc_id)];
+    const auto ratio = cfg_tc.weight / weights_sum_per_group[source.attached];
+    const auto &group = topology.get_group(source.attached);
+    Intensity offered_intensity = A * group.capacity_ * ratio / cfg_tc.size;
+    auto &tc = topology.add_traffic_class(offered_intensity, cfg_tc.serve_intensity,
+                                          cfg_tc.size);
+
+    topology.add_source(create_stream(source.type, source, tc));
+    topology.attach_source_to_group(source.name, source.attached);
+
+    traffic_intensity += Intensity{tc.source_intensity / tc.serve_intensity *
+                                   ts::get(tc.size) / ts::get(V)};
+  }
+  // traffic_intensity /= V;
+
+  sim_settings.name += fmt::format(" a={}", traffic_intensity);
   return sim_settings;
 }
 
@@ -207,10 +251,12 @@ int main(int argc, char *argv[])
       scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(20), Count(40)));
     }
 
+    const Intensity step{0.1L};
     for (const auto &config_file : args) {
       const auto t = Config::parse_topology_config(config_file);
-      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.2L}) {
-        auto &scenario = scenarios.emplace_back(prepare_scenario(t, A));
+      for (auto A = Intensity{0.5L}; A <= Intensity{3.01L}; A += step) {
+        auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
+        // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
         scenario.name += fmt::format(" A={}", A);
       }
     }

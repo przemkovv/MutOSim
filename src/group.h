@@ -5,7 +5,6 @@
 #include "traffic_class.h"
 #include "types.h"
 #include "world.h"
-#include "loss_group.h"
 
 #include <experimental/memory>
 #include <gsl/gsl>
@@ -31,11 +30,9 @@ struct Group {
   void set_world(gsl::not_null<World *> world)
   {
     world_ = make_observer(world.get());
-    loss_group.world_ = world_;
   }
 
   std::vector<observer_ptr<Group>> next_groups_{};
-  LossGroup loss_group;
 
   void add_next_group(gsl::not_null<Group *> group);
 
@@ -53,6 +50,7 @@ struct Group {
 
   bool try_serve(Load load);
   void take_off(const Load &load);
+  void drop(const Load& load);
 
   void notify_on_service_end(LoadServiceEndEvent *event);
 

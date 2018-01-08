@@ -37,4 +37,5 @@ struct Topology {
 
   Uuid get_uuid() { return ++last_id; }
   const TrafficClass& get_traffic_class(TrafficClassId id);
+  const Group& get_group(const GroupName & group_name);
 };

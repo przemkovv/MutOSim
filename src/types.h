@@ -31,6 +31,7 @@ using Uuid = uuid_t;
 using Name = name_t;
 using weight_t = uint64_t;
 using ratio_t = long double;
+using Layer = uint64_t;
 
 struct Ratio : ts::strong_typedef<Ratio, ratio_t>,
                ts::strong_typedef_op::equality_comparison<Ratio>,

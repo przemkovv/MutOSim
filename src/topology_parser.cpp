@@ -178,11 +178,12 @@ void from_json(const json &j, Source &s)
 
 void to_json(json &j, const Group &g)
 {
-  j = {{"capacity", g.capacity}, {"connected", g.connected}};
+  j = {{"capacity", g.capacity}, {"connected", g.connected}, {"layer", g.layer}};
 }
 void from_json(const json &j, Group &g)
 {
   g.capacity = j.at("capacity");
+  g.layer = j.at("layer");
   g.connected = j.value("connected", std::vector<GroupName>{});
 }
 

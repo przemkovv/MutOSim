@@ -19,7 +19,9 @@ void add_sources(World &world, const std::vector<std::unique_ptr<SourceStream>> 
 
 void set_topology(World &world, Topology &topology);
 
-SimulationSettings prepare_scenario(const Config::Topology &config, Intensity A);
+SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config,
+                                                  Intensity A);
+SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Intensity A);
 std::unique_ptr<SourceStream> create_stream(Config::SourceType type,
                                             const Config::Source &source,
                                             const TrafficClass &tc);

@@ -27,6 +27,7 @@ struct Source {
 struct Group {
   GroupName name;
   Capacity capacity;
+  Layer layer;
   std::vector<GroupName> connected;
 };
 

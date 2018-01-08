@@ -13,8 +13,7 @@ Group &Topology::add_group(std::unique_ptr<Group> group)
 SourceStream &Topology::add_source(std::unique_ptr<SourceStream> source_stream)
 {
   source_stream->id = SourceId{get_uuid()};
-  auto it = sources.emplace(source_stream->get_name(), std::move(source_stream))
-                .first;
+  auto it = sources.emplace(source_stream->get_name(), std::move(source_stream)).first;
   return *(it->second.get());
 }
 
@@ -41,18 +40,18 @@ TrafficClass &Topology::add_traffic_class(Intensity source_intensity,
 
 void Topology::set_world(gsl::not_null<World *> world)
 {
-  for (auto & [ name, group ] : groups) {
+  for (auto &[name, group] : groups) {
     group->set_world(world.get());
     group->set_traffic_classes(traffic_classes);
   }
-  for (auto & [ name, source ] : sources) {
+  for (auto &[name, source] : sources) {
     source->set_world(world.get());
   }
 }
 std::optional<SourceStream *> Topology::find_source_by_tc_id(TrafficClassId id)
 {
   // TODO(PW): use std::find_if
-  for (auto & [ name, source ] : sources) {
+  for (auto &[name, source] : sources) {
     if (source->tc_.id == id) {
       return source.get();
     }
@@ -72,4 +71,8 @@ std::optional<SourceId> Topology::get_source_id(const SourceName &name)
 const TrafficClass &Topology::get_traffic_class(TrafficClassId id)
 {
   return traffic_classes[ts::get(id)];
+}
+const Group &Topology::get_group(const GroupName &group_name)
+{
+  return *groups[group_name];
 }
