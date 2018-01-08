@@ -16,6 +16,7 @@
 #include "scenarios/simple.h"
 #include "scenarios/single_overflow.h"
 
+#include <boost/program_options.hpp>
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <fmt/printf.h>
@@ -154,13 +155,34 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
 
 int main(int argc, char *argv[])
 {
-  std::vector<std::string> args(argv + 1, argv + argc);
   setlocale(LC_NUMERIC, "en_US.UTF-8");
+
+  namespace po = boost::program_options;
+
+  po::options_description desc("Allowed options");
+  desc.add_options()("scenario-file,f", po::value<std::vector<std::string>>(),
+                     "a file with scenario")(
+      "start", po::value<intensity_t>()->default_value(0.5L),
+      "starting intensity per group")(
+      "stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group")(
+      "step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group");
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);
+
+  const Intensity A_start{vm["start"].as<intensity_t>()};
+  const Intensity A_stop{vm["stop"].as<intensity_t>() + 0.01L};
+  const Intensity A_step{vm["step"].as<intensity_t>()};
+
+  const auto scenario_files = vm["scenario-file"].as<std::vector<std::string>>();
+
+  std::vector<std::string> args(argv + 1, argv + argc);
   std::vector<SimulationSettings> scenarios;
 
   {
     if ((false))
-      for (auto A = Intensity{0.5L}; A <= Intensity{1.51L}; A += Intensity{0.25L}) {
+      for (auto A = A_start; A <= A_stop; A += A_step) {
         std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
         std::vector<int64_t> ratios{1, 1, 1, 1};
         auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
@@ -251,10 +273,9 @@ int main(int argc, char *argv[])
       scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(20), Count(40)));
     }
 
-    const Intensity step{0.1L};
-    for (const auto &config_file : args) {
+    for (const auto &config_file : scenario_files) {
       const auto t = Config::parse_topology_config(config_file);
-      for (auto A = Intensity{0.5L}; A <= Intensity{3.01L}; A += step) {
+      for (auto A = A_start; A <= A_stop; A += A_step) {
         auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
         // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
         scenario.name += fmt::format(" A={}", A);
