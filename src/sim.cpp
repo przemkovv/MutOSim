@@ -159,23 +159,36 @@ int main(int argc, char *argv[])
 
   namespace po = boost::program_options;
 
+  /* clang-format off */
   po::options_description desc("Allowed options");
-  desc.add_options()("scenario-file,f", po::value<std::vector<std::string>>(),
-                     "a file with scenario")(
-      "start", po::value<intensity_t>()->default_value(0.5L),
-      "starting intensity per group")(
-      "stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group")(
-      "step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group");
+  desc.add_options()
+    ("help", "produce help message")
+    ("scenario-file,f", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
+                        "a file with scenario")
+    ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group")
+    ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group")
+    ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group");
+  /* clang-format on */
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
 
+  if (vm.count("help")) {
+    print("{}", desc);
+    return 0;
+  }
+
   const Intensity A_start{vm["start"].as<intensity_t>()};
   const Intensity A_stop{vm["stop"].as<intensity_t>() + 0.01L};
   const Intensity A_step{vm["step"].as<intensity_t>()};
 
-  const auto scenario_files = vm["scenario-file"].as<std::vector<std::string>>();
+  const auto scenario_files = [&vm]() -> std::vector<std::string> {
+    if (vm.count("scenario-file"))
+      return vm["scenario-file"].as<std::vector<std::string>>();
+    else
+      return {};
+  }();
 
   std::vector<std::string> args(argv + 1, argv + argc);
   std::vector<SimulationSettings> scenarios;
