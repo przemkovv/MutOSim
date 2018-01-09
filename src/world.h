@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "topology.h"
 #include "types.h"
+#include "stats.h"
 
 #include <experimental/memory>
 #include <gsl/gsl>
@@ -33,6 +34,7 @@ class World
   RandomEngine random_engine_{seed_};
 
   observer_ptr<Topology> topology_;
+  std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
 
   void process_event();
 
@@ -55,6 +57,10 @@ public:
   void run(bool quiet);
 
   void print_stats();
+
+  void block(TrafficClassId tc_id, const Load &load);
+  void unblock(TrafficClassId tc_id, const Load &load);
+  void update_block_stat(const Load &load);
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

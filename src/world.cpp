@@ -14,7 +14,7 @@ World::World(uint64_t seed, Duration duration, Duration tick_length)
 
 void World::init()
 {
-  for (auto & [ name, source ] : topology_->sources) {
+  for (auto &[name, source] : topology_->sources) {
     source->init();
   }
 }
@@ -33,9 +33,9 @@ bool World::next_iteration()
   time_ = std::max(next_event, time_);
 
   if (time_ > finish_time_) {
-  for (auto & [ name, source ] : topology_->sources) {
-  source->pause();
-  }
+    for (auto &[name, source] : topology_->sources) {
+      source->pause();
+    }
   }
 
   process_event();
@@ -72,14 +72,18 @@ void World::print_stats()
 {
   print("{} Time = {}\n", *this, time_);
   print("{} In queue left {} events\n", *this, events_.size());
-  for (auto & [ name, group ] : topology_->groups) {
+  for (auto &[name, group] : topology_->groups) {
     const auto &group_stats = group->get_stats();
     print("{} Stats for {}: {}\n", *this, *group, group_stats);
-    for (auto & [ tc_id, stats ] : group_stats.by_traffic_class) {
+    for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
       print("{} Stats for {}/{}: {}: {}\n", *this, *group,
             *topology_->find_source_by_tc_id(tc_id).value(),
             topology_->get_traffic_class(tc_id), stats);
     }
+  }
+  for (auto &tc : topology_->traffic_classes) {
+    print("{} Stats for {}: P_block {}\n", *this, tc,
+          blocked_by_tc[tc.id].block_time / Duration{ts::get(current_time_)});
   }
 }
 
@@ -107,6 +111,37 @@ void World::schedule(std::unique_ptr<Event> event)
 {
   debug_print("{} Scheduled: {}\n", *this, *event);
   events_.emplace(std::move(event));
+}
+
+void World::update_block_stat(const Load &load)
+{
+  for (const auto &tc : topology_->traffic_classes) {
+    if (std::any_of(
+            begin(topology_->groups), end(topology_->groups),
+            [&tc](const auto &group) { return group.second->can_serve(tc.size); })) {
+      unblock(tc.id, load);
+    } else {
+      block(tc.id, load);
+    }
+  }
+}
+void World::block(TrafficClassId tc_id, const Load &load)
+{
+  auto &block_stats = blocked_by_tc[tc_id];
+  if (!block_stats.is_blocked) {
+    block_stats.is_blocked = true;
+    block_stats.start_of_block = load.send_time;
+  }
+}
+
+void World::unblock(TrafficClassId tc_id, const Load &load)
+{
+  auto &block_stats = blocked_by_tc[tc_id];
+  if (block_stats.is_blocked) {
+    block_stats.is_blocked = false;
+    auto block_time = load.end_time - block_stats.start_of_block;
+    block_stats.block_time += block_time;
+  }
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,

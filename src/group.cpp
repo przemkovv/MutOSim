@@ -52,11 +52,11 @@ bool Group::try_serve(Load load)
     set_end_time(load);
 
     update_block_stat(load);
+    world_->update_block_stat(load);
 
     world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
   }
-  drop(load);
   debug_print("{} Forwarding request: {}\n", *this, load);
   return forward(load);
 }
@@ -66,6 +66,7 @@ void Group::take_off(const Load &load)
   debug_print("{} Request has been served: {}\n", *this, load);
   size_ -= load.size;
   update_block_stat(load);
+  world_->update_block_stat(load);
   auto &served = served_by_tc[load.tc_id].served;
   served.size += load.size;
   served.count++;
@@ -119,12 +120,17 @@ bool Group::can_serve(const Size &load_size)
 bool Group::forward(Load load)
 {
   if (load.drop) {
+    drop(load);
     return false;
   }
   // TODO(PW): make it more intelligent
   if (!next_groups_.empty()) {
-    return next_groups_.front()->try_serve(load);
+    auto is_served = next_groups_.front()->try_serve(load);
+    if (!is_served)
+      drop(load);
+    return is_served;
   }
+  drop(load);
   return false;
 }
 
