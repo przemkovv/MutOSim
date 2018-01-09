@@ -30,7 +30,7 @@
 // constexpr Duration duration{1'000'000};
 // constexpr Duration duration{500'000};
 // const auto duration = Duration(500'000);
-constexpr Duration duration = Duration(100'000);
+// constexpr Duration duration = Duration(100'000);
 // const auto duration = Duration(2000);
 // const auto duration = Duration(500);
 // const auto duration = Duration(100);
@@ -45,7 +45,7 @@ uint64_t seed()
   return rd();
 }
 
-void run_scenario(SimulationSettings &scenario, bool quiet)
+void run_scenario(SimulationSettings &scenario, const Duration duration, bool quiet)
 {
   scenario.world = std::make_unique<World>(seed(), duration, tick_length);
   auto &world = *scenario.world;
@@ -165,6 +165,8 @@ int main(int argc, char *argv[])
     ("help", "produce help message")
     ("scenario-file,f", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
                         "a file with scenario")
+    ("duration,t", po::value<time_type>()->default_value(100'000), "duration of the simulation")
+    ("parallel,p", po::value<bool>()->default_value(true), "run simulations in parallel")
     ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group")
     ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group")
     ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group");
@@ -179,6 +181,8 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  const bool parallel{vm["parallel"].as<bool>()};
+  const Duration duration{vm["duration"].as<time_type>()};
   const Intensity A_start{vm["start"].as<intensity_t>()};
   const Intensity A_stop{vm["stop"].as<intensity_t>() + 0.01L};
   const Intensity A_step{vm["step"].as<intensity_t>()};
@@ -288,6 +292,7 @@ int main(int argc, char *argv[])
 
     for (const auto &config_file : scenario_files) {
       const auto t = Config::parse_topology_config(config_file);
+      // Config::dump(t);
       for (auto A = A_start; A <= A_stop; A += A_step) {
         auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
         // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
@@ -295,11 +300,11 @@ int main(int argc, char *argv[])
       }
     }
 
-    if ((true)) {
+    if ((parallel)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         auto &scenario = scenarios[i];
-        run_scenario(scenario, true);
+        run_scenario(scenario, duration, true);
       }
       for (auto &scenario : scenarios) {
         print("\n[Main] {:-^100}\n", scenario.name);
@@ -312,7 +317,7 @@ int main(int argc, char *argv[])
     } else {
       for (auto &scenario : scenarios) {
         print("\n[Main] {:-^100}\n", scenario.name);
-        run_scenario(scenario, true);
+        run_scenario(scenario, duration, true);
 
         scenario.world->print_stats();
         if (scenario.do_after) {
