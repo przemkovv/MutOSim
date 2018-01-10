@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "math.h"
 
 #include <fmt/format.h>
 #include <unordered_map>
@@ -25,6 +26,18 @@ struct TrafficClassStats {
   LostServedStats lost_served_stats;
   Duration block_time;
   Duration simulation_time;
+
+  double loss_ratio() const
+  {
+    return Math::ratio_to_sum<double>(ts::get(lost_served_stats.lost.count),
+                                      ts::get(lost_served_stats.served.count));
+  }
+  double loss_ratio_u() const
+  {
+    return Math::ratio_to_sum<double>(ts::get(lost_served_stats.lost.size),
+                                      ts::get(lost_served_stats.served.size));
+  }
+  auto block_ratio() const { return block_time / simulation_time; }
 };
 
 struct Stats {
@@ -33,9 +46,9 @@ struct Stats {
 };
 
 LoadStats operator+(const LoadStats &s1, const LoadStats &s2);
-LoadStats& operator+=(LoadStats &s1, const LoadStats &s2);
+LoadStats &operator+=(LoadStats &s1, const LoadStats &s2);
 LostServedStats operator+(const LostServedStats &s1, const LostServedStats &s2);
-LostServedStats& operator+=(LostServedStats &s1, const LostServedStats &s2);
+LostServedStats &operator+=(LostServedStats &s1, const LostServedStats &s2);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
@@ -49,10 +62,9 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const LoadStats &load_stats);
 
-void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *&format_str,
-    const std::unordered_map<SourceId, LoadStats> &served_by_traffic_class);
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const std::unordered_map<SourceId, LoadStats> &served_by_traffic_class);
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

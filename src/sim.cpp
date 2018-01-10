@@ -20,20 +20,12 @@
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <fmt/printf.h>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <optional>
 #include <random>
 
-// constexpr auto duration = Duration(20'000'000);
-// constexpr Duration duration { 5'000'000};
-// constexpr Duration duration{1'000'000};
-// constexpr Duration duration{500'000};
-// const auto duration = Duration(500'000);
-// constexpr Duration duration = Duration(100'000);
-// const auto duration = Duration(2000);
-// const auto duration = Duration(500);
-// const auto duration = Duration(100);
 constexpr Duration tick_length{0.5L};
 
 uint64_t seed()
@@ -150,6 +142,8 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
   // traffic_intensity /= V;
 
   sim_settings.name += fmt::format(" a={}", traffic_intensity);
+  sim_settings.a = traffic_intensity;
+  sim_settings.A = A;
   return sim_settings;
 }
 
@@ -165,6 +159,8 @@ int main(int argc, char *argv[])
     ("help", "produce help message")
     ("scenario-file,f", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
                         "a file with scenario")
+    ("output-file,o", po::value<std::string>()->default_value(""),
+                        "output file with stats")
     ("duration,t", po::value<time_type>()->default_value(100'000), "duration of the simulation")
     ("parallel,p", po::value<bool>()->default_value(true), "run simulations in parallel")
     ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group")
@@ -181,6 +177,7 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  const std::string output_file = vm["output-file"].as<std::string>();
   const bool parallel{vm["parallel"].as<bool>()};
   const Duration duration{vm["duration"].as<time_type>()};
   const Intensity A_start{vm["start"].as<intensity_t>()};
@@ -193,6 +190,9 @@ int main(int argc, char *argv[])
     else
       return {};
   }();
+  {
+    print("Time type precision (digits): {}\n", std::numeric_limits<time_type>::digits10);
+  }
 
   std::vector<std::string> args(argv + 1, argv + argc);
   std::vector<SimulationSettings> scenarios;
@@ -300,6 +300,7 @@ int main(int argc, char *argv[])
         auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
         // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
         scenario.name += fmt::format(" A={}", A);
+        scenario.filename = config_file;
       }
     }
 
@@ -309,9 +310,11 @@ int main(int argc, char *argv[])
         auto &scenario = scenarios[i];
         run_scenario(scenario, duration, true);
       }
+
       for (auto &scenario : scenarios) {
         print("\n[Main] {:-^100}\n", scenario.name);
         scenario.world->print_stats();
+
         if (scenario.do_after) {
           scenario.do_after();
         }
@@ -327,6 +330,23 @@ int main(int argc, char *argv[])
           scenario.do_after();
         }
         print("[Main] {:^^100}\n", scenario.name);
+      }
+    }
+
+    {
+      nlohmann::json sims_stats = {};
+      for (auto &scenario : scenarios) {
+        auto scenario_stats = scenario.world->get_stats();
+        scenario_stats["_a"] = ts::get(scenario.a);
+        scenario_stats["_A"] = ts::get(scenario.A);
+        scenario_stats["_name"] = scenario.name;
+        scenario_stats["_scenario_file"] = scenario.filename;
+
+        sims_stats[std::to_string(ts::get(scenario.A))] = scenario_stats;
+      }
+      if (!output_file.empty()) {
+        std::ofstream stats_file(output_file);
+        stats_file << sims_stats.dump(2);
       }
     }
   }

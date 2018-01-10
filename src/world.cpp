@@ -6,6 +6,7 @@
 #include "logger.h"
 #include "source_stream/source_stream.h"
 
+
 World::World(uint64_t seed, Duration duration, Duration tick_length)
   : seed_(seed), duration_(duration), tick_length_(tick_length)
 {
@@ -66,6 +67,36 @@ Uuid World::get_uuid()
 std::mt19937_64 &World::get_random_engine()
 {
   return random_engine_;
+}
+
+nlohmann::json World::get_stats()
+{
+
+  nlohmann::json j;
+
+  for (auto &[name, group] : topology_->groups) {
+    nlohmann::json j_group ={};
+
+    const auto &group_stats = group->get_stats();
+    for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
+      nlohmann::json j_tc = {};
+
+      j_tc["served"] = ts::get(stats.lost_served_stats.served.count);
+      j_tc["lost"] = ts::get(stats.lost_served_stats.lost.count);
+      j_tc["served_u"] = ts::get(stats.lost_served_stats.served.size);
+      j_tc["lost_u"] = ts::get(stats.lost_served_stats.lost.size);
+      j_tc["block_time"] = ts::get(stats.block_time);
+      j_tc["simulation_time"] = ts::get(stats.simulation_time);
+      j_tc["P_loss"] = stats.loss_ratio();
+      j_tc["P_loss_u"] = stats.loss_ratio_u();
+      j_tc["P_block"] = stats.block_ratio();
+
+      j_group[std::to_string(ts::get(tc_id))] = j_tc;
+    }
+
+    j[ts::get(name)] = j_group;
+  }
+  return j;
 }
 
 void World::print_stats()

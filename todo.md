@@ -7,6 +7,10 @@
 - graphs
 - elastic traffic
 - adaptive traffic
+- verify global block time
+- implement analytical model Fredericks-Hayward
+- plotting
+- statistics
 
 # Done
 
@@ -25,6 +29,10 @@
  - Topologia single_overflow_multiple_poissonX.json. Który poprawny czas
    blokady
 
+$ Statystyki:
+
+- Group { TC { serve,loss, serve_u,loss_u, P_loss, P_loss_u, block_time,
+  duration, P_block} }
 
 # Słownik
 

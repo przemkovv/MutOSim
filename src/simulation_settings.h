@@ -9,6 +9,10 @@ class World;
 
 struct SimulationSettings {
   Name name;
+  Intensity A{0};
+  Intensity a{0};
+
+  std::string filename = "";
 
   Topology topology{};
 

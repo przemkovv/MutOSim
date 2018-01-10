@@ -3,15 +3,17 @@
 #include "event.h"
 #include "load.h"
 #include "logger.h"
+#include "stats.h"
 #include "topology.h"
 #include "types.h"
-#include "stats.h"
 
 #include <experimental/memory>
 #include <gsl/gsl>
 #include <memory>
 #include <queue>
 #include <random>
+
+#include <nlohmann/json.hpp>
 
 struct Group;
 class SourceStream;
@@ -57,6 +59,7 @@ public:
   void run(bool quiet);
 
   void print_stats();
+  nlohmann::json get_stats();
 
   void block(TrafficClassId tc_id, const Load &load);
   void unblock(TrafficClassId tc_id, const Load &load);
