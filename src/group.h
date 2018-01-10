@@ -40,9 +40,11 @@ struct Group {
   bool forward(Load load);
 
   bool can_serve(const Size &load_size);
+  bool can_serve_full(const Size &load_size);
   void block(TrafficClassId tc_id, const Load &load);
   void unblock(TrafficClassId tc_id, const Load &load);
   void update_block_stat(const Load &load);
+  void update_unblock_stat(const Load &load);
 
   Group(GroupName name, Capacity capacity);
 

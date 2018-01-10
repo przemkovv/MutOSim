@@ -65,7 +65,7 @@ void Group::take_off(const Load &load)
 {
   debug_print("{} Request has been served: {}\n", *this, load);
   size_ -= load.size;
-  update_block_stat(load);
+  update_unblock_stat(load);
   world_->update_block_stat(load);
   auto &served = served_by_tc[load.tc_id].served;
   served.size += load.size;
@@ -79,12 +79,28 @@ void Group::drop(const Load &load)
   lost.count++;
 }
 
+// void Group::update_block_stat(const Load &load)
+// {
+// for (const auto &[tc_id, tc] : *traffic_classes_) {
+// if (can_serve_full(tc.size)) {
+// unblock(tc.id, load);
+// } else {
+// block(tc.id, load);
+// }
+// }
+// }
+void Group::update_unblock_stat(const Load &load)
+{
+  for (const auto &[tc_id, tc] : *traffic_classes_) {
+    if (can_serve_full(tc.size)) {
+      unblock(tc.id, load);
+    }
+  }
+}
 void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    if (can_serve(tc.size)) {
-      unblock(tc.id, load);
-    } else {
+    if (!can_serve_full(tc.size)) {
       block(tc.id, load);
     }
   }
@@ -115,6 +131,17 @@ void Group::unblock(TrafficClassId tc_id, const Load &load)
 bool Group::can_serve(const Size &load_size)
 {
   return size_ + load_size <= capacity_;
+}
+
+bool Group::can_serve_full(const Size &load_size)
+{
+  if (can_serve(load_size)) {
+    return true;
+  }
+  if (!next_groups_.empty()) {
+    return next_groups_.front()->can_serve_full(load_size);
+  }
+  return false;
 }
 
 bool Group::forward(Load load)
