@@ -5,7 +5,7 @@
 
 #include <types.h>
 
-constexpr auto erlang_pk(const long double A, const int64_t V, const int64_t k)
+inline auto erlang_pk(const long double A, const int64_t V, const int64_t k)
 {
   const auto dividend = Math::power_over_factorial(A, k);
   auto divisor = 0.0L;
@@ -15,7 +15,7 @@ constexpr auto erlang_pk(const long double A, const int64_t V, const int64_t k)
   return dividend / divisor;
 }
 
-constexpr auto engset_pi(const long double alpha,
+inline auto engset_pi(const long double alpha,
                          const int64_t V,
                          const int64_t N,
                          const int64_t i)

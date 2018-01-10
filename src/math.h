@@ -3,20 +3,24 @@
 #include "types.h"
 #include <cmath>
 
+#include <boost/math/special_functions.hpp>
+
 namespace Math
 {
+constexpr double epsilon = 0.000001;
+
 // using std::pow;
 template <typename T>
 T ratio_to_sum(T s1, T s2)
 {
-  if (auto sum = s1 + s2; sum == 0) {
+  if (auto sum = s1 + s2; sum < epsilon && sum > epsilon) {
     return 0;
   } else {
     return s1 / sum;
   }
 }
 
-constexpr long double pow(long double x, int64_t y)
+inline long double pow(long double x, int64_t y)
 {
   return y == 0 ? 1.0L : x * pow(x, y - 1);
 }
@@ -29,20 +33,19 @@ constexpr int64_t factorial(int64_t x)
   return 1;
 }
 
-constexpr auto exp(long double x)
+inline auto exp(long double x)
 {
   return 1.0L + x + pow(x, 2) / factorial(2) + pow(x, 3) / factorial(3) +
-         pow(x, 4) / factorial(4) + pow(x, 5) / factorial(5) +
-         pow(x, 6) / factorial(6) + pow(x, 7) / factorial(7) +
-         pow(x, 8) / factorial(8) + pow(x, 9) / factorial(9);
+         pow(x, 4) / factorial(4) + pow(x, 5) / factorial(5) + pow(x, 6) / factorial(6) +
+         pow(x, 7) / factorial(7) + pow(x, 8) / factorial(8) + pow(x, 9) / factorial(9);
 }
 
-constexpr auto power_over_factorial(const long double x, const int64_t i)
+inline auto power_over_factorial(const long double x, const int64_t i)
 {
   return Math::pow(x, i) / Math::factorial(i);
 }
 
-constexpr int64_t product(int64_t from, int64_t to)
+inline int64_t product(int64_t from, int64_t to)
 {
   int64_t result = 1;
   for (; from <= to; ++from) {
@@ -51,16 +54,13 @@ constexpr int64_t product(int64_t from, int64_t to)
   return result;
 }
 
-constexpr int64_t n_over_k(const int64_t n, const int64_t k)
+inline int64_t n_over_k(const int64_t n, const int64_t k)
 {
   if (n < 0) {
     return n_over_k(-n + k - 1, k);
   }
-  if (k > n - k) {
-    return product(k + 1, n) / factorial(n - k);
-  } else {
-    return product(n - k + 1, n) / factorial(k);
-  }
+  return static_cast<int64_t>(boost::math::binomial_coefficient<double>(
+      static_cast<uint32_t>(n), static_cast<uint32_t>(k)));
 }
 
 } // namespace Math

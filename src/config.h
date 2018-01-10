@@ -10,5 +10,4 @@ constexpr bool debug_logger_enabled = true;
 constexpr bool debug_logger_enabled = false;
 #endif
 
-constexpr double epsilon = 0.0001;
 } // namespace Config

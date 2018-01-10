@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <boost/multiprecision/mpfr.hpp>
+// #include <boost/multiprecision/mpfr.hpp>
 #include <cstdint>
 #include <experimental/memory>
 #include <fmt/ostream.h>
@@ -187,13 +187,13 @@ struct TrafficClassId : ts::strong_typedef<TrafficClassId, uuid_t>,
   using strong_typedef::strong_typedef;
 };
 
-template <typename T>
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const boost::multiprecision::number<T> &number)
-{
-  f.writer().write("{}", number.str());
-}
+// template <typename T>
+// void format_arg(fmt::BasicFormatter<char> &f,
+                // const char *& [> format_str <],
+                // const boost::multiprecision::number<T> &number)
+// {
+  // f.writer().write("{}", number.str());
+// }
 
 namespace std
 {
