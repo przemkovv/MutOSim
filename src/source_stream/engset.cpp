@@ -28,6 +28,16 @@ void EngsetSourceStream::notify_on_service_end(const LoadServiceEndEvent *event)
   world_->schedule(create_produce_service_request(event->load.end_time));
 }
 
+void EngsetSourceStream::notify_on_service_accept(const LoadServiceRequestEvent *event) {
+    debug_print("{} Service accepted: {}\n", *this, event->load);
+    active_sources_++;
+}
+
+void EngsetSourceStream::notify_on_service_drop(const LoadServiceRequestEvent *event) {
+    debug_print("{} Service dropped: {}\n", *this, event->load);
+    world_->schedule(create_produce_service_request(event->time));
+}
+
 void EngsetSourceStream::init()
 {
   for (auto i = Count(0); i < sources_number_; ++i) {
@@ -50,14 +60,6 @@ EventPtr EngsetSourceStream::produce_load(Time time)
   }
 
   auto load = create_load(time, tc_.size);
-  if (target_group_->can_serve(load.size)) {
-    debug_print("{} Produced: {}\n", *this, load);
-    active_sources_++;
-  } else {
-    debug_print("{} Produced ghost: {}\n", *this, load);
-    load.drop = true;
-    world_->schedule(create_produce_service_request(time));
-  }
   return std::make_unique<LoadServiceRequestEvent>(world_->get_uuid(), load);
 }
 

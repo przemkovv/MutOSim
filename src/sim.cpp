@@ -284,10 +284,13 @@ int main(int argc, char *argv[])
       scenarios.emplace_back(erlang_model(Intensity(45.0L), Capacity(30)));
     }
 
-    if ((true)) {
+    if ((false)) {
       scenarios.emplace_back(engset_model(Intensity(10.0L), Capacity(20), Count(40)));
+      scenarios.emplace_back(engset2_model(Intensity(10.0L), Capacity(20), Count(40)));
       scenarios.emplace_back(engset_model(Intensity(20.0L), Capacity(20), Count(40)));
+      scenarios.emplace_back(engset2_model(Intensity(20.0L), Capacity(20), Count(40)));
       scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(20), Count(40)));
+      scenarios.emplace_back(engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
     }
 
     for (const auto &config_file : scenario_files) {

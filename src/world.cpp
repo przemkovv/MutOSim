@@ -10,8 +10,6 @@ World::World(uint64_t seed, Duration duration, Duration tick_length)
   : seed_(seed), duration_(duration), tick_length_(tick_length)
 {
   // print("[World] {:=^100}\n", " New world ");
-  print("[World] duration ={}\n", duration);
-  print("[World] tick_length ={}\n", tick_length);
 }
 
 void World::init()
