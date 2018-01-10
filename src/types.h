@@ -150,6 +150,7 @@ struct Time : ts::strong_typedef<Time, time_type>,
 
 struct GroupName : ts::strong_typedef<GroupName, name_t>,
                    ts::strong_typedef_op::equality_comparison<GroupName>,
+                   ts::strong_typedef_op::relational_comparison<GroupName>,
                    ts::strong_typedef_op::output_operator<GroupName> {
   using strong_typedef::strong_typedef;
   GroupName operator+(std::string_view str)
@@ -160,6 +161,7 @@ struct GroupName : ts::strong_typedef<GroupName, name_t>,
 
 struct SourceName : ts::strong_typedef<SourceName, name_t>,
                     ts::strong_typedef_op::equality_comparison<SourceName>,
+                    ts::strong_typedef_op::relational_comparison<SourceName>,
                     ts::strong_typedef_op::output_operator<SourceName> {
   using strong_typedef::strong_typedef;
 };
@@ -182,10 +184,10 @@ struct LoadId : ts::strong_typedef<LoadId, uuid_t>,
 
 struct TrafficClassId : ts::strong_typedef<TrafficClassId, uuid_t>,
                         ts::strong_typedef_op::equality_comparison<TrafficClassId>,
+                        ts::strong_typedef_op::relational_comparison<TrafficClassId>,
                         ts::strong_typedef_op::output_operator<TrafficClassId> {
   using strong_typedef::strong_typedef;
 };
-
 
 namespace std
 {

@@ -1,9 +1,10 @@
 #pragma once
 
-#include "types.h"
 #include "math.h"
+#include "types.h"
 
 #include <fmt/format.h>
+#include <map>
 #include <unordered_map>
 
 struct LoadStats {
@@ -42,7 +43,7 @@ struct TrafficClassStats {
 
 struct Stats {
   LostServedStats total;
-  std::unordered_map<TrafficClassId, TrafficClassStats> by_traffic_class;
+  std::map<TrafficClassId, TrafficClassStats> by_traffic_class;
 };
 
 LoadStats operator+(const LoadStats &s1, const LoadStats &s2);
@@ -69,6 +70,10 @@ void format_arg(fmt::BasicFormatter<char> &f,
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const LostServedStats &stats);
+
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *& /* format_str */,
+                const std::map<TrafficClassId, LostServedStats> &lost_served_stats);
 
 void format_arg(
     fmt::BasicFormatter<char> &f,

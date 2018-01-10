@@ -14,7 +14,7 @@ Group::Group(GroupName name, Capacity capacity)
 void Group::set_end_time(Load &load)
 {
   auto &tcs = *traffic_classes_.get();
-  auto serve_intensity = tcs[ts::get(load.tc_id)].serve_intensity;
+  auto serve_intensity = tcs.at(load.tc_id).serve_intensity;
   auto params = decltype(exponential)::param_type(ts::get(serve_intensity));
   exponential.param(params);
 
@@ -81,7 +81,7 @@ void Group::drop(const Load &load)
 
 void Group::update_block_stat(const Load &load)
 {
-  for (const auto &tc : *traffic_classes_) {
+  for (const auto &[tc_id, tc] : *traffic_classes_) {
     if (can_serve(tc.size)) {
       unblock(tc.id, load);
     } else {

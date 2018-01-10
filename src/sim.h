@@ -10,9 +10,10 @@
 #include <map>
 #include <memory>
 
-uint64_t seed();
+uint64_t seed(bool use_random_seed);
 void run_scenario(SimulationSettings &scenario,
                   const Duration duration,
+                  bool use_random_seed,
                   bool quiet = false);
 
 void add_groups(World &world, const std::vector<std::unique_ptr<Group>> &groups);

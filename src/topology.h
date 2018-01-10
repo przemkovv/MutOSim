@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 #include <unordered_map>
+#include <map>
 
 struct Group;
 class SourceStream;
@@ -15,14 +16,17 @@ class World;
 struct Topology {
   Uuid last_id = 0;
 
-  std::unordered_map<GroupName, std::unique_ptr<Group>> groups;
-  std::unordered_map<SourceName, std::unique_ptr<SourceStream>> sources;
+  std::map<GroupName, std::unique_ptr<Group>> groups;
+  std::map<SourceName, std::unique_ptr<SourceStream>> sources;
 
   TrafficClasses traffic_classes;
 
   Group &add_group(std::unique_ptr<Group> group);
   SourceStream &add_source(std::unique_ptr<SourceStream> source_stream);
-  TrafficClass &add_traffic_class(Intensity source_intensity,
+  TrafficClass &
+  add_traffic_class(Intensity source_intensity, Intensity serve_intensity, Size size);
+  TrafficClass &add_traffic_class(TrafficClassId id,
+                                  Intensity source_intensity,
                                   Intensity serve_intensity,
                                   Size size);
 
@@ -36,6 +40,6 @@ struct Topology {
   std::optional<SourceId> get_source_id(const SourceName &name);
 
   Uuid get_uuid() { return ++last_id; }
-  const TrafficClass& get_traffic_class(TrafficClassId id);
-  const Group& get_group(const GroupName & group_name);
+  const TrafficClass &get_traffic_class(TrafficClassId id);
+  const Group &get_group(const GroupName &group_name);
 };

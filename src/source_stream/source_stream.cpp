@@ -48,6 +48,6 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const SourceStream &source)
 {
-  f.writer().write("t={} [Source {} (id={})]", source.world_->get_current_time(),
+  f.writer().write("[Source {} (id={:>2})]", source.world_->get_current_time(),
                    source.name_, source.id);
 }

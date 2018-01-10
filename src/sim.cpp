@@ -28,18 +28,21 @@
 
 constexpr Duration tick_length{0.5L};
 
-uint64_t seed()
+uint64_t seed(bool use_random_seed)
 {
-  if constexpr (Config::constant_seed) {
+  if (!use_random_seed) {
     return 0;
   }
   std::random_device rd;
   return rd();
 }
 
-void run_scenario(SimulationSettings &scenario, const Duration duration, bool quiet)
+void run_scenario(SimulationSettings &scenario,
+                  const Duration duration,
+                  bool use_random_seed,
+                  bool quiet)
 {
-  scenario.world = std::make_unique<World>(seed(), duration, tick_length);
+  scenario.world = std::make_unique<World>(seed(use_random_seed), duration, tick_length);
   auto &world = *scenario.world;
   world.set_topology(&scenario.topology);
 
@@ -89,7 +92,7 @@ SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Int
   for (const auto &tc : config.traffic_classes) {
     const auto ratio = tc.weight / sum;
     Intensity offered_intensity = A * V * ratio / tc.size;
-    topology.add_traffic_class(offered_intensity, tc.serve_intensity, tc.size);
+    topology.add_traffic_class(tc.id, offered_intensity, tc.serve_intensity, tc.size);
   }
 
   for (const auto &source : config.sources) {
@@ -130,8 +133,8 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
     const auto ratio = cfg_tc.weight / weights_sum_per_group[source.attached];
     const auto &group = topology.get_group(source.attached);
     Intensity offered_intensity = A * group.capacity_ * ratio / cfg_tc.size;
-    auto &tc = topology.add_traffic_class(offered_intensity, cfg_tc.serve_intensity,
-                                          cfg_tc.size);
+    auto &tc = topology.add_traffic_class(cfg_tc.id, offered_intensity,
+                                          cfg_tc.serve_intensity, cfg_tc.size);
 
     topology.add_source(create_stream(source.type, source, tc));
     topology.attach_source_to_group(source.name, source.attached);
@@ -165,7 +168,8 @@ int main(int argc, char *argv[])
     ("parallel,p", po::value<bool>()->default_value(true), "run simulations in parallel")
     ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group")
     ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group")
-    ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group");
+    ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group")
+    ("random,r",  "use random seed");
   /* clang-format on */
 
   po::variables_map vm;
@@ -177,6 +181,7 @@ int main(int argc, char *argv[])
     return 0;
   }
 
+  const bool use_random_seed = vm.count("random") > 0;
   const std::string output_file = vm["output-file"].as<std::string>();
   const bool parallel{vm["parallel"].as<bool>()};
   const Duration duration{vm["duration"].as<time_type>()};
@@ -191,7 +196,8 @@ int main(int argc, char *argv[])
       return {};
   }();
   {
-    print("Time type precision (digits): {}\n", std::numeric_limits<time_type>::digits10);
+    // print("Time type precision (digits): {}\n",
+    // std::numeric_limits<time_type>::digits10);
   }
 
   std::vector<std::string> args(argv + 1, argv + argc);
@@ -308,7 +314,7 @@ int main(int argc, char *argv[])
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         auto &scenario = scenarios[i];
-        run_scenario(scenario, duration, true);
+        run_scenario(scenario, duration, use_random_seed, true);
       }
 
       for (auto &scenario : scenarios) {
@@ -323,7 +329,7 @@ int main(int argc, char *argv[])
     } else {
       for (auto &scenario : scenarios) {
         print("\n[Main] {:-^100}\n", scenario.name);
-        run_scenario(scenario, duration, true);
+        run_scenario(scenario, duration, use_random_seed, true);
 
         scenario.world->print_stats();
         if (scenario.do_after) {

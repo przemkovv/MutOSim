@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+#include <unordered_map>
+
 struct TrafficClass {
   TrafficClassId id;
   Intensity source_intensity;
@@ -9,7 +11,7 @@ struct TrafficClass {
   Size size;
 };
 
-using TrafficClasses = std::vector<TrafficClass>;
+using TrafficClasses = std::unordered_map<TrafficClassId, TrafficClass>;
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,

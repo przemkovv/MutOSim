@@ -32,10 +32,19 @@ TrafficClass &Topology::add_traffic_class(Intensity source_intensity,
                                           Size size)
 {
   auto tc_id = TrafficClassId{traffic_classes.size()};
-  auto &tc = traffic_classes.emplace_back(
-      TrafficClass{tc_id, source_intensity, serve_intensity, size});
 
-  return tc;
+  return add_traffic_class(tc_id, source_intensity, serve_intensity, size);
+}
+
+TrafficClass &Topology::add_traffic_class(TrafficClassId id,
+                                          Intensity source_intensity,
+                                          Intensity serve_intensity,
+                                          Size size)
+{
+  auto [it, inserted] = traffic_classes.emplace(
+      id, TrafficClass{id, source_intensity, serve_intensity, size});
+
+  return it->second;
 }
 
 void Topology::set_world(gsl::not_null<World *> world)
@@ -70,7 +79,7 @@ std::optional<SourceId> Topology::get_source_id(const SourceName &name)
 
 const TrafficClass &Topology::get_traffic_class(TrafficClassId id)
 {
-  return traffic_classes[ts::get(id)];
+  return traffic_classes.at(id);
 }
 const Group &Topology::get_group(const GroupName &group_name)
 {

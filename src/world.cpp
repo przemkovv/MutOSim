@@ -6,7 +6,6 @@
 #include "logger.h"
 #include "source_stream/source_stream.h"
 
-
 World::World(uint64_t seed, Duration duration, Duration tick_length)
   : seed_(seed), duration_(duration), tick_length_(tick_length)
 {
@@ -71,11 +70,10 @@ std::mt19937_64 &World::get_random_engine()
 
 nlohmann::json World::get_stats()
 {
-
   nlohmann::json j;
 
   for (auto &[name, group] : topology_->groups) {
-    nlohmann::json j_group ={};
+    nlohmann::json j_group = {};
 
     const auto &group_stats = group->get_stats();
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
@@ -105,15 +103,15 @@ void World::print_stats()
   print("{} In queue left {} events\n", *this, events_.size());
   for (auto &[name, group] : topology_->groups) {
     const auto &group_stats = group->get_stats();
-    print("{} Stats for {}: {}\n", *this, *group, group_stats);
+    print("{} {}: {}\n", *this, *group, group_stats);
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
-      print("{} Stats for {}/{}: {}: {}\n", *this, *group,
+      print("{} {} {}: {}: {}\n", *this, *group,
             *topology_->find_source_by_tc_id(tc_id).value(),
             topology_->get_traffic_class(tc_id), stats);
     }
   }
-  for (auto &tc : topology_->traffic_classes) {
-    print("{} Stats for {}: P_block {}\n", *this, tc,
+  for (auto &[tc_id, tc] : topology_->traffic_classes) {
+    print("{} {}: P_block {}\n", *this, tc,
           blocked_by_tc[tc.id].block_time / Duration{ts::get(current_time_)});
   }
 }
@@ -146,10 +144,10 @@ void World::schedule(std::unique_ptr<Event> event)
 
 void World::update_block_stat(const Load &load)
 {
-  for (const auto &tc : topology_->traffic_classes) {
+  for (const auto &[tc_id, tc] : topology_->traffic_classes) {
     if (std::any_of(
             begin(topology_->groups), end(topology_->groups),
-            [&tc](const auto &group) { return group.second->can_serve(tc.size); })) {
+            [size=tc.size](const auto &group) { return group.second->can_serve(size); })) {
       unblock(tc.id, load);
     } else {
       block(tc.id, load);
