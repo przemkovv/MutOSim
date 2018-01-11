@@ -1,6 +1,7 @@
 
 # Todo
 
+- subgroups
 - Reserved capacity
 - divide simulation into epochs?
 - Analytical model MIMS

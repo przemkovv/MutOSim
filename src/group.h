@@ -40,7 +40,7 @@ struct Group {
   bool forward(Load load);
 
   bool can_serve(const Size &load_size);
-  bool can_serve_full(const Size &load_size);
+  bool can_server_recursive(const Size &load_size);
   void block(TrafficClassId tc_id, const Load &load);
   void unblock(TrafficClassId tc_id, const Load &load);
   void update_block_stat(const Load &load);

@@ -92,7 +92,7 @@ void Group::drop(const Load &load)
 void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    if (can_serve_full(tc.size)) {
+    if (can_server_recursive(tc.size)) {
       unblock(tc.id, load);
     }
   }
@@ -100,7 +100,7 @@ void Group::update_unblock_stat(const Load &load)
 void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    if (!can_serve_full(tc.size)) {
+    if (!can_server_recursive(tc.size)) {
       block(tc.id, load);
     }
   }
@@ -133,13 +133,13 @@ bool Group::can_serve(const Size &load_size)
   return size_ + load_size <= capacity_;
 }
 
-bool Group::can_serve_full(const Size &load_size)
+bool Group::can_server_recursive(const Size &load_size)
 {
   if (can_serve(load_size)) {
     return true;
   }
   if (!next_groups_.empty()) {
-    return next_groups_.front()->can_serve_full(load_size);
+    return next_groups_.front()->can_server_recursive(load_size);
   }
   return false;
 }
