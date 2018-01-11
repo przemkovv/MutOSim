@@ -111,8 +111,9 @@ void World::print_stats()
     }
   }
   for (auto &[tc_id, tc] : topology_->traffic_classes) {
-    print("{} {}: P_block {}\n", *this, tc,
-          blocked_by_tc[tc.id].block_time / Duration{ts::get(current_time_)});
+    auto p_block = blocked_by_tc[tc.id].block_time / Duration{ts::get(current_time_)};
+    print("{} {}: P_block {:<12} ({:<12})\n", *this, tc,
+          p_block, std::log10(p_block));
   }
 }
 

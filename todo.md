@@ -4,13 +4,12 @@
 - Reserved capacity
 - divide simulation into epochs?
 - Analytical model MIMS
-- graphs
 - elastic traffic
 - adaptive traffic
 - verify global block time
 - implement analytical model Fredericks-Hayward
 - plotting
-- statistics
+- statistics: export to CSV
 
 # Done
 
@@ -20,6 +19,13 @@
 - fix math computing
 - Service intensity per class
 - add traffic class id
+
+# Ideas
+
+- record load path (by what groups it was served)
+- support for multiple next groups
+- filter groups by traffic class
+- graphviz to display topology
 
 
 # Pytania

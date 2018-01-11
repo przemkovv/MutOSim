@@ -42,7 +42,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
   auto loss_ratio_size =
       Math::ratio_to_sum<double>(ts::get(stats.lost.size), ts::get(stats.served.size));
 
-  f.writer().write("served/lost: {} / {}. P_loss: {:<8} ({:<8})", stats.served,
+  f.writer().write("served/lost: {} / {}. P_loss: {:<10} ({:<10})", stats.served,
                    stats.lost, loss_ratio, loss_ratio_size);
 }
 
@@ -57,8 +57,9 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const TrafficClassStats &stats)
 {
-  f.writer().write("{}, P_block = {}", stats.lost_served_stats,
-                   stats.block_time / stats.simulation_time);
+  auto p_block = stats.block_time / stats.simulation_time;
+  f.writer().write("{}, P_block = {:<10} ({:<10})", stats.lost_served_stats,
+                   p_block, std::log10(p_block));
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,
