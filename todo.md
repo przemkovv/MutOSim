@@ -4,6 +4,7 @@
 - scenarios with mutual overflows (3 primary - one secondary)
 - traffic class priorities
 - max two overflows
+- different intensities per group
 - subgroups
 - Reserved capacity
 - divide simulation into epochs?
