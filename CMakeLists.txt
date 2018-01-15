@@ -16,6 +16,7 @@ add_compile_options(
     -Wpedantic
     -Wno-c++98-compat
     -Wno-c++98-compat-pedantic
+    -Wno-c99-extensions
     -Wno-newline-eof
     -Wno-padded
     -Wno-exit-time-destructors

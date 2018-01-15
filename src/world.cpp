@@ -115,6 +115,10 @@ void World::print_stats()
     print("{} {}: P_block {:<12} ({:<12})\n", *this, tc,
           p_block, std::log10(p_block));
   }
+
+  for (auto &[source_id, source] : topology_->sources) {
+    source->print_stats();
+  }
 }
 
 void World::run(bool quiet)

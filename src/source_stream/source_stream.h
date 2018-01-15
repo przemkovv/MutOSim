@@ -23,6 +23,7 @@ protected:
   observer_ptr<Group> target_group_;
 
   bool pause_ = false;
+  uint64_t loads_produced_{0};
 
   Load create_load(Time time, Size size);
 
@@ -38,7 +39,7 @@ public:
   virtual Size get_load_size() const { return tc_.size; }
   virtual Intensity get_intensity() const { return tc_.serve_intensity; }
 
-  SourceStream(const SourceName &name, const TrafficClass &tc) : name_(name), tc_(tc) {}
+  SourceStream(const SourceName &name, const TrafficClass &tc);
   virtual ~SourceStream() = default;
 
   void set_world(gsl::not_null<World *> world);
@@ -46,6 +47,8 @@ public:
   void pause() { pause_ = true; }
 
   const SourceName &get_name() { return name_; }
+
+  void print_stats();
 
   friend void format_arg(fmt::BasicFormatter<char> &f,
                          const char *& /* format_str */,

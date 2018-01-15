@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "source_stream/source_stream.h"
 
+#include <algorithm>
 #include <cmath>
 #include <gsl/gsl>
 
@@ -52,6 +53,7 @@ bool Group::try_serve(Load load)
     return true;
   }
   debug_print("{} Forwarding request: {}\n", *this, load);
+  load.path.emplace_back(make_observer(this));
   return forward(load);
 }
 
@@ -76,17 +78,21 @@ void Group::drop(const Load &load)
 void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    if (can_server_recursive(tc.size)) {
+    Path path;
+    if (can_serve_recursive(tc.size, path)) {
       unblock(tc.id, load);
     }
+    assert(path.size() == 0);
   }
 }
 void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    if (!can_server_recursive(tc.size)) {
+    Path path;
+    if (!can_serve_recursive(tc.size, path)) {
       block(tc.id, load);
     }
+    assert(path.size() == 0);
   }
 }
 void Group::block(TrafficClassId tc_id, const Load &load)
@@ -117,13 +123,18 @@ bool Group::can_serve(const Size &load_size)
   return size_ + load_size <= capacity_;
 }
 
-bool Group::can_server_recursive(const Size &load_size)
+bool Group::can_serve_recursive(const Size &load_size, Path &path)
 {
   if (can_serve(load_size)) {
     return true;
   }
-  if (!next_groups_.empty()) {
-    return next_groups_.front()->can_server_recursive(load_size);
+  path.emplace_back(make_observer(this));
+  auto pop_on_exit = gsl::finally([&path]() { path.pop_back(); });
+
+  for (const auto &next_group : next_groups_) {
+    if (find(begin(path), end(path), next_group) == end(path)) {
+      return next_group->can_serve_recursive(load_size, path);
+    }
   }
   return false;
 }
@@ -135,12 +146,14 @@ bool Group::forward(Load load)
     return false;
   }
   // TODO(PW): make it more intelligent
-  if (!next_groups_.empty()) {
-    auto is_served = next_groups_.front()->try_serve(load);
-    if (!is_served) {
-      drop(load);
+  for (const auto &next_group : next_groups_) {
+    if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
+      auto is_served = next_group->try_serve(load);
+      if (!is_served) {
+        drop(load);
+      }
+      return is_served;
     }
-    return is_served;
   }
   drop(load);
   return false;

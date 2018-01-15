@@ -348,7 +348,8 @@ int main(int argc, char *argv[])
         scenario_stats["_name"] = scenario.name;
         scenario_stats["_scenario_file"] = scenario.filename;
 
-        sims_stats[std::to_string(ts::get(scenario.A))] = scenario_stats;
+        auto A_str = std::to_string(ts::get(scenario.A));
+        sims_stats[scenario.filename][A_str] = scenario_stats;
       }
       if (!output_file.empty()) {
         std::ofstream stats_file(output_file);
@@ -359,4 +360,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-
