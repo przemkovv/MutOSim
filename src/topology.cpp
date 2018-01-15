@@ -17,12 +17,12 @@ SourceStream &Topology::add_source(std::unique_ptr<SourceStream> source_stream)
   return *(it->second.get());
 }
 
-void Topology::connect_groups(GroupName from, GroupName to)
+void Topology::connect_groups(const GroupName &from, const GroupName &to)
 {
   groups[from]->add_next_group(groups[to].get());
 }
 
-void Topology::attach_source_to_group(SourceName source, GroupName group)
+void Topology::attach_source_to_group(const SourceName &source, const GroupName &group)
 {
   sources[source]->attach_to_group(groups[group].get());
 }
@@ -72,9 +72,8 @@ std::optional<SourceId> Topology::get_source_id(const SourceName &name)
   auto it = sources.find(name);
   if (it != sources.end()) {
     return it->second->id;
-  } else {
+  } 
     return {};
-  }
 }
 
 const TrafficClass &Topology::get_traffic_class(TrafficClassId id)

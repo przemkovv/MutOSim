@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
 
-  if (vm.count("help")) {
+  if (vm.count("help") > 0) {
     print("{}", desc);
     return 0;
   }
@@ -190,10 +190,10 @@ int main(int argc, char *argv[])
   const Intensity A_step{vm["step"].as<intensity_t>()};
 
   const auto scenario_files = [&vm]() -> std::vector<std::string> {
-    if (vm.count("scenario-file"))
+    if (vm.count("scenario-file") > 0) {
       return vm["scenario-file"].as<std::vector<std::string>>();
-    else
-      return {};
+    }
+    return {};
   }();
   {
     // print("Time type precision (digits): {}\n",
@@ -204,11 +204,11 @@ int main(int argc, char *argv[])
   std::vector<SimulationSettings> scenarios;
 
   {
-    if ((false))
+    if ((false)) {
       for (auto A = A_start; A <= A_stop; A += A_step) {
         std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
         std::vector<int64_t> ratios{1, 1, 1, 1};
-        auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
+        auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0ll);
         std::vector<long double> ratios_d(begin(ratios), end(ratios));
         for_each(begin(ratios_d), end(ratios_d),
                  [ratios_sum](auto &x) { x /= ratios_sum; });
@@ -223,6 +223,7 @@ int main(int argc, char *argv[])
         auto &scenario = scenarios.emplace_back(poisson_streams(intensities, sizes, V));
         scenario.name += fmt::format(" A={}", A);
       }
+    }
 
     /*
     for (auto A = Intensity{1.5L}; A <= Intensity{1.5L}; A += Intensity{0.1L}) {
@@ -313,8 +314,7 @@ int main(int argc, char *argv[])
     if ((parallel)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
-        auto &scenario = scenarios[i];
-        run_scenario(scenario, duration, use_random_seed, true);
+        run_scenario(scenarios[i], duration, use_random_seed, true);
       }
 
       for (auto &scenario : scenarios) {
@@ -359,3 +359,4 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+

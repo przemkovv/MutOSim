@@ -30,9 +30,9 @@ struct Topology {
                                   Intensity serve_intensity,
                                   Size size);
 
-  void connect_groups(GroupName from, GroupName to);
+  void connect_groups(const GroupName &from, const GroupName &to);
 
-  void attach_source_to_group(SourceName source, GroupName group);
+  void attach_source_to_group(const SourceName &source, const GroupName &group);
 
   void set_world(gsl::not_null<World *> world);
 

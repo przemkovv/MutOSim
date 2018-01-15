@@ -13,8 +13,8 @@ Group::Group(GroupName name, Capacity capacity)
 
 void Group::set_end_time(Load &load)
 {
-  auto &tcs = *traffic_classes_.get();
-  auto serve_intensity = tcs.at(load.tc_id).serve_intensity;
+  const auto &tcs = *traffic_classes_;
+  const auto serve_intensity = tcs.at(load.tc_id).serve_intensity;
   auto params = decltype(exponential)::param_type(ts::get(serve_intensity));
   exponential.param(params);
 
@@ -31,12 +31,6 @@ void Group::set_traffic_classes(const TrafficClasses &traffic_classes)
 {
   traffic_classes_ = make_observer(&traffic_classes);
 }
-// void Group::add_traffic_class(const TrafficClass &tc)
-// {
-// traffic_classes[tc.source_id] = tc;
-// blocked_by_tc.emplace(tc.source_id, BlockStats{});
-// served_by_tc.emplace(tc.source_id, LostServedStats{});
-// }
 
 void Group::notify_on_service_end(LoadServiceEndEvent *event)
 {
@@ -79,16 +73,6 @@ void Group::drop(const Load &load)
   lost.count++;
 }
 
-// void Group::update_block_stat(const Load &load)
-// {
-// for (const auto &[tc_id, tc] : *traffic_classes_) {
-// if (can_serve_full(tc.size)) {
-// unblock(tc.id, load);
-// } else {
-// block(tc.id, load);
-// }
-// }
-// }
 void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
@@ -153,8 +137,9 @@ bool Group::forward(Load load)
   // TODO(PW): make it more intelligent
   if (!next_groups_.empty()) {
     auto is_served = next_groups_.front()->try_serve(load);
-    if (!is_served)
+    if (!is_served) {
       drop(load);
+    }
     return is_served;
   }
   drop(load);
