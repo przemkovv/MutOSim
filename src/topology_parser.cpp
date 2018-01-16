@@ -219,8 +219,22 @@ void to_json(json &j, const Topology &t)
 void from_json(const json &j, Topology &t)
 {
   t.name = j["name"];
+  const json default_tc = [&]() {
+    if (j["traffic_classes"].count("_default") == 1) {
+      return j["traffic_classes"].at("_default");
+    } else {
+      return json{};
+    }
+  }();
+  auto merge = [](const auto &j1, const auto &j2) {
+    json result = j1;
+    result.update(j2);
+    return result;
+  };
   for (const auto &tc_j : json::iterator_wrapper(j["traffic_classes"])) {
-    TrafficClass tc = tc_j.value();
+    if (tc_j.key() == "_default")
+      continue;
+    TrafficClass tc = merge(default_tc, tc_j.value());
     tc.id = TrafficClassId{stoul(tc_j.key())};
     t.traffic_classes.push_back(tc);
   }

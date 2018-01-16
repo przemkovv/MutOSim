@@ -2,7 +2,6 @@
 # Todo
 
 - traffic class priorities
-- max two overflows
 - subgroups
 - Reserved capacity
 - divide simulation into epochs?
@@ -16,6 +15,7 @@
 
 # Done
 
+- max two overflows
 - record load path (by what groups it was served)
 - different intensities per group (intensity_multiplier)
 - scenarios with mutual overflows (3 primary - one secondary)
