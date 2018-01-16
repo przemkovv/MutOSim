@@ -4,10 +4,10 @@
 #include "types.h"
 
 #include <gsl/gsl>
+#include <map>
 #include <memory>
 #include <optional>
 #include <unordered_map>
-#include <map>
 
 struct Group;
 class SourceStream;
@@ -23,12 +23,16 @@ struct Topology {
 
   Group &add_group(std::unique_ptr<Group> group);
   SourceStream &add_source(std::unique_ptr<SourceStream> source_stream);
-  TrafficClass &
-  add_traffic_class(Intensity source_intensity, Intensity serve_intensity, Size size);
+  TrafficClass &add_traffic_class(Intensity source_intensity,
+                                  Intensity serve_intensity,
+                                  Size size,
+                                  Length max_path_length = MaxPathLength);
+
   TrafficClass &add_traffic_class(TrafficClassId id,
                                   Intensity source_intensity,
                                   Intensity serve_intensity,
-                                  Size size);
+                                  Size size,
+                                  Length max_path_length = MaxPathLength);
 
   void connect_groups(const GroupName &from, const GroupName &to);
 

@@ -31,6 +31,9 @@ using Name = name_t;
 using weight_t = uint64_t;
 using ratio_t = long double;
 using Layer = uint64_t;
+using Length = uint64_t;
+
+constexpr auto MaxPathLength = std::numeric_limits<Length>::max();
 
 struct Ratio : ts::strong_typedef<Ratio, ratio_t>,
                ts::strong_typedef_op::equality_comparison<Ratio>,

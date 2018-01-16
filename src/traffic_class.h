@@ -9,6 +9,7 @@ struct TrafficClass {
   Intensity source_intensity;
   Intensity serve_intensity;
   Size size;
+  Length max_path_length;
 };
 
 using TrafficClasses = std::unordered_map<TrafficClassId, TrafficClass>;

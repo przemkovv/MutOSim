@@ -29,20 +29,23 @@ void Topology::attach_source_to_group(const SourceName &source, const GroupName 
 
 TrafficClass &Topology::add_traffic_class(Intensity source_intensity,
                                           Intensity serve_intensity,
-                                          Size size)
+                                          Size size,
+                                          Length max_path_length)
 {
   auto tc_id = TrafficClassId{traffic_classes.size()};
 
-  return add_traffic_class(tc_id, source_intensity, serve_intensity, size);
+  return add_traffic_class(tc_id, source_intensity, serve_intensity, size,
+                           max_path_length);
 }
 
 TrafficClass &Topology::add_traffic_class(TrafficClassId id,
                                           Intensity source_intensity,
                                           Intensity serve_intensity,
-                                          Size size)
+                                          Size size,
+                                          Length max_path_length)
 {
   auto [it, inserted] = traffic_classes.emplace(
-      id, TrafficClass{id, source_intensity, serve_intensity, size});
+      id, TrafficClass{id, source_intensity, serve_intensity, size, max_path_length});
 
   if (!inserted) {
     println("[Topology] Traffic class with id {} already exists.", id);

@@ -106,8 +106,8 @@ namespace Config
 void to_json(json &j, const SourceType &st);
 void from_json(const json &j, SourceType &st);
 
-void to_json(json &j, const TrafficClass &st);
-void from_json(const json &j, TrafficClass &st);
+void to_json(json &j, const TrafficClass &tc);
+void from_json(const json &j, TrafficClass &tc);
 
 void to_json(json &j, const Source &st);
 void from_json(const json &j, Source &st);
@@ -144,15 +144,19 @@ void from_json(const json &j, SourceType &st)
   st = it->second;
 }
 
-void to_json(json &j, const TrafficClass &st)
+void to_json(json &j, const TrafficClass &tc)
 {
-  j = {{"micro", st.serve_intensity}, {"size", st.size}, {"weight", st.weight}};
+  j = {{"micro", tc.serve_intensity},
+       {"size", tc.size},
+       {"weight", tc.weight},
+       {"max_path_length", tc.max_path_length}};
 }
-void from_json(const json &j, TrafficClass &st)
+void from_json(const json &j, TrafficClass &tc)
 {
-  st.serve_intensity = Intensity(j.at("micro"));
-  st.size = Size(j.at("size"));
-  st.weight = Weight(j.at("weight"));
+  tc.serve_intensity = Intensity(j.at("micro"));
+  tc.size = Size(j.at("size"));
+  tc.weight = Weight(j.at("weight"));
+  tc.max_path_length = Length(j.value("max_path_length", MaxPathLength));
 }
 
 void to_json(json &j, const Source &s)

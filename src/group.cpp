@@ -79,7 +79,7 @@ void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
     Path path;
-    if (can_serve_recursive(tc.size, path)) {
+    if (can_serve_recursive(tc, path)) {
       unblock(tc.id, load);
     }
     assert(path.size() == 0);
@@ -89,7 +89,7 @@ void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
     Path path;
-    if (!can_serve_recursive(tc.size, path)) {
+    if (!can_serve_recursive(tc, path)) {
       block(tc.id, load);
     }
     assert(path.size() == 0);
@@ -123,17 +123,21 @@ bool Group::can_serve(const Size &load_size)
   return size_ + load_size <= capacity_;
 }
 
-bool Group::can_serve_recursive(const Size &load_size, Path &path)
+bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 {
-  if (can_serve(load_size)) {
+  if (can_serve(tc.size)) {
     return true;
   }
   path.emplace_back(make_observer(this));
   auto pop_on_exit = gsl::finally([&path]() { path.pop_back(); });
 
+  if (path.size() >= tc.max_path_length) {
+    return false;
+  }
+
   for (const auto &next_group : next_groups_) {
     if (find(begin(path), end(path), next_group) == end(path)) {
-      return next_group->can_serve_recursive(load_size, path);
+      return next_group->can_serve_recursive(tc, path);
     }
   }
   return false;
@@ -141,7 +145,8 @@ bool Group::can_serve_recursive(const Size &load_size, Path &path)
 
 bool Group::forward(Load load)
 {
-  if (load.drop) {
+  // TODO(PW): if the max path has been reached, pass the load to the next layer
+  if (load.drop || load.path.size() >= traffic_classes_->at(load.tc_id).max_path_length) {
     drop(load);
     return false;
   }

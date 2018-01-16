@@ -136,8 +136,9 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
         config.groups.at(group.get_name()).intensity_multiplier;
     Intensity offered_intensity =
         A * intensity_multiplier * group.capacity_ * ratio / cfg_tc.size;
-    auto &tc = topology.add_traffic_class(cfg_tc.id, offered_intensity,
-                                          cfg_tc.serve_intensity, cfg_tc.size);
+    auto &tc =
+        topology.add_traffic_class(cfg_tc.id, offered_intensity, cfg_tc.serve_intensity,
+                                   cfg_tc.size, cfg_tc.max_path_length);
 
     topology.add_source(create_stream(source.type, source, tc));
     topology.attach_source_to_group(source.name, source.attached);

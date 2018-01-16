@@ -27,10 +27,7 @@ struct Group {
 
   observer_ptr<World> world_;
 
-  void set_world(gsl::not_null<World *> world)
-  {
-    world_ = make_observer(world.get());
-  }
+  void set_world(gsl::not_null<World *> world) { world_ = make_observer(world.get()); }
 
   std::vector<observer_ptr<Group>> next_groups_{};
 
@@ -40,7 +37,7 @@ struct Group {
   bool forward(Load load);
 
   bool can_serve(const Size &load_size);
-  bool can_serve_recursive(const Size &load_size, Path& path);
+  bool can_serve_recursive(const TrafficClass &tc, Path &path);
   void block(TrafficClassId tc_id, const Load &load);
   void unblock(TrafficClassId tc_id, const Load &load);
   void update_block_stat(const Load &load);
@@ -48,11 +45,11 @@ struct Group {
 
   Group(GroupName name, Capacity capacity);
 
-  void set_traffic_classes(const TrafficClasses& traffic_classes);
+  void set_traffic_classes(const TrafficClasses &traffic_classes);
 
   bool try_serve(Load load);
   void take_off(const Load &load);
-  void drop(const Load& load);
+  void drop(const Load &load);
 
   void notify_on_service_end(LoadServiceEndEvent *event);
 

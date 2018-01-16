@@ -15,6 +15,7 @@ struct TrafficClass {
   Intensity serve_intensity;
   Size size;
   Weight weight;
+  Length max_path_length;
 };
 
 struct Source {
