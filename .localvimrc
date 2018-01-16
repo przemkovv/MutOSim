@@ -16,7 +16,7 @@ let g:neomake_cpp_clang_args = [
             \ '-I./src','-fopenmp=libomp','-O2','-DNDEBUG', '-fsyntax-only', '-fsanitize=undefined',
             \ '-Werror','-Weffc++','-Weverything','-Wno-c++98-compat','-Wno-padded']
 let g:neomake_cpp_clangtidy_args = ['-p=build/',
-            \ '--checks=*',
+            \ '--checks=*,-fuchsia-default-arguments',
             \ '--header-filter="(?!pprint.hpp|?!json.hpp).*"',
             \ '--export-fixes=.clang-tidy-fixes']
 
