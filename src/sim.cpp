@@ -87,9 +87,9 @@ SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Int
   }
   Weight sum = std::accumulate(
       begin(config.traffic_classes), end(config.traffic_classes), Weight{0},
-      [](const auto x, const auto &tc) { return tc.weight + x; });
+      [](const auto x, const auto &tc) { return tc.second.weight + x; });
 
-  for (const auto &tc : config.traffic_classes) {
+  for (const auto &[tc_id, tc] : config.traffic_classes) {
     const auto ratio = tc.weight / sum;
     Intensity offered_intensity = A * V * ratio / tc.size;
     topology.add_traffic_class(tc.id, offered_intensity, tc.serve_intensity, tc.size);
@@ -112,7 +112,7 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
 
   auto &topology = sim_settings.topology;
   for (const auto &[name, group] : config.groups) {
-    topology.add_group(std::make_unique<Group>(name, group.capacity));
+    topology.add_group(std::make_unique<Group>(name, group.capacity, group.layer));
     V += group.capacity;
   }
   for (const auto &[name, group] : config.groups) {
@@ -124,19 +124,19 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
   std::unordered_map<GroupName, Weight> weights_sum_per_group;
   for (const auto &source : config.sources) {
     weights_sum_per_group[source.attached] +=
-        config.traffic_classes[ts::get(source.tc_id)].weight;
+        config.traffic_classes.at(source.tc_id).weight;
   }
 
   Intensity traffic_intensity{0};
   for (const auto &source : config.sources) {
-    const auto &cfg_tc = config.traffic_classes[ts::get(source.tc_id)];
+    const auto &cfg_tc = config.traffic_classes.at(source.tc_id);
     const auto ratio = cfg_tc.weight / weights_sum_per_group[source.attached];
     const auto &group = topology.get_group(source.attached);
     const auto intensity_multiplier =
         config.groups.at(group.get_name()).intensity_multiplier;
     Intensity offered_intensity =
         A * intensity_multiplier * group.capacity_ * ratio / cfg_tc.size;
-    auto &tc =
+    const auto &tc =
         topology.add_traffic_class(cfg_tc.id, offered_intensity, cfg_tc.serve_intensity,
                                    cfg_tc.size, cfg_tc.max_path_length);
 

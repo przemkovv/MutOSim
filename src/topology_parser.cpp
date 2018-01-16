@@ -107,8 +107,8 @@ void to_json(json &j, const Topology &t)
 {
   j["name"] = t.name;
   json tcs_j = {};
-  for (const auto &tc : t.traffic_classes) {
-    tcs_j[std::to_string(ts::get(tc.id))] = tc;
+  for (const auto &[id, tc] : t.traffic_classes) {
+    tcs_j[std::to_string(ts::get(id))] = tc;
   }
   j["traffic_classes"] = tcs_j;
 
@@ -144,7 +144,7 @@ void from_json(const json &j, Topology &t)
       continue;
     TrafficClass tc = merge(default_tc, tc_j.value());
     tc.id = TrafficClassId{stoul(tc_j.key())};
-    t.traffic_classes.push_back(tc);
+    t.traffic_classes.emplace(tc.id, std::move(tc));
   }
   for (const auto &source_j : json::iterator_wrapper(j["sources"])) {
     Source source = source_j.value();

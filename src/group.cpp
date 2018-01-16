@@ -7,8 +7,11 @@
 #include <cmath>
 #include <gsl/gsl>
 
-Group::Group(GroupName name, Capacity capacity)
-  : name_(std::move(name)), capacity_(capacity)
+Group::Group(GroupName name, Capacity capacity) : Group(name, capacity, 0)
+{
+}
+Group::Group(GroupName name, Capacity capacity, Layer layer)
+  : name_(std::move(name)), capacity_(capacity), layer_(layer)
 {
 }
 
@@ -78,21 +81,21 @@ void Group::drop(const Load &load)
 void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    Path path;
+    Path path; // = load.path; // NOTE(PW): should be considered length of the current load path?
     if (can_serve_recursive(tc, path)) {
       unblock(tc.id, load);
     }
-    assert(path.size() == 0);
+    assert(path.size() == 0 /*load.path.size() */);
   }
 }
 void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    Path path;
+    Path path; // = load.path; // NOTE(PW): should be considered length of the current load path?
     if (!can_serve_recursive(tc, path)) {
       block(tc.id, load);
     }
-    assert(path.size() == 0);
+    assert(path.size() == 0 /*load.path.size() */);
   }
 }
 void Group::block(TrafficClassId tc_id, const Load &load)
@@ -108,8 +111,7 @@ void Group::unblock(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = blocked_by_tc[tc_id];
   if (block_stats.try_unblock(load.end_time)) {
-    debug_print("{} Load: {}, Unblocking bt={}\n", *this, load,
-                block_stats.block_time);
+    debug_print("{} Load: {}, Unblocking bt={}\n", *this, load, block_stats.block_time);
   }
 }
 
@@ -181,6 +183,6 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const Group &group)
 
 {
-  f.writer().write("t={} [Group {}, cap={}/{}]", group.world_->get_current_time(),
-                   group.name_, group.size_, group.capacity_);
+  f.writer().write("t={} [Group {} V={}/{}, L{}]", group.world_->get_current_time(),
+                   group.name_, group.size_, group.capacity_, group.layer_);
 }

@@ -132,6 +132,10 @@ struct Duration : ts::strong_typedef<Duration, duration_t>,
   {
     return ts::get(*this) / ts::get(duration);
   }
+  constexpr auto operator*(const Size &size) const
+  {
+    return Duration{ts::get(*this) / ts::get(size)};
+  }
 };
 
 struct Time : ts::strong_typedef<Time, time_type>,

@@ -18,6 +18,7 @@ struct Group {
   const GroupName name_;
   Capacity capacity_;
   Size size_;
+  Layer layer_;
 
   std::unordered_map<TrafficClassId, LostServedStats> served_by_tc;
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
@@ -43,6 +44,7 @@ struct Group {
   void update_block_stat(const Load &load);
   void update_unblock_stat(const Load &load);
 
+  Group(GroupName name, Capacity capacity, Layer layer);
   Group(GroupName name, Capacity capacity);
 
   void set_traffic_classes(const TrafficClasses &traffic_classes);

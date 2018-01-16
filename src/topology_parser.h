@@ -36,7 +36,7 @@ struct Group {
 
 struct Topology {
   std::string name;
-  std::vector<TrafficClass> traffic_classes;
+  std::unordered_map<TrafficClassId, TrafficClass> traffic_classes;
   std::vector<Source> sources;
   std::unordered_map<GroupName, Group> groups;
 };
