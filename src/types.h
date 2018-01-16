@@ -81,6 +81,10 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   {
     return Intensity(ts::get(*this) / ts::get(size));
   }
+  constexpr auto operator*(const Intensity &intensity) const
+  {
+    return Intensity(ts::get(*this) * ts::get(intensity));
+  }
   constexpr auto operator*(const Capacity &capacity) const
   {
     return Intensity(ts::get(*this) * ts::get(capacity));

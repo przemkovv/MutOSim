@@ -57,7 +57,7 @@ struct Group {
   void notify_on_service_end(LoadServiceEndEvent *event);
 
   Stats get_stats();
-  const GroupName &get_name() { return name_; }
+  const GroupName &get_name() const { return name_; }
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

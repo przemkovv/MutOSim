@@ -178,12 +178,16 @@ void from_json(const json &j, Source &s)
 
 void to_json(json &j, const Group &g)
 {
-  j = {{"capacity", g.capacity}, {"connected", g.connected}, {"layer", g.layer}};
+  j = {{"capacity", g.capacity},
+       {"connected", g.connected},
+       {"layer", g.layer},
+       {"intensity_multiplier", g.intensity_multiplier}};
 }
 void from_json(const json &j, Group &g)
 {
   g.capacity = j.at("capacity");
   g.layer = j.at("layer");
+  g.intensity_multiplier = j.value("intensity_multiplier", Intensity{1.0L});
   g.connected = j.value("connected", std::vector<GroupName>{});
 }
 
@@ -203,8 +207,8 @@ void to_json(json &j, const Topology &t)
   j["sources"] = sources_j;
 
   json groups_j;
-  for (const auto &group : t.groups) {
-    groups_j[ts::get(group.name)] = group;
+  for (const auto &[name, group] : t.groups) {
+    groups_j[ts::get(name)] = group;
   }
   j["groups"] = groups_j;
 }
@@ -224,7 +228,7 @@ void from_json(const json &j, Topology &t)
   for (const auto &group_j : json::iterator_wrapper(j["groups"])) {
     Group group = group_j.value();
     group.name = GroupName{group_j.key()};
-    t.groups.push_back(group);
+    t.groups.emplace(group.name, group);
   }
 }
 

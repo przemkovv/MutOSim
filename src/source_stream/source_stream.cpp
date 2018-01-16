@@ -10,12 +10,15 @@ SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc)
 Load SourceStream::create_load(Time time, Size size)
 {
   loads_produced_++;
-  return {.id = LoadId{world_->get_uuid()},
-          .tc_id = tc_.id,
-          .send_time = time,
-          .size = size,
-          .produced_by = make_observer(this),
-          .target_group = target_group_};
+
+  Load load;
+  load.id = LoadId{world_->get_uuid()};
+  load.tc_id = tc_.id;
+  load.send_time = time;
+  load.size = size;
+  load.produced_by = make_observer(this);
+  load.target_group = target_group_;
+  return load;
 }
 
 void SourceStream::notify_on_produce(const ProduceServiceRequestEvent * /* event */)

@@ -76,13 +76,13 @@ SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Int
   Capacity V{0};
 
   auto &topology = sim_settings.topology;
-  for (const auto &group : config.groups) {
-    topology.add_group(std::make_unique<Group>(group.name, group.capacity));
+  for (const auto &[name, group] : config.groups) {
+    topology.add_group(std::make_unique<Group>(name, group.capacity));
     V += group.capacity;
   }
-  for (const auto &group : config.groups) {
+  for (const auto &[name, group] : config.groups) {
     for (const auto &connected_group : group.connected) {
-      topology.connect_groups(group.name, connected_group);
+      topology.connect_groups(name, connected_group);
     }
   }
   Weight sum = std::accumulate(
@@ -111,13 +111,13 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
   Capacity V{0};
 
   auto &topology = sim_settings.topology;
-  for (const auto &group : config.groups) {
-    topology.add_group(std::make_unique<Group>(group.name, group.capacity));
+  for (const auto &[name, group] : config.groups) {
+    topology.add_group(std::make_unique<Group>(name, group.capacity));
     V += group.capacity;
   }
-  for (const auto &group : config.groups) {
+  for (const auto &[name, group] : config.groups) {
     for (const auto &connected_group : group.connected) {
-      topology.connect_groups(group.name, connected_group);
+      topology.connect_groups(name, connected_group);
     }
   }
 
@@ -132,7 +132,10 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
     const auto &cfg_tc = config.traffic_classes[ts::get(source.tc_id)];
     const auto ratio = cfg_tc.weight / weights_sum_per_group[source.attached];
     const auto &group = topology.get_group(source.attached);
-    Intensity offered_intensity = A * group.capacity_ * ratio / cfg_tc.size;
+    const auto intensity_multiplier =
+        config.groups.at(group.get_name()).intensity_multiplier;
+    Intensity offered_intensity =
+        A * intensity_multiplier * group.capacity_ * ratio / cfg_tc.size;
     auto &tc = topology.add_traffic_class(cfg_tc.id, offered_intensity,
                                           cfg_tc.serve_intensity, cfg_tc.size);
 

@@ -149,6 +149,7 @@ void World::schedule(std::unique_ptr<Event> event)
 
 void World::update_block_stat(const Load &load)
 {
+  // TODO(PW): think how to measure global block
   for (const auto &[tc_id, tc] : topology_->traffic_classes) {
     if (std::any_of(
             begin(topology_->groups), end(topology_->groups),

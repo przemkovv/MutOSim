@@ -1,10 +1,8 @@
 
 # Todo
 
-- scenarios with mutual overflows (3 primary - one secondary)
 - traffic class priorities
 - max two overflows
-- different intensities per group
 - subgroups
 - Reserved capacity
 - divide simulation into epochs?
@@ -18,6 +16,9 @@
 
 # Done
 
+- record load path (by what groups it was served)
+- different intensities per group (intensity_multiplier)
+- scenarios with mutual overflows (3 primary - one secondary)
 - verify Pascal stream correctness
 - Big decimal - using GMP, MPFR libraries
 - Block time per traffic class
@@ -27,7 +28,6 @@
 
 # Ideas
 
-- record load path (by what groups it was served)
 - support for multiple next groups - yes
 - filter groups by traffic class - yes
 - graphviz to display topology

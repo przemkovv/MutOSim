@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include <string_view>
+#include <unordered_map>
 
 namespace Config
 {
@@ -28,6 +29,7 @@ struct Group {
   GroupName name;
   Capacity capacity;
   Layer layer;
+  Intensity intensity_multiplier;
   std::vector<GroupName> connected;
 };
 
@@ -35,7 +37,7 @@ struct Topology {
   std::string name;
   std::vector<TrafficClass> traffic_classes;
   std::vector<Source> sources;
-  std::vector<Group> groups;
+  std::unordered_map<GroupName, Group> groups;
 };
 
 Topology parse_topology_config(std::string_view filename);

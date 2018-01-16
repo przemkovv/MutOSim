@@ -44,6 +44,9 @@ TrafficClass &Topology::add_traffic_class(TrafficClassId id,
   auto [it, inserted] = traffic_classes.emplace(
       id, TrafficClass{id, source_intensity, serve_intensity, size});
 
+  if (!inserted) {
+    println("[Topology] Traffic class with id {} already exists.", id);
+  }
   return it->second;
 }
 
@@ -72,8 +75,8 @@ std::optional<SourceId> Topology::get_source_id(const SourceName &name)
   auto it = sources.find(name);
   if (it != sources.end()) {
     return it->second->id;
-  } 
-    return {};
+  }
+  return {};
 }
 
 const TrafficClass &Topology::get_traffic_class(TrafficClassId id)

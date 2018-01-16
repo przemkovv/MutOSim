@@ -4,6 +4,14 @@
 #include <fmt/format.h>
 
 template <typename... Args>
+void debug_println(Args &&... args)
+{
+  if constexpr (Config::debug_logger_enabled) {
+    fmt::print(std::forward<Args>(args)...);
+    fmt::print("\n");
+  }
+}
+template <typename... Args>
 void debug_print(Args &&... args)
 {
   if constexpr (Config::debug_logger_enabled) {
@@ -15,5 +23,13 @@ void print(Args &&... args)
 {
   if constexpr (Config::logger_enabled) {
     fmt::print(std::forward<Args>(args)...);
+  }
+}
+template <typename... Args>
+void println(Args &&... args)
+{
+  if constexpr (Config::logger_enabled) {
+    fmt::print(std::forward<Args>(args)...);
+    fmt::print("\n");
   }
 }
