@@ -243,4 +243,13 @@ struct hash<SourceId> {
     return std::hash<T>()(static_cast<T>(i));
   }
 };
+/// Hash specialization for [Size].
+template <>
+struct hash<Size> {
+  std::size_t operator()(const Size &i) const noexcept
+  {
+    using T = ts::underlying_type<Size>;
+    return std::hash<T>()(static_cast<T>(i));
+  }
+};
 } // namespace std

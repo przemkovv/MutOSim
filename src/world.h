@@ -37,6 +37,7 @@ class World
 
   observer_ptr<Topology> topology_;
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
+  std::unordered_map<Size, BlockStats> blocked_by_size;
 
   void process_event();
 
@@ -61,9 +62,8 @@ public:
   void print_stats();
   nlohmann::json get_stats();
 
-  void block(TrafficClassId tc_id, const Load &load);
-  void unblock(TrafficClassId tc_id, const Load &load);
   void update_block_stat(const Load &load);
+  void update_unblock_stat(const Load &load);
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

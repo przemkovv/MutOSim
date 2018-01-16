@@ -3,6 +3,8 @@
 #include "math.h"
 #include <fmt/ostream.h>
 
+//----------------------------------------------------------------------
+
 LoadStats operator+(const LoadStats &s1, const LoadStats &s2)
 {
   return {s1.count + s2.count, s1.size + s2.size};
@@ -26,6 +28,9 @@ LostServedStats &operator+=(LostServedStats &s1, const LostServedStats &s2)
   s1.served += s2.served;
   return s1;
 }
+
+//----------------------------------------------------------------------
+
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,
                 const LoadStats &load_stats)
@@ -58,8 +63,8 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const TrafficClassStats &stats)
 {
   auto p_block = stats.block_time / stats.simulation_time;
-  f.writer().write("{}, P_block = {:<10} ({:<10})", stats.lost_served_stats,
-                   p_block, std::log10(p_block));
+  f.writer().write("{}, P_block = {:<10} ({:<10})", stats.lost_served_stats, p_block,
+                   std::log10(p_block));
 }
 
 void format_arg(fmt::BasicFormatter<char> &f,
@@ -88,4 +93,26 @@ void format_arg(fmt::BasicFormatter<char> &f,
   for (auto &[tc_id, stats] : served_by_traffic_class) {
     f.writer().write("source_id={}: {}", tc_id, stats);
   }
+}
+
+//----------------------------------------------------------------------
+
+bool BlockStats::try_block(const Time &time)
+{
+  if (!is_blocked) {
+    is_blocked = true;
+    start_of_block = time;
+    return true;
+  }
+  return false;
+}
+
+bool BlockStats::try_unblock(const Time &time)
+{
+  if (is_blocked) {
+    is_blocked = false;
+    block_time += time - start_of_block;
+    return true;
+  }
+  return false;
 }

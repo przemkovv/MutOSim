@@ -1,6 +1,7 @@
 
 # Todo
 
+- meta traffic class (for blocking time stats only)
 - traffic class priorities
 - subgroups
 - Reserved capacity

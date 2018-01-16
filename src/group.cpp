@@ -62,7 +62,7 @@ void Group::take_off(const Load &load)
   debug_print("{} Request has been served: {}\n", *this, load);
   size_ -= load.size;
   update_unblock_stat(load);
-  world_->update_block_stat(load);
+  world_->update_unblock_stat(load);
   auto &served = served_by_tc[load.tc_id].served;
   served.size += load.size;
   served.count++;
@@ -98,9 +98,7 @@ void Group::update_block_stat(const Load &load)
 void Group::block(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = blocked_by_tc[tc_id];
-  if (!block_stats.is_blocked) {
-    block_stats.is_blocked = true;
-    block_stats.start_of_block = load.send_time;
+  if (block_stats.try_block(load.send_time)) {
     debug_print("{} Load: {}, Blocking bt={}, sobt={}\n", *this, load,
                 block_stats.block_time, block_stats.start_of_block);
   }
@@ -109,12 +107,9 @@ void Group::block(TrafficClassId tc_id, const Load &load)
 void Group::unblock(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = blocked_by_tc[tc_id];
-  if (block_stats.is_blocked) {
-    block_stats.is_blocked = false;
-    auto block_time = load.end_time - block_stats.start_of_block;
-    block_stats.block_time += block_time;
-    debug_print("{} Load: {}, Unblocking bt={}, dt={}\n", *this, load,
-                block_stats.block_time, block_time);
+  if (block_stats.try_unblock(load.end_time)) {
+    debug_print("{} Load: {}, Unblocking bt={}\n", *this, load,
+                block_stats.block_time);
   }
 }
 

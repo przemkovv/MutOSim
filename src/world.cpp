@@ -17,6 +17,9 @@ void World::init()
   for (auto &[name, source] : topology_->sources) {
     source->init();
   }
+  for (const auto &[id, tc] : topology_->traffic_classes) {
+    blocked_by_size.emplace(tc.size, BlockStats{});
+  }
 }
 
 bool World::next_iteration()
@@ -112,10 +115,14 @@ void World::print_stats()
   }
   for (auto &[tc_id, tc] : topology_->traffic_classes) {
     auto p_block = blocked_by_tc[tc.id].block_time / Duration{ts::get(current_time_)};
-    print("{} {}: P_block {:<12} ({:<12})\n", *this, tc,
-          p_block, std::log10(p_block));
+    print("{} {}: P_block {:<12} ({:<12})\n", *this, tc, p_block, std::log10(p_block));
   }
 
+  for (auto &[size, stats] : blocked_by_size) {
+    auto p_block = stats.block_time / Duration{ts::get(current_time_)};
+    print("{} Size: {}: P_block {:<12} ({:<12})\n", *this, size, p_block,
+          std::log10(p_block));
+  }
   for (auto &[source_id, source] : topology_->sources) {
     source->print_stats();
   }
@@ -149,33 +156,38 @@ void World::schedule(std::unique_ptr<Event> event)
 
 void World::update_block_stat(const Load &load)
 {
+  auto can_serve = [](Size size) {
+    return [size](const auto &group) { return group.second->can_serve(size); };
+  };
   // TODO(PW): think how to measure global block
   for (const auto &[tc_id, tc] : topology_->traffic_classes) {
-    if (std::any_of(
-            begin(topology_->groups), end(topology_->groups),
-            [size=tc.size](const auto &group) { return group.second->can_serve(size); })) {
-      unblock(tc.id, load);
-    } else {
-      block(tc.id, load);
+    if (std::none_of(begin(topology_->groups), end(topology_->groups),
+                     can_serve(tc.size))) {
+      blocked_by_tc[tc_id].try_block(load.send_time);
+    }
+  }
+  for (auto &[size, stats] : blocked_by_size) {
+    if (std::none_of(begin(topology_->groups), end(topology_->groups), can_serve(size))) {
+      stats.try_block(load.send_time);
     }
   }
 }
-void World::block(TrafficClassId tc_id, const Load &load)
+void World::update_unblock_stat(const Load &load)
 {
-  auto &block_stats = blocked_by_tc[tc_id];
-  if (!block_stats.is_blocked) {
-    block_stats.is_blocked = true;
-    block_stats.start_of_block = load.send_time;
+  auto can_serve = [](Size size) {
+    return [size](const auto &group) { return group.second->can_serve(size); };
+  };
+  // TODO(PW): think how to measure global block
+  for (const auto &[tc_id, tc] : topology_->traffic_classes) {
+    if (std::any_of(begin(topology_->groups), end(topology_->groups),
+                    can_serve(tc.size))) {
+      blocked_by_tc[tc_id].try_unblock(load.end_time);
+    }
   }
-}
-
-void World::unblock(TrafficClassId tc_id, const Load &load)
-{
-  auto &block_stats = blocked_by_tc[tc_id];
-  if (block_stats.is_blocked) {
-    block_stats.is_blocked = false;
-    auto block_time = load.end_time - block_stats.start_of_block;
-    block_stats.block_time += block_time;
+  for (auto &[size, stats] : blocked_by_size) {
+    if (std::any_of(begin(topology_->groups), end(topology_->groups), can_serve(size))) {
+      stats.try_unblock(load.end_time);
+    }
   }
 }
 
