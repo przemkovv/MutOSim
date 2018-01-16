@@ -35,15 +35,6 @@
 
 # Pytania
 
-- jak działa strata przy przelewie. Kto powinien notować stratę pierwotny czy wtórny zasób?
- - jak traktować intensywność lambda/gamma, głównie chodzi o wzory
- - Topologia single_overflow_multiple_poissonX.json. Który poprawny czas
-   blokady
-
-$ Statystyki:
-
-- Group { TC { serve,loss, serve_u,loss_u, P_loss, P_loss_u, block_time,
-  duration, P_block} }
 
 # Słownik
 

@@ -1,105 +1,13 @@
 
 #include "logger.h"
 #include "topology_parser.h"
+#include "types_parser.h"
 
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
 using nlohmann::json;
-
-void to_json(json &j, const Weight &s);
-void from_json(const json &j, Weight &s);
-
-void to_json(json &j, const Capacity &s);
-void from_json(const json &j, Capacity &s);
-
-void to_json(json &j, const Intensity &s);
-void from_json(const json &j, Intensity &s);
-
-void to_json(json &j, const TrafficClassId &s);
-void from_json(const json &j, TrafficClassId &s);
-
-void to_json(json &j, const Count &s);
-void from_json(const json &j, Count &s);
-
-void to_json(json &j, const Size &s);
-void from_json(const json &j, Size &s);
-
-void to_json(json &j, const GroupName &gn);
-void from_json(const json &j, GroupName &gn);
-
-void to_json(json &j, const SourceName &gn);
-void from_json(const json &j, SourceName &gn);
-
-void to_json(json &j, const TrafficClassId &s)
-{
-  j = ts::get(s);
-}
-void from_json(const json &j, TrafficClassId &s)
-{
-  s = TrafficClassId(j.get<ts::underlying_type<TrafficClassId>>());
-}
-
-void to_json(json &j, const Count &s)
-{
-  j = ts::get(s);
-}
-void from_json(const json &j, Count &s)
-{
-  s = Count(j.get<ts::underlying_type<Count>>());
-}
-void to_json(json &j, const Weight &s)
-{
-  j = ts::get(s);
-}
-void from_json(const json &j, Weight &s)
-{
-  s = Weight(j.get<ts::underlying_type<Weight>>());
-}
-void to_json(json &j, const Capacity &s)
-{
-  j = ts::get(s);
-}
-void from_json(const json &j, Capacity &s)
-{
-  s = Capacity(j.get<ts::underlying_type<Capacity>>());
-}
-void to_json(json &j, const Intensity &s)
-{
-  j = ts::get(s);
-}
-void from_json(const json &j, Intensity &s)
-{
-  s = Intensity(j.get<ts::underlying_type<Intensity>>());
-}
-
-void to_json(json &j, const Size &s)
-{
-  j = ts::get(s);
-}
-void from_json(const json &j, Size &s)
-{
-  s = Size(j.get<ts::underlying_type<Size>>());
-}
-
-void to_json(json &j, const SourceName &gn)
-{
-  j = ts::get(gn);
-}
-void from_json(const json &j, SourceName &gn)
-{
-  gn = SourceName(j.get<ts::underlying_type<SourceName>>());
-}
-
-void to_json(json &j, const GroupName &gn)
-{
-  j = ts::get(gn);
-}
-void from_json(const json &j, GroupName &gn)
-{
-  gn = GroupName(j.get<ts::underlying_type<GroupName>>());
-}
 
 namespace Config
 {
