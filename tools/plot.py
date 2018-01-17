@@ -4,7 +4,9 @@ import json
 from pprint import pprint
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
 import itertools
+
 
 def load_traffic_classes_sizes(scenario_file):
     scenario = json.load(open(scenario_file))
@@ -14,7 +16,7 @@ def load_traffic_classes_sizes(scenario_file):
             continue
         tc_sizes[int(tc_id)] = tc_data["size"]
 
-    return tc_sizes
+    return (tc_sizes, scenario)
 
 
 def main(argv):
@@ -23,7 +25,7 @@ def main(argv):
 
     plot_id = 1
     for scenario_file, scenario_results in data.items():
-        tc_sizes = load_traffic_classes_sizes(scenario_file)
+        tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
         print(scenario_file)
         tc_data_x = []
         tc_data_y = {}
@@ -48,11 +50,14 @@ def main(argv):
                 ax.scatter(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
                         marker=next(markerscycle))
 
-            ax.grid()
+            minorLocator = AutoMinorLocator()
+            ax.grid(axis='both', which='major', linestyle='-')
+            ax.grid(axis='x', which='minor', linestyle='--')
             ax.set_yscale("log")
+            ax.xaxis.set_minor_locator(minorLocator)
             #  ax.set_ylim( ymax=1)
-            ax.set_ylim(ymin=1e-4, ymax=1)
-            ax.set_title("{} {}".format(group_name, scenario_file))
+            ax.set_ylim( bottom=1e-6, top=1, auto=True, emit=True)
+            ax.set_title("{} {}".format(group_name, scenario["name"]))
             ax.set_ylabel("P_block")
             ax.set_xlabel("a")
             plot_id = plot_id +1
