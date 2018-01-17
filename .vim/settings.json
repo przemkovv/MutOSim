@@ -1,5 +1,7 @@
 {
-        "initializationOptions": {
-                "cacheDirectory": "/tmp/cquery"
-        }
+  "initializationOptions": {
+    "cacheDirectory": "/tmp/cquery",
+    "enableComments": 2,
+    "cacheFormat": "json"
+  }
 }
