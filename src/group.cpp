@@ -81,7 +81,8 @@ void Group::drop(const Load &load)
 void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    Path path; // = load.path; // NOTE(PW): should be considered length of the current load path?
+    Path path; // = load.path; // NOTE(PW): should be considered length of the current
+               // load path?
     if (can_serve_recursive(tc, path)) {
       unblock(tc.id, load);
     }
@@ -91,7 +92,8 @@ void Group::update_unblock_stat(const Load &load)
 void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
-    Path path; // = load.path; // NOTE(PW): should be considered length of the current load path?
+    Path path; // = load.path; // NOTE(PW): should be considered length of the current
+               // load path?
     if (!can_serve_recursive(tc, path)) {
       block(tc.id, load);
     }
@@ -147,15 +149,12 @@ bool Group::forward(Load load)
     drop(load);
     return false;
   }
-  // TODO(PW): make it more intelligent
-  for (const auto &next_group : next_groups_) {
-    if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
-      auto is_served = next_group->try_serve(load);
-      if (!is_served) {
-        drop(load);
-      }
-      return is_served;
+  if (auto next_group = overflow_policy_.find_next_group(load); next_group) {
+    auto is_served = (*next_group)->try_serve(load);
+    if (!is_served) { // migrated load is considered as dropped by the local group
+      drop(load);
     }
+    return is_served;
   }
   drop(load);
   return false;

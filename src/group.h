@@ -5,6 +5,7 @@
 #include "traffic_class.h"
 #include "types.h"
 #include "world.h"
+#include "overflow_policy.h"
 
 #include <experimental/memory>
 #include <gsl/gsl>
@@ -19,6 +20,9 @@ struct Group {
   Capacity capacity_;
   Size size_;
   Layer layer_;
+
+  overflow_policy::OverflowPolicy overflow_policy_{this};
+
 
   std::unordered_map<TrafficClassId, LostServedStats> served_by_tc;
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
