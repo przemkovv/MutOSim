@@ -11,11 +11,11 @@
 - adaptive traffic
 - verify global block time
 - implement analytical model Fredericks-Hayward
-- plotting
-- statistics: export to CSV
 
 # Done
 
+- statistics: export to json
+- plotting
 - max two overflows
 - record load path (by what groups it was served)
 - different intensities per group (intensity_multiplier)
