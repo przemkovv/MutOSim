@@ -22,7 +22,7 @@ def load_traffic_classes_sizes(scenario_file):
 def main(argv):
     print(argv[0])
     data = json.load(open(argv[0]))
-
+    fig = plt.figure(figsize=(32, 18),tight_layout=True)
     plot_id = 1
     for scenario_file, scenario_results in data.items():
         tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
@@ -39,24 +39,26 @@ def main(argv):
                 for tc_id, tc_stats in tcs_stats.items():
                     if not int(tc_id) in tc_data_y[group_name].keys():
                         tc_data_y[group_name][int(tc_id)] = []
-                    tc_data_y[group_name][int(tc_id)].append( tc_stats["P_block"])
+                    tc_data_y[group_name][int(tc_id)].append(tc_stats["P_block"])
 
         for group_name, group_data_y in tc_data_y.items():
             markers = ['+', 'x', 's']
             #  markers = ['+', 'x', 'D', '*', 'd', 's']
             markerscycle = itertools.cycle(markers)
-            ax = plt.subplot(3, 3, plot_id)
+            ax = fig.add_subplot(3, 3, plot_id)
             for tc_id, data_y in group_data_y.items():
                 ax.scatter(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
                         marker=next(markerscycle))
 
-            minorLocator = AutoMinorLocator()
+                minorLocator = AutoMinorLocator()
             ax.grid(axis='both', which='major', linestyle='-')
             ax.grid(axis='x', which='minor', linestyle='--')
-            ax.set_yscale("log")
+            #  ax.set_yscale("log")
             ax.xaxis.set_minor_locator(minorLocator)
             #  ax.set_ylim( ymax=1)
-            ax.set_ylim( bottom=1e-6, top=1, auto=True, emit=True)
+            ax.set_ylim( bottom=0, top=14e5, auto=True, emit=True)
+            #  ax.set_ylim( bottom=1e-6, top=1, auto=True, emit=True)
+            #  ax.set_ylim( bottom=1, top=1e5, auto=True, emit=True)
             ax.set_title("{} {}".format(group_name, scenario["name"]))
             ax.set_ylabel("P_block")
             ax.set_xlabel("a")
@@ -64,6 +66,7 @@ def main(argv):
             #  plt.boxplot(x=tc_data_x, y=data_y)
             ax.legend()
 
+    plt.savefig("test.pdf")
     plt.show()
 
 
