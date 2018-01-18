@@ -28,5 +28,13 @@ public:
   AlwaysFirst(gsl::not_null<Group *> group) : OverflowPolicy(group) {}
   std::optional<observer_ptr<Group>> find_next_group(const Load &load) override;
 };
+class FirstAvailable : OverflowPolicy
+{
+  observer_ptr<Group> group_;
+
+public:
+  FirstAvailable(gsl::not_null<Group *> group) : OverflowPolicy(group) {}
+  std::optional<observer_ptr<Group>> find_next_group(const Load &load) override;
+};
 
 } // namespace overflow_policy
