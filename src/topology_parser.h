@@ -31,6 +31,7 @@ struct Group {
   Capacity capacity;
   Layer layer;
   Intensity intensity_multiplier;
+  OverflowPolicyName overflow_policy;
   std::vector<GroupName> connected;
 };
 

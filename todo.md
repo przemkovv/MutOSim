@@ -11,6 +11,8 @@
 - adaptive traffic
 - verify global block time
 - implement analytical model Fredericks-Hayward
+- distribution of used channels in group
+- forwarding stats
 
 # Done
 
@@ -33,6 +35,8 @@
 - filter groups by traffic class - yes
 - graphviz to display topology
 
+
+- dociążanie 
 
 # Pytania
 

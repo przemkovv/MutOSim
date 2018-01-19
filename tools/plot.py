@@ -39,7 +39,7 @@ def main(argv):
                 for tc_id, tc_stats in tcs_stats.items():
                     if not int(tc_id) in tc_data_y[group_name].keys():
                         tc_data_y[group_name][int(tc_id)] = []
-                    tc_data_y[group_name][int(tc_id)].append(tc_stats["P_block"])
+                    tc_data_y[group_name][int(tc_id)].append(tc_stats["served"])
 
         for group_name, group_data_y in tc_data_y.items():
             markers = ['+', 'x', 's']

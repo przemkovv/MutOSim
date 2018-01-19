@@ -32,6 +32,7 @@ using weight_t = uint64_t;
 using ratio_t = long double;
 using Layer = uint64_t;
 using Length = uint64_t;
+using OverflowPolicyName = std::string;
 
 constexpr auto MaxPathLength = std::numeric_limits<Length>::max();
 
