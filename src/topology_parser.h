@@ -31,7 +31,7 @@ struct Group {
   Capacity capacity;
   Layer layer;
   Intensity intensity_multiplier;
-  OverflowPolicyName overflow_policy;
+  std::optional<OverflowPolicyName> overflow_policy;
   std::vector<GroupName> connected;
 };
 
@@ -43,6 +43,6 @@ struct Topology {
 };
 
 Topology parse_topology_config(std::string_view filename);
-void dump(const Topology& topology);
+void dump(const Topology &topology);
 
 } // namespace Config

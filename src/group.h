@@ -1,11 +1,11 @@
 #pragma once
 
 #include "load.h"
+#include "overflow_policy.h"
 #include "stats.h"
 #include "traffic_class.h"
 #include "types.h"
 #include "world.h"
-#include "overflow_policy.h"
 
 #include <experimental/memory>
 #include <gsl/gsl>
@@ -21,8 +21,8 @@ struct Group {
   Size size_;
   Layer layer_;
 
-  overflow_policy::OverflowPolicy overflow_policy_{this};
-
+  std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_ =
+      std::make_unique<overflow_policy::AlwaysFirst>(this);
 
   std::unordered_map<TrafficClassId, LostServedStats> served_by_tc;
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
@@ -52,6 +52,7 @@ struct Group {
   Group(GroupName name, Capacity capacity);
 
   void set_traffic_classes(const TrafficClasses &traffic_classes);
+  void set_overflow_policy(std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy);
 
   bool try_serve(Load load);
   void take_off(const Load &load);

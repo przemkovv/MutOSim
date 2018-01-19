@@ -36,6 +36,12 @@ void Group::set_traffic_classes(const TrafficClasses &traffic_classes)
   traffic_classes_ = make_observer(&traffic_classes);
 }
 
+void Group::set_overflow_policy(
+    std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy)
+{
+  overflow_policy_ = std::move(overflow_policy);
+}
+
 void Group::notify_on_service_end(LoadServiceEndEvent *event)
 {
   take_off(event->load);
@@ -149,7 +155,7 @@ bool Group::forward(Load load)
     drop(load);
     return false;
   }
-  if (auto next_group = overflow_policy_.find_next_group(load); next_group) {
+  if (auto next_group = overflow_policy_->find_next_group(load); next_group) {
     auto is_served = (*next_group)->try_serve(load);
     if (!is_served) { // migrated load is considered as dropped by the local group
       drop(load);

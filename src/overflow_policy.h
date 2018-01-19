@@ -11,6 +11,7 @@ namespace overflow_policy
 {
 class OverflowPolicy
 {
+protected:
   observer_ptr<Group> group_;
 
 public:
@@ -20,17 +21,23 @@ public:
   virtual ~OverflowPolicy() = default;
 };
 
-class AlwaysFirst : OverflowPolicy
+class NoOverflow : public OverflowPolicy
 {
-  observer_ptr<Group> group_;
+
+public:
+  NoOverflow(gsl::not_null<Group *> group) : OverflowPolicy(group) {}
+  std::optional<observer_ptr<Group>> find_next_group(const Load &load) override;
+};
+
+class AlwaysFirst : public OverflowPolicy
+{
 
 public:
   AlwaysFirst(gsl::not_null<Group *> group) : OverflowPolicy(group) {}
   std::optional<observer_ptr<Group>> find_next_group(const Load &load) override;
 };
-class FirstAvailable : OverflowPolicy
+class FirstAvailable : public OverflowPolicy
 {
-  observer_ptr<Group> group_;
 
 public:
   FirstAvailable(gsl::not_null<Group *> group) : OverflowPolicy(group) {}

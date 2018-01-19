@@ -11,6 +11,10 @@ OverflowPolicy::OverflowPolicy(gsl::not_null<Group *> group)
 {
 }
 
+std::optional<observer_ptr<Group>> NoOverflow::find_next_group(const Load &/* load */) {
+  return {};
+}
+
 std::optional<observer_ptr<Group>> FirstAvailable::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {
@@ -33,6 +37,7 @@ std::optional<observer_ptr<Group>> AlwaysFirst::find_next_group(const Load &load
   }
   return {};
 }
+
 std::optional<observer_ptr<Group>> OverflowPolicy::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {

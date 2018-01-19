@@ -9,6 +9,25 @@
 
 using nlohmann::json;
 
+template <typename T>
+void to_json(json &j, const std::optional<T> &opt)
+{
+  if (opt) {
+    j = *opt;
+  } else {
+    j = nullptr;
+  }
+}
+template <typename T>
+void from_json(const json &j, std::optional<T> &opt)
+{
+  if (j.is_null()) {
+    opt = std::nullopt;
+  } else {
+    opt = j.get<T>();
+  }
+}
+
 namespace Config
 {
 void to_json(json &j, const SourceType &st);
@@ -94,6 +113,7 @@ void to_json(json &j, const Group &g)
        {"connected", g.connected},
        {"layer", g.layer},
        {"intensity_multiplier", g.intensity_multiplier}};
+       // {"overflow_policy", g.overflow_policy}};
 }
 void from_json(const json &j, Group &g)
 {
@@ -101,6 +121,7 @@ void from_json(const json &j, Group &g)
   g.layer = j.at("layer");
   g.intensity_multiplier = j.value("intensity_multiplier", Intensity{1.0L});
   g.connected = j.value("connected", std::vector<GroupName>{});
+  // g.overflow_policy = j.at("overflow_policy");
 }
 
 void to_json(json &j, const Topology &t)
