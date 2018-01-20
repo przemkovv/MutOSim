@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <vector>
 
+using overflow_policy::OverflowPolicy;
+
 struct Group {
   GroupId id;
   const GroupName name_;
@@ -32,7 +34,11 @@ struct Group {
 
   observer_ptr<World> world_;
 
-  void set_world(gsl::not_null<World *> world) { world_ = make_observer(world.get()); }
+  void set_world(gsl::not_null<World *> world)
+  {
+    world_ = make_observer(world.get());
+    overflow_policy_->set_world(world);
+  }
 
   std::vector<observer_ptr<Group>> next_groups_{};
 
@@ -52,7 +58,8 @@ struct Group {
   Group(GroupName name, Capacity capacity);
 
   void set_traffic_classes(const TrafficClasses &traffic_classes);
-  void set_overflow_policy(std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy);
+
+  void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
 
   bool try_serve(Load load);
   void take_off(const Load &load);

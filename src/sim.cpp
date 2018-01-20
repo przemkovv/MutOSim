@@ -107,21 +107,26 @@ SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Int
 std::unique_ptr<overflow_policy::OverflowPolicy>
 make_overflow_policy(const std::optional<std::string> &name, gsl::not_null<Group *> group)
 {
+  using namespace overflow_policy;
   if (name) {
+    if (name == "random_available") {
+      return std::make_unique<RandomAvailable>(group);
+    }
     if (name == "first_available") {
-      return std::make_unique<overflow_policy::AlwaysFirst>(group);
+      return std::make_unique<AlwaysFirst>(group);
     }
     if (name == "always_first") {
-      return std::make_unique<overflow_policy::AlwaysFirst>(group);
+      return std::make_unique<AlwaysFirst>(group);
     }
     if (name == "no_overflow") {
-      return std::make_unique<overflow_policy::NoOverflow>(group);
+      return std::make_unique<NoOverflow>(group);
     }
     if (name == "default") {
-      return std::make_unique<overflow_policy::Default>(group);
+      return std::make_unique<Default>(group);
     }
+    print("[Main]: Don't recognize '{}' overflow policy name. Using default.", *name);
   }
-  return std::make_unique<overflow_policy::Default>(group);
+  return std::make_unique<Default>(group);
 }
 
 SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config,
