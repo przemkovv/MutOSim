@@ -34,6 +34,14 @@ public:
   void notify_on_produce(const ProduceServiceRequestEvent *event) override;
   void notify_on_skip_processing(const Event *event) override;
 
+  void reset() override
+  {
+    SourceStream::reset();
+    active_sources_ = Count{0};
+    linked_sources_count_ = Count{0};
+    linked_sources_.clear();
+  }
+
   PascalSourceStream(const SourceName &name,
                      const TrafficClass &tc,
                      Count sources_number);

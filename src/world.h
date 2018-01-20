@@ -56,6 +56,7 @@ public:
   void schedule(std::unique_ptr<Event> event);
 
   void init();
+  void reset();
   bool next_iteration();
   void run(bool quiet);
 

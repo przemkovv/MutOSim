@@ -46,6 +46,7 @@ void run_scenario(SimulationSettings &scenario,
   auto &world = *scenario.world;
   world.set_topology(&scenario.topology);
 
+  world.reset();
   world.init();
   if (scenario.do_before) {
     scenario.do_before();
@@ -200,6 +201,7 @@ int main(int argc, char *argv[])
     ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group")
     ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group")
     ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group")
+    ("count,c", po::value<int>()->default_value(1), "number of repeats of each scenario")
     ("random,r",  "use random seed");
   /* clang-format on */
 
@@ -219,6 +221,7 @@ int main(int argc, char *argv[])
   const Intensity A_start{vm["start"].as<intensity_t>()};
   const Intensity A_stop{vm["stop"].as<intensity_t>() + 0.01L};
   const Intensity A_step{vm["step"].as<intensity_t>()};
+  const int count = vm["count"].as<int>();
 
   const auto scenario_files = [&vm]() -> std::vector<std::string> {
     if (vm.count("scenario-file") > 0) {
@@ -335,18 +338,30 @@ int main(int argc, char *argv[])
       const auto t = Config::parse_topology_config(config_file);
       // Config::dump(t);
       for (auto A = A_start; A <= A_stop; A += A_step) {
-        auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
-        // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
-        scenario.name += fmt::format(" A={}", A);
-        scenario.filename = config_file;
+        for (int i = 0; i < count; ++i) {
+          auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
+          // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
+          scenario.name += fmt::format(" A={}", A);
+          scenario.filename = config_file;
+        }
       }
     }
 
+    nlohmann::json global_stats = {};
     if ((parallel)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         run_scenario(scenarios[i], duration, use_random_seed, true);
-        scenarios[i].stats = scenarios[i].world->get_stats();
+
+        auto A_str = std::to_string(ts::get(scenarios[i].A));
+        auto filename = scenarios[i].filename;
+#pragma omp critical
+        {
+          auto &scenario_stats = global_stats[filename][A_str];
+          scenarios[i].world->append_stats(scenario_stats);
+          scenario_stats["_a"] = ts::get(scenarios[i].a);
+          scenario_stats["_A"] = ts::get(scenarios[i].A);
+        }
       }
 
       for (auto &scenario : scenarios) {
@@ -363,6 +378,13 @@ int main(int argc, char *argv[])
         print("\n[Main] {:-^100}\n", scenario.name);
         run_scenario(scenario, duration, use_random_seed, true);
 
+        auto A_str = std::to_string(ts::get(scenario.A));
+        auto filename = scenario.filename;
+        auto &scenario_stats = global_stats[filename][A_str];
+        scenario.world->append_stats(scenario_stats);
+        scenario_stats["_a"] = ts::get(scenario.a);
+        scenario_stats["_A"] = ts::get(scenario.A);
+
         scenario.world->print_stats();
         if (scenario.do_after) {
           scenario.do_after();
@@ -372,20 +394,9 @@ int main(int argc, char *argv[])
     }
 
     {
-      nlohmann::json sims_stats = {};
-      for (auto &scenario : scenarios) {
-        auto scenario_stats = scenario.stats;
-        scenario_stats["_a"] = ts::get(scenario.a);
-        scenario_stats["_A"] = ts::get(scenario.A);
-        scenario_stats["_name"] = scenario.name;
-        scenario_stats["_scenario_file"] = scenario.filename;
-
-        auto A_str = std::to_string(ts::get(scenario.A));
-        sims_stats[scenario.filename][A_str] = scenario_stats;
-      }
       if (!output_file.empty()) {
         std::ofstream stats_file(output_file);
-        stats_file << sims_stats.dump(2);
+        stats_file << global_stats.dump(2);
       }
     }
   }

@@ -5,6 +5,9 @@ from pprint import pprint
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import itertools
+import numpy
+import statistics
+from operator import add
 
 
 def load_traffic_classes_sizes(scenario_file):
@@ -26,8 +29,10 @@ def append_tc_stat_for_groups_by_size(tc_data_y, scenario_result, stat_name, tc_
         new_data = {}
         for tc_id, tc_stats in tcs_stats.items():
             size = tc_sizes[int(tc_id)]
+            #  new_data.setdefault(size, tc_stats[stat_name])
+            #  new_data[size] = [sum(x) for x in zip ( new_data[size], tc_stats[stat_name])]
             new_data.setdefault(size, 0)
-            new_data[size] += tc_stats[stat_name]
+            new_data[size] += statistics.mean( tc_stats[stat_name])
 
         for tc_size, data in new_data.items():
             tc_series = group_y.setdefault(tc_size, [])
@@ -41,7 +46,8 @@ def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name):
         group_y = tc_data_y.setdefault(group_name, {})
         for tc_id, tc_stats in tcs_stats.items():
             tc_series = group_y.setdefault(int(tc_id), [])
-            tc_series.append(tc_stats[stat_name])
+            #  tc_series.append(tc_stats[stat_name])
+            tc_series.append(statistics.mean(tc_stats[stat_name]))
 
 
 def set_plot_style(ax):
@@ -80,13 +86,15 @@ def main(argv):
         tc_data_y_by_size = {}
         if False:
             stat_name = "served"
-            set_style = set_plot_linear_style
+
+            def set_style(ax): return set_plot_linear_style(ax, 1.5e5)
             aggregate = True
             plots_number_x = 2 * len(data)
         else:
             stat_name = "P_block"
             set_style = set_plot_log_style
             aggregate = False
+
         markers = ['+', 'x', 's']
 
         for A, result in scenario_results.items():
@@ -100,8 +108,9 @@ def main(argv):
             markerscycle = itertools.cycle(markers)
             ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
             for tc_size, data_y in group_data_y.items():
-                ax.scatter(tc_data_x, data_y, label="S{}".format(tc_size),
-                           marker=next(markerscycle))
+                #  ax.boxplot(data_y,positions=tc_data_x, notch=True, widths=0.05,sym='')
+                ax.plot(tc_data_x, data_y, label="S{}".format(tc_size),
+                marker=next(markerscycle))
 
             set_style(ax)
             ax.set_title("{} ({})".format(group_name, scenario["name"]))
@@ -114,8 +123,10 @@ def main(argv):
             markerscycle = itertools.cycle(markers)
             ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
             for tc_id, data_y in group_data_y.items():
-                ax.scatter(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
-                           marker=next(markerscycle))
+                #  ax.plot(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
+                           #  marker=next(markerscycle))
+                ax.plot(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
+                        marker=next(markerscycle))
 
             set_style(ax)
             ax.set_title("{} ({})".format(group_name, scenario["name"]))

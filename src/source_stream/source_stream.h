@@ -42,6 +42,12 @@ public:
   SourceStream(const SourceName &name, const TrafficClass &tc);
   virtual ~SourceStream() = default;
 
+  virtual void reset() 
+  {
+    pause_ = false;
+    loads_produced_ = 0;
+  }
+
   void set_world(gsl::not_null<World *> world);
   void attach_to_group(gsl::not_null<Group *> target_group);
   void pause() { pause_ = true; }

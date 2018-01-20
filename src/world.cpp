@@ -22,6 +22,23 @@ void World::init()
   }
 }
 
+void World::reset() {
+  blocked_by_tc.clear();
+  blocked_by_size.clear();
+  time_ = Time{0};
+  current_time_ = Time{0};
+  last_id = Uuid{0};
+  events_ = decltype(events_){}; // NOTE(PW): std::priority_queue doesn't have clear
+
+  for (auto &[name, source] : topology_->sources) {
+    source->reset();
+  }
+  for (auto &[name, group] : topology_->groups) {
+    group->reset();
+  }
+
+}
+
 bool World::next_iteration()
 {
   debug_print("{} Time = {:-<80}\n", *this, time_);
@@ -97,27 +114,28 @@ nlohmann::json World::get_stats()
 {
   nlohmann::json j;
 
-  for (auto &[name, group] : topology_->groups) {
-    auto &j_group = j[ts::get(name)];
+  return append_stats(j);
+  // for (auto &[name, group] : topology_->groups) {
+    // auto &j_group = j[ts::get(name)];
 
-    const auto &group_stats = group->get_stats();
-    for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
-      auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
+    // const auto &group_stats = group->get_stats();
+    // for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
+      // auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
 
-      j_tc["served"] = ts::get(stats.lost_served_stats.served.count);
-      j_tc["lost"] = ts::get(stats.lost_served_stats.lost.count);
-      j_tc["served_u"] = ts::get(stats.lost_served_stats.served.size);
-      j_tc["lost_u"] = ts::get(stats.lost_served_stats.lost.size);
-      j_tc["block_time"] = ts::get(stats.block_time);
-      j_tc["simulation_time"] = ts::get(stats.simulation_time);
-      j_tc["P_loss"] = stats.loss_ratio();
-      j_tc["P_loss_u"] = stats.loss_ratio_u();
-      j_tc["P_block"] = stats.block_ratio();
-    }
+      // j_tc["served"] = ts::get(stats.lost_served_stats.served.count);
+      // j_tc["lost"] = ts::get(stats.lost_served_stats.lost.count);
+      // j_tc["served_u"] = ts::get(stats.lost_served_stats.served.size);
+      // j_tc["lost_u"] = ts::get(stats.lost_served_stats.lost.size);
+      // j_tc["block_time"] = ts::get(stats.block_time);
+      // j_tc["simulation_time"] = ts::get(stats.simulation_time);
+      // j_tc["P_loss"] = stats.loss_ratio();
+      // j_tc["P_loss_u"] = stats.loss_ratio_u();
+      // j_tc["P_block"] = stats.block_ratio();
+    // }
 
-    // j[ts::get(name)] = j_group;
-  }
-  return j;
+    // // j[ts::get(name)] = j_group;
+  // }
+  // return j;
 }
 
 void World::print_stats()

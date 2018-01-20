@@ -40,10 +40,10 @@ struct Topology {
 
   void set_world(gsl::not_null<World *> world);
 
-  std::optional<SourceStream *> find_source_by_tc_id(TrafficClassId id);
-  std::optional<SourceId> get_source_id(const SourceName &name);
+  std::optional<SourceStream *> find_source_by_tc_id(TrafficClassId id) const;
+  std::optional<SourceId> get_source_id(const SourceName &name) const;
 
   Uuid get_uuid() { return ++last_id; }
-  const TrafficClass &get_traffic_class(TrafficClassId id);
-  const Group &get_group(const GroupName &group_name);
+  const TrafficClass &get_traffic_class(TrafficClassId id) const;
+  const Group &get_group(const GroupName &group_name) const;
 };

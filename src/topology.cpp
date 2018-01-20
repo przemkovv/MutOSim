@@ -63,7 +63,7 @@ void Topology::set_world(gsl::not_null<World *> world)
     source->set_world(world.get());
   }
 }
-std::optional<SourceStream *> Topology::find_source_by_tc_id(TrafficClassId id)
+std::optional<SourceStream *> Topology::find_source_by_tc_id(TrafficClassId id) const
 {
   // TODO(PW): use std::find_if
   for (auto &[name, source] : sources) {
@@ -73,7 +73,7 @@ std::optional<SourceStream *> Topology::find_source_by_tc_id(TrafficClassId id)
   }
   return {};
 }
-std::optional<SourceId> Topology::get_source_id(const SourceName &name)
+std::optional<SourceId> Topology::get_source_id(const SourceName &name) const
 {
   auto it = sources.find(name);
   if (it != sources.end()) {
@@ -82,11 +82,11 @@ std::optional<SourceId> Topology::get_source_id(const SourceName &name)
   return {};
 }
 
-const TrafficClass &Topology::get_traffic_class(TrafficClassId id)
+const TrafficClass &Topology::get_traffic_class(TrafficClassId id) const
 {
   return traffic_classes.at(id);
 }
-const Group &Topology::get_group(const GroupName &group_name)
+const Group &Topology::get_group(const GroupName &group_name) const
 {
-  return *groups[group_name];
+  return *groups.at(group_name);
 }

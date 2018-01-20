@@ -57,6 +57,12 @@ struct Group {
   Group(GroupName name, Capacity capacity, Layer layer);
   Group(GroupName name, Capacity capacity);
 
+  void reset()
+  {
+    served_by_tc.clear();
+    blocked_by_tc.clear();
+    size_ = Size{0};
+  }
   void set_traffic_classes(const TrafficClasses &traffic_classes);
 
   void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
