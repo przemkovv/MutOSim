@@ -9,6 +9,13 @@ struct Load;
 
 namespace overflow_policy
 {
+class OverflowPolicy;
+class NoOverflow;
+class AlwaysFirst;
+class FirstAvailable;
+
+using Default = NoOverflow;
+
 class OverflowPolicy
 {
 protected:
@@ -23,7 +30,6 @@ public:
 
 class NoOverflow : public OverflowPolicy
 {
-
 public:
   NoOverflow(gsl::not_null<Group *> group) : OverflowPolicy(group) {}
   std::optional<observer_ptr<Group>> find_next_group(const Load &load) override;
@@ -31,14 +37,12 @@ public:
 
 class AlwaysFirst : public OverflowPolicy
 {
-
 public:
   AlwaysFirst(gsl::not_null<Group *> group) : OverflowPolicy(group) {}
   std::optional<observer_ptr<Group>> find_next_group(const Load &load) override;
 };
 class FirstAvailable : public OverflowPolicy
 {
-
 public:
   FirstAvailable(gsl::not_null<Group *> group) : OverflowPolicy(group) {}
   std::optional<observer_ptr<Group>> find_next_group(const Load &load) override;

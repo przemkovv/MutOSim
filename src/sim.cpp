@@ -104,6 +104,26 @@ SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Int
   return sim_settings;
 }
 
+std::unique_ptr<overflow_policy::OverflowPolicy>
+make_overflow_policy(const std::optional<std::string> &name, gsl::not_null<Group *> group)
+{
+  if (name) {
+    if (name == "first_available") {
+      return std::make_unique<overflow_policy::AlwaysFirst>(group);
+    }
+    if (name == "always_first") {
+      return std::make_unique<overflow_policy::AlwaysFirst>(group);
+    }
+    if (name == "no_overflow") {
+      return std::make_unique<overflow_policy::NoOverflow>(group);
+    }
+    if (name == "default") {
+      return std::make_unique<overflow_policy::Default>(group);
+    }
+  }
+  return std::make_unique<overflow_policy::Default>(group);
+}
+
 SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config,
                                                   Intensity A)
 {
@@ -112,7 +132,9 @@ SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config
 
   auto &topology = sim_settings.topology;
   for (const auto &[name, group] : config.groups) {
-    topology.add_group(std::make_unique<Group>(name, group.capacity, group.layer));
+    auto &g =
+        topology.add_group(std::make_unique<Group>(name, group.capacity, group.layer));
+    g.set_overflow_policy(make_overflow_policy(group.overflow_policy, &g));
     V += group.capacity;
   }
   for (const auto &[name, group] : config.groups) {
