@@ -346,6 +346,7 @@ int main(int argc, char *argv[])
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
         run_scenario(scenarios[i], duration, use_random_seed, true);
+        scenarios[i].stats = scenarios[i].world->get_stats();
       }
 
       for (auto &scenario : scenarios) {
@@ -373,7 +374,7 @@ int main(int argc, char *argv[])
     {
       nlohmann::json sims_stats = {};
       for (auto &scenario : scenarios) {
-        auto scenario_stats = scenario.world->get_stats();
+        auto scenario_stats = scenario.stats;
         scenario_stats["_a"] = ts::get(scenario.a);
         scenario_stats["_A"] = ts::get(scenario.A);
         scenario_stats["_name"] = scenario.name;

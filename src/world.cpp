@@ -71,16 +71,38 @@ std::mt19937_64 &World::get_random_engine()
   return random_engine_;
 }
 
+nlohmann::json World::append_stats(nlohmann::json &j)
+{
+  for (auto &[name, group] : topology_->groups) {
+    auto &j_group = j[ts::get(name)];
+
+    const auto &group_stats = group->get_stats();
+    for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
+      auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
+
+      j_tc["served"].push_back(ts::get(stats.lost_served_stats.served.count));
+      j_tc["lost"].push_back(ts::get(stats.lost_served_stats.lost.count));
+      j_tc["served_u"].push_back(ts::get(stats.lost_served_stats.served.size));
+      j_tc["lost_u"].push_back(ts::get(stats.lost_served_stats.lost.size));
+      j_tc["block_time"].push_back(ts::get(stats.block_time));
+      j_tc["simulation_time"].push_back(ts::get(stats.simulation_time));
+      j_tc["P_loss"].push_back(stats.loss_ratio());
+      j_tc["P_loss_u"].push_back(stats.loss_ratio_u());
+      j_tc["P_block"].push_back(stats.block_ratio());
+    }
+  }
+  return j;
+}
 nlohmann::json World::get_stats()
 {
   nlohmann::json j;
 
   for (auto &[name, group] : topology_->groups) {
-    nlohmann::json j_group = {};
+    auto &j_group = j[ts::get(name)];
 
     const auto &group_stats = group->get_stats();
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
-      nlohmann::json j_tc = {};
+      auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
 
       j_tc["served"] = ts::get(stats.lost_served_stats.served.count);
       j_tc["lost"] = ts::get(stats.lost_served_stats.lost.count);
@@ -91,11 +113,9 @@ nlohmann::json World::get_stats()
       j_tc["P_loss"] = stats.loss_ratio();
       j_tc["P_loss_u"] = stats.loss_ratio_u();
       j_tc["P_block"] = stats.block_ratio();
-
-      j_group[std::to_string(ts::get(tc_id))] = j_tc;
     }
 
-    j[ts::get(name)] = j_group;
+    // j[ts::get(name)] = j_group;
   }
   return j;
 }

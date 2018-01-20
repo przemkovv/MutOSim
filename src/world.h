@@ -60,6 +60,7 @@ public:
   void run(bool quiet);
 
   void print_stats();
+  nlohmann::json append_stats(nlohmann::json &j);
   nlohmann::json get_stats();
 
   void update_block_stat(const Load &load);
