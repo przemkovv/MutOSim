@@ -113,29 +113,7 @@ nlohmann::json World::append_stats(nlohmann::json &j)
 nlohmann::json World::get_stats()
 {
   nlohmann::json j;
-
   return append_stats(j);
-  // for (auto &[name, group] : topology_->groups) {
-    // auto &j_group = j[ts::get(name)];
-
-    // const auto &group_stats = group->get_stats();
-    // for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
-      // auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
-
-      // j_tc["served"] = ts::get(stats.lost_served_stats.served.count);
-      // j_tc["lost"] = ts::get(stats.lost_served_stats.lost.count);
-      // j_tc["served_u"] = ts::get(stats.lost_served_stats.served.size);
-      // j_tc["lost_u"] = ts::get(stats.lost_served_stats.lost.size);
-      // j_tc["block_time"] = ts::get(stats.block_time);
-      // j_tc["simulation_time"] = ts::get(stats.simulation_time);
-      // j_tc["P_loss"] = stats.loss_ratio();
-      // j_tc["P_loss_u"] = stats.loss_ratio_u();
-      // j_tc["P_block"] = stats.block_ratio();
-    // }
-
-    // // j[ts::get(name)] = j_group;
-  // }
-  // return j;
 }
 
 void World::print_stats()

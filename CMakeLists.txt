@@ -44,8 +44,9 @@ ExternalProject_Add(gsl
 
 ExternalProject_Add(json
     GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG develop
     INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0 -DJSON_MultipleHeaders=OFF
     UPDATE_COMMAND ""
     )
 
@@ -61,7 +62,7 @@ ExternalProject_Add(fmt
     INSTALL_DIR ${PROJECT_BINARY_DIR}
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DFMT_TEST=0 -DFMT_INSTALL=1
     UPDATE_COMMAND ""
-)
+    )
 
 set(FMT_LIB fmt.a)
 

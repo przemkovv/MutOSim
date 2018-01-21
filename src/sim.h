@@ -2,11 +2,11 @@
 #pragma once
 
 #include "group.h"
+#include "overflow_policy.h"
 #include "simulation_settings.h"
 #include "source_stream/source_stream.h"
 #include "topology.h"
 #include "topology_parser.h"
-#include "overflow_policy.h"
 
 #include <map>
 #include <memory>
@@ -31,5 +31,4 @@ std::unique_ptr<SourceStream> create_stream(Config::SourceType type,
                                             const TrafficClass &tc);
 
 std::unique_ptr<overflow_policy::OverflowPolicy>
-make_overflow_policy(const std::optional<std::string> &name,
-                     gsl::not_null<Group *> group);
+make_overflow_policy(std::optional<std::string_view> name, gsl::not_null<Group *> group);

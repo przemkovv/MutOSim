@@ -106,23 +106,24 @@ SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Int
 }
 
 std::unique_ptr<overflow_policy::OverflowPolicy>
-make_overflow_policy(const std::optional<std::string> &name, gsl::not_null<Group *> group)
+make_overflow_policy(std::optional<std::string_view> name, gsl::not_null<Group *> group)
 {
   using namespace overflow_policy;
+  using namespace std::literals;
   if (name) {
-    if (name == "random_available") {
+    if (name == "random_available"sv) {
       return std::make_unique<RandomAvailable>(group);
     }
-    if (name == "first_available") {
+    if (name == "first_available"sv) {
       return std::make_unique<AlwaysFirst>(group);
     }
-    if (name == "always_first") {
+    if (name == "always_first"sv) {
       return std::make_unique<AlwaysFirst>(group);
     }
-    if (name == "no_overflow") {
+    if (name == "no_overflow"sv) {
       return std::make_unique<NoOverflow>(group);
     }
-    if (name == "default") {
+    if (name == "default"sv) {
       return std::make_unique<Default>(group);
     }
     print("[Main]: Don't recognize '{}' overflow policy name. Using default.", *name);
@@ -348,6 +349,23 @@ int main(int argc, char *argv[])
     }
 
     nlohmann::json global_stats = {};
+    std::vector<bool> scenarios_state(scenarios.size());
+    auto print_state = [](const std::vector<bool> &states) {
+      std::string s;
+      constexpr auto width = 120;
+      s.resize(states.size() + states.size()/width);
+      std::stringstream str;
+      int finished =0;
+      int current = 0;
+      for (bool state : states) {
+        str << (state ? "\033[48;2;255;255;0m " : "\033[48;2;155;155;155m ");
+        finished += state;
+        if (++current % width == 0) str << '\n';
+      }
+      str << "\033[0m";
+      print("\033[H\033[J"); // clear ANSI terminal
+      println("[Main]: Finished {}/{}: \n{}", finished, states.size(), str.str());
+    };
     if ((parallel)) {
 #pragma omp parallel for
       for (auto i = 0ul; i < scenarios.size(); ++i) {
@@ -361,6 +379,9 @@ int main(int argc, char *argv[])
           scenarios[i].world->append_stats(scenario_stats);
           scenario_stats["_a"] = ts::get(scenarios[i].a);
           scenario_stats["_A"] = ts::get(scenarios[i].A);
+
+          scenarios_state[i] = true;
+          print_state(scenarios_state);
         }
       }
 
@@ -396,7 +417,7 @@ int main(int argc, char *argv[])
     {
       if (!output_file.empty()) {
         std::ofstream stats_file(output_file);
-        stats_file << global_stats.dump(2);
+        stats_file << global_stats.dump(0);
       }
     }
   }
