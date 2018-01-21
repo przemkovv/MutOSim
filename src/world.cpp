@@ -6,8 +6,8 @@
 #include "logger.h"
 #include "source_stream/source_stream.h"
 
-World::World(uint64_t seed, Duration duration, Duration tick_length)
-  : seed_(seed), duration_(duration), tick_length_(tick_length)
+World::World(uint64_t seed, Duration duration)
+  : seed_(seed), duration_(duration)
 {
   // print("[World] {:=^100}\n", " New world ");
 }

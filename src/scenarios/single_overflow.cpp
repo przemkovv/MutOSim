@@ -10,11 +10,11 @@
 #include "source_stream/poisson.h"
 
 //----------------------------------------------------------------------
-SimulationSettings single_overflow_poisson(const Intensity lambda, const Capacity V)
+ScenarioSettings single_overflow_poisson(const Intensity lambda, const Capacity V)
 {
   auto serve_intensity = Intensity(1.0L);
   auto size = Size(1);
-  SimulationSettings sim_settings{"Single overflow Poisson"};
+  ScenarioSettings sim_settings{"Single overflow Poisson"};
 
   auto &topology = sim_settings.topology;
   auto &tc1 = topology.add_traffic_class(lambda, serve_intensity, size);
@@ -32,14 +32,14 @@ SimulationSettings single_overflow_poisson(const Intensity lambda, const Capacit
 }
 
 //----------------------------------------------------------------------
-SimulationSettings
+ScenarioSettings
 single_overflow_poisson(Intensity A,
                         std::vector<Capacity> primary_Vs,
                         std::vector<std::vector<Size>> size_per_class_per_source,
                         Capacity secondary_V)
 {
   auto serve_intensity = Intensity(1.0L);
-  SimulationSettings sim_settings{"Single overflow Poisson"};
+  ScenarioSettings sim_settings{"Single overflow Poisson"};
 
   auto &topology = sim_settings.topology;
 
@@ -77,12 +77,12 @@ single_overflow_poisson(Intensity A,
 }
 
 //----------------------------------------------------------------------
-SimulationSettings
+ScenarioSettings
 single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
 {
   auto serve_intensity = Intensity(1.0L);
   auto size = Size(1);
-  SimulationSettings sim_settings{"Single overflow Engset"};
+  ScenarioSettings sim_settings{"Single overflow Engset"};
 
   auto &topology = sim_settings.topology;
   auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
@@ -100,7 +100,7 @@ single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
 }
 //----------------------------------------------------------------------
 
-SimulationSettings multiple_sources_single_overflow()
+ScenarioSettings multiple_sources_single_overflow()
 {
   auto serve_intensity = Intensity(1.0L);
   const auto lambda = Intensity(3);
@@ -111,7 +111,7 @@ SimulationSettings multiple_sources_single_overflow()
   const auto size2 = Size(2);
   // const auto alpha = gamma / micro;
 
-  SimulationSettings sim_settings{"Multiple sources - Single overflow"};
+  ScenarioSettings sim_settings{"Multiple sources - Single overflow"};
 
   auto &topology = sim_settings.topology;
 

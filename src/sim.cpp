@@ -1,10 +1,10 @@
 
 #include "sim.h"
 
-#include "config.h"
 #include "group.h"
-#include "source_stream/source_stream.h"
 #include "logger.h"
+#include "scenario_settings.h"
+#include "source_stream/source_stream.h"
 #include "topology_parser.h"
 #include "traffic_class.h"
 #include "types.h"
@@ -14,53 +14,61 @@
 #include "scenarios/single_overflow.h"
 #include "scenarios/topology_based.h"
 
-#include <boost/program_options.hpp>
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <random>
 
-constexpr Duration tick_length{0.5L};
-
-uint64_t seed(bool use_random_seed)
+void print_state(const std::vector<bool> &states)
 {
-  if (!use_random_seed) {
-    return 0;
+  constexpr auto width = 120;
+  std::stringstream str;
+  int finished = 0;
+  int current = 0;
+  for (bool state : states) {
+    str << (state ? "\033[48;2;255;255;0m " : "\033[48;2;155;155;155m ");
+    finished += state;
+    if (++current % width == 0)
+      str << '\n';
   }
-  std::random_device rd;
-  return rd();
+  str << "\033[0m";
+  if (finished > 1) {
+    print("\033[2K\033[2F\033[2K"); // clear current and above line
+  }
+  // print("\033[H\033[J"); // clear ANSI terminal
+  println("[Main]: Finished {}/{}: \n{}", finished, states.size(), str.str());
+};
+
+//----------------------------------------------------------------------
+
+CLI parse_args(const boost::program_options::variables_map &vm)
+{
+  CLI cli;
+  cli.help = vm.count("help") > 0;
+  cli.use_random_seed = vm.count("random") > 0;
+  cli.quiet = vm.count("quiet") > 0;
+  cli.output_file = vm["output-file"].as<std::string>();
+  cli.parallel = vm["parallel"].as<bool>();
+  cli.duration = Duration{vm["duration"].as<time_type>()};
+  cli.A_start = Intensity{vm["start"].as<intensity_t>()};
+  cli.A_stop = Intensity{vm["stop"].as<intensity_t>() + 0.01L};
+  cli.A_step = Intensity{vm["step"].as<intensity_t>()};
+  cli.count = vm["count"].as<int>();
+
+  cli.scenario_files = [&vm]() -> std::vector<std::string> {
+    if (vm.count("scenario-file") > 0) {
+      return vm["scenario-file"].as<std::vector<std::string>>();
+    }
+    return {};
+  }();
+  return cli;
 }
 
-void run_scenario(SimulationSettings &scenario,
-                  const Duration duration,
-                  bool use_random_seed,
-                  bool quiet)
+boost::program_options::options_description prepare_options_description()
 {
-  scenario.world = std::make_unique<World>(seed(use_random_seed), duration, tick_length);
-  auto &world = *scenario.world;
-  world.set_topology(&scenario.topology);
-
-  world.reset();
-  world.init();
-  if (scenario.do_before) {
-    scenario.do_before();
-  }
-  world.run(quiet);
-  if (scenario.do_after) {
-    scenario.do_after();
-  }
-}
-
-
-int main(int argc, char *argv[])
-{
-  setlocale(LC_NUMERIC, "en_US.UTF-8");
-
   namespace po = boost::program_options;
-
   /* clang-format off */
   po::options_description desc("Allowed options");
   desc.add_options()
@@ -78,38 +86,33 @@ int main(int argc, char *argv[])
     ("quiet,q", po::value<bool>()->default_value(false), "do not print stats")
     ("random,r",  "use random seed");
   /* clang-format on */
+  return desc;
+}
+
+//----------------------------------------------------------------------
+int main(int argc, char *argv[])
+{
+  setlocale(LC_NUMERIC, "en_US.UTF-8");
+
+  namespace po = boost::program_options;
+
+  auto desc = prepare_options_description();
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, desc), vm);
   po::notify(vm);
 
-  if (vm.count("help") > 0) {
+  const CLI cli = parse_args(vm);
+
+  if (cli.help) {
     print("{}", desc);
     return 0;
   }
 
-  const bool use_random_seed = vm.count("random") > 0;
-  const bool quiet = vm.count("quiet") > 0;
-  const std::string output_file = vm["output-file"].as<std::string>();
-  const bool parallel{vm["parallel"].as<bool>()};
-  const Duration duration{vm["duration"].as<time_type>()};
-  const Intensity A_start{vm["start"].as<intensity_t>()};
-  const Intensity A_stop{vm["stop"].as<intensity_t>() + 0.01L};
-  const Intensity A_step{vm["step"].as<intensity_t>()};
-  const int count = vm["count"].as<int>();
-
-  const auto scenario_files = [&vm]() -> std::vector<std::string> {
-    if (vm.count("scenario-file") > 0) {
-      return vm["scenario-file"].as<std::vector<std::string>>();
-    }
-    return {};
-  }();
-
-  std::vector<std::string> args(argv + 1, argv + argc);
-  std::vector<SimulationSettings> scenarios;
+  std::vector<ScenarioSettings> scenarios;
 
   if ((false)) {
-    for (auto A = A_start; A <= A_stop; A += A_step) {
+    for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
       std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
       std::vector<int64_t> ratios{1, 1, 1, 1};
       auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0ll);
@@ -129,27 +132,6 @@ int main(int argc, char *argv[])
     }
   }
 
-  /*
-  for (auto A = Intensity{1.5L}; A <= Intensity{1.5L}; A += Intensity{0.1L}) {
-    std::vector<Size> sizes{Size{1}};
-    std::vector<int64_t> ratios{1};
-    auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0);
-    std::vector<long double> ratios_d(begin(ratios), end(ratios));
-    for_each(begin(ratios_d), end(ratios_d),
-             [ratios_sum](auto &x) { x /= ratios_sum; });
-
-    const auto V = Capacity{30};
-    const auto N = Count{20};
-
-    std::vector<Intensity> intensities{sizes.size()};
-    for (auto i = 0u; i < sizes.size(); ++i) {
-      intensities[i] = Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) *
-                                 ratios_d[i]};
-    }
-    scenarios.emplace_back(pascal_model(intensities[0], V, N));
-  }
-  */
-
   if ((false)) {
     scenarios.emplace_back(single_overflow_poisson(
         Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
@@ -164,11 +146,6 @@ int main(int argc, char *argv[])
     scenarios.emplace_back(single_overflow_poisson(Intensity(4.0L), Capacity(2)));
     scenarios.emplace_back(single_overflow_poisson(Intensity(6.0L), Capacity(2)));
   }
-
-  // scenarios.emplace_back(
-  // single_overflow_engset(Intensity(1.0L), Capacity(4), Count(5)));
-
-  // scenarios.emplace_back(multiple_sources_single_overflow());
 
   if ((false)) {
     scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
@@ -204,11 +181,11 @@ int main(int argc, char *argv[])
     scenarios.emplace_back(engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
   }
 
-  for (const auto &config_file : scenario_files) {
+  for (const auto &config_file : cli.scenario_files) {
     const auto t = Config::parse_topology_config(config_file);
     // Config::dump(t);
-    for (auto A = A_start; A <= A_stop; A += A_step) {
-      for (int i = 0; i < count; ++i) {
+    for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
+      for (int i = 0; i < cli.count; ++i) {
         auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
         // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
         scenario.name += fmt::format(" A={}", A);
@@ -217,59 +194,43 @@ int main(int argc, char *argv[])
     }
   }
 
-  nlohmann::json global_stats = {};
-  std::vector<bool> scenarios_state(scenarios.size());
-  auto print_state = [](const std::vector<bool> &states) {
-    constexpr auto width = 120;
-    std::stringstream str;
-    int finished = 0;
-    int current = 0;
-    for (bool state : states) {
-      str << (state ? "\033[48;2;255;255;0m " : "\033[48;2;155;155;155m ");
-      finished += state;
-      if (++current % width == 0)
-        str << '\n';
-    }
-    str << "\033[0m";
-    if (finished > 1) {
-      print("\033[2K\033[2F\033[2K"); // clear current and above line
-    }
-    // print("\033[H\033[J"); // clear ANSI terminal
-    println("[Main]: Finished {}/{}: \n{}", finished, states.size(), str.str());
-  };
+  {
+    nlohmann::json global_stats = {};
+    std::vector<bool> scenarios_state(scenarios.size());
 
-#pragma omp parallel for if (parallel)
-  for (auto i = 0ul; i < scenarios.size(); ++i) {
-    run_scenario(scenarios[i], duration, use_random_seed, true);
+#pragma omp parallel for if (cli.parallel)
+    for (auto i = 0ul; i < scenarios.size(); ++i) {
+      run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
 
-    auto A_str = std::to_string(ts::get(scenarios[i].A));
-    auto filename = scenarios[i].filename;
+      auto A_str = std::to_string(ts::get(scenarios[i].A));
+      auto filename = scenarios[i].filename;
 #pragma omp critical
-    {
-      auto &scenario_stats = global_stats[filename][A_str];
-      scenarios[i].world->append_stats(scenario_stats);
-      scenario_stats["_a"] = ts::get(scenarios[i].a);
-      scenario_stats["_A"] = ts::get(scenarios[i].A);
+      {
+        auto &scenario_stats = global_stats[filename][A_str];
+        scenarios[i].world->append_stats(scenario_stats);
+        scenario_stats["_a"] = ts::get(scenarios[i].a);
+        scenario_stats["_A"] = ts::get(scenarios[i].A);
 
-      scenarios_state[i] = true;
-      print_state(scenarios_state);
-    }
-  }
-
-  if (!quiet) {
-    for (auto &scenario : scenarios) {
-      print("\n[Main] {:-^100}\n", scenario.name);
-      scenario.world->print_stats();
-
-      if (scenario.do_after) {
-        scenario.do_after();
+        scenarios_state[i] = true;
+        print_state(scenarios_state);
       }
-      print("[Main] {:^^100}\n", scenario.name);
     }
-    {
-      if (!output_file.empty()) {
-        std::ofstream stats_file(output_file);
-        stats_file << global_stats.dump(0);
+
+    if (!cli.quiet) {
+      for (auto &scenario : scenarios) {
+        print("\n[Main] {:-^100}\n", scenario.name);
+        scenario.world->print_stats();
+
+        if (scenario.do_after) {
+          scenario.do_after();
+        }
+        print("[Main] {:^^100}\n", scenario.name);
+      }
+      {
+        if (!cli.output_file.empty()) {
+          std::ofstream stats_file(cli.output_file);
+          stats_file << global_stats.dump(0);
+        }
       }
     }
   }

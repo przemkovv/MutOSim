@@ -26,7 +26,7 @@ class World
   Time time_{0};
   Duration duration_;
   Time finish_time_ = time_ + duration_;
-  Duration tick_length_;
+  static constexpr Duration tick_length_{0.5L};
 
   Time current_time_{0}; // TODO(PW): find better name either for this or for time_ field
 
@@ -42,7 +42,7 @@ class World
   void process_event();
 
 public:
-  World(uint64_t seed, Duration duration, Duration tick_length);
+  World(uint64_t seed, Duration duration);
 
   Uuid get_uuid();
   RandomEngine &get_random_engine();
@@ -60,7 +60,7 @@ public:
   void run(bool quiet);
 
   void print_stats();
-  nlohmann::json& append_stats(nlohmann::json &j);
+  nlohmann::json &append_stats(nlohmann::json &j);
   nlohmann::json get_stats();
 
   void update_block_stat(const Load &load);

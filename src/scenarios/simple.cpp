@@ -13,7 +13,7 @@
 #include <fmt/ostream.h>
 
 //----------------------------------------------------------------------
-SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
+ScenarioSettings erlang_model(const Intensity lambda, const Capacity V)
 {
   const auto serve_intensity = Intensity(1.0L);
   const auto A = lambda / serve_intensity;
@@ -21,7 +21,7 @@ SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
 
   auto name =
       fmt::format("Erlang model. lambda={},  mu={}, V={} ", lambda, serve_intensity, V);
-  SimulationSettings sim_settings{name};
+  ScenarioSettings sim_settings{name};
 
   sim_settings.do_before = [=]() {
     print("[Erlang] P_loss = P_block = E_V(A) = {}\n",
@@ -43,7 +43,7 @@ SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
   return sim_settings;
 }
 
-SimulationSettings engset_model(const Intensity lambda, const Capacity V, const Count N)
+ScenarioSettings engset_model(const Intensity lambda, const Capacity V, const Count N)
 { // Engset model
 
   const auto serve_intensity = Intensity(1.0L);
@@ -54,7 +54,7 @@ SimulationSettings engset_model(const Intensity lambda, const Capacity V, const 
   auto name =
       fmt::format("Engset model. alpha={}, lambda={}, gamma={}, mu={}, V={}, N={} ",
                   alpha, lambda, gamma, serve_intensity, V, N);
-  SimulationSettings sim_settings{name};
+  ScenarioSettings sim_settings{name};
 
   sim_settings.do_before = [=]() {
     print("[Engset] P_block = E(alfa, V, N) = {}\n",
@@ -77,11 +77,11 @@ SimulationSettings engset_model(const Intensity lambda, const Capacity V, const 
 }
 
 //----------------------------------------------------------------------
-SimulationSettings
+ScenarioSettings
 poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity primary_V)
 {
   auto serve_intensity = Intensity(1.0L);
-  SimulationSettings sim_settings{"Single group with Poisson streams"};
+  ScenarioSettings sim_settings{"Single group with Poisson streams"};
 
   auto &topology = sim_settings.topology;
 
@@ -104,7 +104,7 @@ poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity pri
 
 //----------------------------------------------------------------------
 
-SimulationSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
+ScenarioSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
 { // Pascal source
 
   auto serve_intensity = Intensity(1.0L);
@@ -113,7 +113,7 @@ SimulationSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
 
   auto name = fmt::format("Pascal source. lambda={}, gamma={}, mu={}, V={}, S={} ",
                           lambda, gamma, serve_intensity, V, S);
-  SimulationSettings sim_settings{name};
+  ScenarioSettings sim_settings{name};
 
   // const auto lambda = Intensity(5);
   // const auto S = Size(5);

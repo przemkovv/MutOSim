@@ -3,8 +3,6 @@
 #include "types.h"
 #include <cmath>
 
-#include <boost/math/special_functions.hpp>
-
 namespace Math
 {
 constexpr double epsilon = 0.000001;
@@ -54,13 +52,6 @@ inline int64_t product(int64_t from, int64_t to)
   return result;
 }
 
-inline int64_t n_over_k(const int64_t n, const int64_t k)
-{
-  if (n < 0) {
-    return n_over_k(-n + k - 1, k);
-  }
-  return static_cast<int64_t>(boost::math::binomial_coefficient<double>(
-      static_cast<uint32_t>(n), static_cast<uint32_t>(k)));
-}
+int64_t n_over_k(const int64_t n, const int64_t k);
 
 } // namespace Math

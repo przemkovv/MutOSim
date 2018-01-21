@@ -4,9 +4,9 @@
 #include "source_stream/factory.h"
 #include "topology_based.h"
 
-SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Intensity A)
+ScenarioSettings prepare_scenario_global_A(const Config::Topology &config, Intensity A)
 {
-  SimulationSettings sim_settings{config.name};
+  ScenarioSettings sim_settings{config.name};
   Capacity V{0};
 
   auto &topology = sim_settings.topology;
@@ -38,10 +38,10 @@ SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Int
   return sim_settings;
 }
 
-SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config,
+ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
                                                   Intensity A)
 {
-  SimulationSettings sim_settings{config.name};
+  ScenarioSettings sim_settings{config.name};
   Capacity V{0};
 
   auto &topology = sim_settings.topology;

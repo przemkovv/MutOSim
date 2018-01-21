@@ -7,7 +7,7 @@
 
 class World;
 
-struct SimulationSettings {
+struct ScenarioSettings {
   Name name;
   Intensity A{0};
   Intensity a{0};
@@ -20,5 +20,10 @@ struct SimulationSettings {
   std::function<void()> do_after = nullptr;
 
   std::unique_ptr<World> world{};
-
 };
+
+uint64_t seed(bool use_random_seed);
+void run_scenario(ScenarioSettings &scenario,
+                  const Duration duration,
+                  bool use_random_seed,
+                  bool quiet);
