@@ -2,6 +2,9 @@
 #include "poisson.h"
 
 #include "world.h"
+#include "group.h"
+
+#include <fmt/ostream.h>
 
 PoissonSourceStream::PoissonSourceStream(const SourceName &name, const TrafficClass &tc)
   : SourceStream(name, tc)

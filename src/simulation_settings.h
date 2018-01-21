@@ -4,7 +4,6 @@
 
 #include "topology.h"
 #include <functional>
-#include <nlohmann/json.hpp>
 
 class World;
 
@@ -20,6 +19,6 @@ struct SimulationSettings {
   std::function<void()> do_before = nullptr;
   std::function<void()> do_after = nullptr;
 
-  std::unique_ptr<World> world = nullptr;
-  nlohmann::json stats{};
+  std::unique_ptr<World> world{};
+
 };

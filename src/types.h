@@ -3,10 +3,10 @@
 
 #include <cstdint>
 #include <experimental/memory>
-#include <fmt/ostream.h>
 #include <string_view>
 #include <type_safe/strong_typedef.hpp>
 
+#include <fmt/ostream.h>
 #include <string>
 
 // TODO(PW): when possible: remove this

@@ -1,6 +1,8 @@
 
 #include "traffic_class.h"
 
+#include <fmt/ostream.h>
+
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&/* format_str */,
                 const TrafficClass &tc)

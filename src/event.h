@@ -10,7 +10,6 @@
 #include <memory>
 
 struct Event;
-class World;
 using EventPtr = std::unique_ptr<Event>;
 
 enum class EventType { LoadServiceRequest, LoadServiceEnd, LoadProduce, None };
@@ -43,7 +42,6 @@ struct LoadServiceRequestEvent : public Event {
   void process() override;
   void skip_notify() override;
 
-  ~LoadServiceRequestEvent() override = default;
 };
 
 //----------------------------------------------------------------------
@@ -56,7 +54,6 @@ struct LoadServiceEndEvent : public Event {
   void process() override;
   void skip_notify() override;
 
-  ~LoadServiceEndEvent() override = default;
 };
 
 //----------------------------------------------------------------------
@@ -68,7 +65,6 @@ struct ProduceServiceRequestEvent : public Event {
 
   void process() override;
   void skip_notify() override;
-  ~ProduceServiceRequestEvent() override = default;
 };
 
 //----------------------------------------------------------------------

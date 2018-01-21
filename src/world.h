@@ -43,7 +43,6 @@ class World
 
 public:
   World(uint64_t seed, Duration duration, Duration tick_length);
-  ~World() = default;
 
   Uuid get_uuid();
   RandomEngine &get_random_engine();
@@ -61,7 +60,7 @@ public:
   void run(bool quiet);
 
   void print_stats();
-  nlohmann::json append_stats(nlohmann::json &j);
+  nlohmann::json& append_stats(nlohmann::json &j);
   nlohmann::json get_stats();
 
   void update_block_stat(const Load &load);

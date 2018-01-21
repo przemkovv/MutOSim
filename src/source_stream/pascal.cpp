@@ -4,7 +4,9 @@
 #include "logger.h"
 #include "types.h"
 #include "world.h"
+#include "group.h"
 
+#include <fmt/ostream.h>
 #include <optional>
 
 PascalSourceStream::PascalSourceStream(const SourceName &name,

@@ -10,6 +10,8 @@
 #include "source_stream/pascal.h"
 #include "source_stream/poisson.h"
 
+#include <fmt/ostream.h>
+
 //----------------------------------------------------------------------
 SimulationSettings erlang_model(const Intensity lambda, const Capacity V)
 {

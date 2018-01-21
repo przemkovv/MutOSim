@@ -3,6 +3,7 @@
 
 #include "group.h"
 #include "load.h"
+#include "source_stream/source_stream.h"
 
 #include <type_traits>
 

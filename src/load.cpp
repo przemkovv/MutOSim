@@ -1,6 +1,10 @@
 
 #include "load.h"
+#include "source_stream/source_stream.h"
+#include "group.h"
+
 #include <fmt/ostream.h>
+
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *& /* format_str */,

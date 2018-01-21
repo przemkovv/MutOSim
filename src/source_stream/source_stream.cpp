@@ -2,7 +2,9 @@
 #include "source_stream.h"
 
 #include "world.h"
+#include "group.h"
 
+#include <fmt/ostream.h>
 SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc)
   : name_(name), tc_(tc)
 {

@@ -2,6 +2,7 @@
 
 #include "types.h"
 #include "traffic_class.h"
+
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <gsl/gsl>
@@ -25,6 +26,7 @@ struct Load {
   std::experimental::observer_ptr<Group> served_by{};
   std::experimental::observer_ptr<SourceStream> produced_by{};
   std::experimental::observer_ptr<Group> target_group{};
+
 };
 
 

@@ -1,18 +1,36 @@
 
 #include "group.h"
 #include "logger.h"
+#include "overflow_policy/factory.h"
 #include "source_stream/source_stream.h"
 
 #include <algorithm>
 #include <cmath>
+#include <fmt/ostream.h>
 #include <gsl/gsl>
 
 Group::Group(GroupName name, Capacity capacity) : Group(name, capacity, 0)
 {
 }
 Group::Group(GroupName name, Capacity capacity, Layer layer)
-  : name_(std::move(name)), capacity_(capacity), layer_(layer)
+  : name_(std::move(name)),
+    capacity_(capacity),
+    layer_(layer),
+    overflow_policy_(overflow_policy::make_overflow_policy("default", this))
 {
+}
+
+void Group::reset()
+{
+  served_by_tc.clear();
+  blocked_by_tc.clear();
+  size_ = Size{0};
+}
+
+void Group::set_world(gsl::not_null<World *> world)
+{
+  world_ = make_observer(world.get());
+  overflow_policy_->set_world(world);
 }
 
 void Group::set_end_time(Load &load)

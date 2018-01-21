@@ -1,7 +1,7 @@
 #pragma once
 
 #include "load.h"
-#include "overflow_policy.h"
+#include "overflow_policy/overflow_policy.h"
 #include "stats.h"
 #include "traffic_class.h"
 #include "types.h"
@@ -23,8 +23,7 @@ struct Group {
   Size size_;
   Layer layer_;
 
-  std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_ =
-      std::make_unique<overflow_policy::AlwaysFirst>(this);
+  std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_;
 
   std::unordered_map<TrafficClassId, LostServedStats> served_by_tc;
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
@@ -34,11 +33,7 @@ struct Group {
 
   observer_ptr<World> world_;
 
-  void set_world(gsl::not_null<World *> world)
-  {
-    world_ = make_observer(world.get());
-    overflow_policy_->set_world(world);
-  }
+  void set_world(gsl::not_null<World *> world);
 
   std::vector<observer_ptr<Group>> next_groups_{};
 
@@ -57,12 +52,7 @@ struct Group {
   Group(GroupName name, Capacity capacity, Layer layer);
   Group(GroupName name, Capacity capacity);
 
-  void reset()
-  {
-    served_by_tc.clear();
-    blocked_by_tc.clear();
-    size_ = Size{0};
-  }
+  void reset();
   void set_traffic_classes(const TrafficClasses &traffic_classes);
 
   void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);

@@ -1,4 +1,5 @@
 
+#include "source_stream/source_stream.h"
 #include "topology.h"
 
 #include "group.h"

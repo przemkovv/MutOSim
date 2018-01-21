@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include <fmt/format.h>
 
 #include <unordered_map>
 

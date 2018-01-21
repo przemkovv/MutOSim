@@ -1,6 +1,7 @@
 #include "engset.h"
 
 #include "group.h"
+#include <fmt/ostream.h>
 
 EngsetSourceStream::EngsetSourceStream(const SourceName &name,
                                        const TrafficClass &tc,

@@ -22,7 +22,8 @@ void World::init()
   }
 }
 
-void World::reset() {
+void World::reset()
+{
   blocked_by_tc.clear();
   blocked_by_size.clear();
   time_ = Time{0};
@@ -36,7 +37,6 @@ void World::reset() {
   for (auto &[name, group] : topology_->groups) {
     group->reset();
   }
-
 }
 
 bool World::next_iteration()
@@ -88,7 +88,7 @@ std::mt19937_64 &World::get_random_engine()
   return random_engine_;
 }
 
-nlohmann::json World::append_stats(nlohmann::json &j)
+nlohmann::json &World::append_stats(nlohmann::json &j)
 {
   for (auto &[name, group] : topology_->groups) {
     auto &j_group = j[ts::get(name)];

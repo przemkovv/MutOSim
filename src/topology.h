@@ -1,7 +1,7 @@
 #pragma once
 
-#include "source_stream/source_stream.h"
 #include "types.h"
+#include "traffic_class.h"
 
 #include <gsl/gsl>
 #include <map>
@@ -10,16 +10,17 @@
 #include <unordered_map>
 
 struct Group;
-class SourceStream;
 class World;
+class SourceStream;
 
 struct Topology {
   Uuid last_id = 0;
 
-  std::map<GroupName, std::unique_ptr<Group>> groups;
-  std::map<SourceName, std::unique_ptr<SourceStream>> sources;
+  std::map<GroupName, std::unique_ptr<Group>> groups{};
+  std::map<SourceName, std::unique_ptr<SourceStream>> sources{};
 
-  TrafficClasses traffic_classes;
+  TrafficClasses traffic_classes{};
+
 
   Group &add_group(std::unique_ptr<Group> group);
   SourceStream &add_source(std::unique_ptr<SourceStream> source_stream);

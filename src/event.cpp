@@ -3,6 +3,8 @@
 #include "group.h"
 #include "source_stream/source_stream.h"
 
+#include <fmt/ostream.h>
+
 //----------------------------------------------------------------------
 
 Event::Event(EventType type_, Uuid id_, Time time_) : type(type_), id(id_), time(time_)

@@ -42,7 +42,7 @@ public:
   SourceStream(const SourceName &name, const TrafficClass &tc);
   virtual ~SourceStream() = default;
 
-  virtual void reset() 
+  virtual void reset()
   {
     pause_ = false;
     loads_produced_ = 0;

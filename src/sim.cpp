@@ -1,13 +1,10 @@
 
-#include "calculation.h"
+#include "sim.h"
+
 #include "config.h"
 #include "group.h"
-#include "logger.h"
-#include "sim.h"
-#include "source_stream/engset.h"
-#include "source_stream/pascal.h"
-#include "source_stream/poisson.h"
 #include "source_stream/source_stream.h"
+#include "logger.h"
 #include "topology_parser.h"
 #include "traffic_class.h"
 #include "types.h"
@@ -15,11 +12,11 @@
 
 #include "scenarios/simple.h"
 #include "scenarios/single_overflow.h"
+#include "scenarios/topology_based.h"
 
 #include <boost/program_options.hpp>
 #include <experimental/memory>
 #include <fmt/format.h>
-#include <fmt/printf.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -57,131 +54,6 @@ void run_scenario(SimulationSettings &scenario,
   }
 }
 
-std::unique_ptr<SourceStream> create_stream(Config::SourceType type,
-                                            const Config::Source &source,
-                                            const TrafficClass &tc)
-{
-  switch (type) {
-  case Config::SourceType::Poisson:
-    return std::make_unique<PoissonSourceStream>(source.name, tc);
-  case Config::SourceType::Pascal:
-    return std::make_unique<PascalSourceStream>(source.name, tc, source.source_number);
-  case Config::SourceType::Engset:
-    return std::make_unique<EngsetSourceStream>(source.name, tc, source.source_number);
-  }
-}
-
-SimulationSettings prepare_scenario_global_A(const Config::Topology &config, Intensity A)
-{
-  SimulationSettings sim_settings{config.name};
-  Capacity V{0};
-
-  auto &topology = sim_settings.topology;
-  for (const auto &[name, group] : config.groups) {
-    topology.add_group(std::make_unique<Group>(name, group.capacity));
-    V += group.capacity;
-  }
-  for (const auto &[name, group] : config.groups) {
-    for (const auto &connected_group : group.connected) {
-      topology.connect_groups(name, connected_group);
-    }
-  }
-  Weight sum = std::accumulate(
-      begin(config.traffic_classes), end(config.traffic_classes), Weight{0},
-      [](const auto x, const auto &tc) { return tc.second.weight + x; });
-
-  for (const auto &[tc_id, tc] : config.traffic_classes) {
-    const auto ratio = tc.weight / sum;
-    Intensity offered_intensity = A * V * ratio / tc.size;
-    topology.add_traffic_class(tc.id, offered_intensity, tc.serve_intensity, tc.size);
-  }
-
-  for (const auto &source : config.sources) {
-    auto &tc = topology.get_traffic_class(source.tc_id);
-    topology.add_source(create_stream(source.type, source, tc));
-    topology.attach_source_to_group(source.name, source.attached);
-  }
-
-  return sim_settings;
-}
-
-std::unique_ptr<overflow_policy::OverflowPolicy>
-make_overflow_policy(std::optional<std::string_view> name, gsl::not_null<Group *> group)
-{
-  using namespace overflow_policy;
-  using namespace std::literals;
-  if (name) {
-    if (name == "random_available"sv) {
-      return std::make_unique<RandomAvailable>(group);
-    }
-    if (name == "first_available"sv) {
-      return std::make_unique<AlwaysFirst>(group);
-    }
-    if (name == "always_first"sv) {
-      return std::make_unique<AlwaysFirst>(group);
-    }
-    if (name == "no_overflow"sv) {
-      return std::make_unique<NoOverflow>(group);
-    }
-    if (name == "default"sv) {
-      return std::make_unique<Default>(group);
-    }
-    print("[Main]: Don't recognize '{}' overflow policy name. Using default.", *name);
-  }
-  return std::make_unique<Default>(group);
-}
-
-SimulationSettings prepare_scenario_local_group_A(const Config::Topology &config,
-                                                  Intensity A)
-{
-  SimulationSettings sim_settings{config.name};
-  Capacity V{0};
-
-  auto &topology = sim_settings.topology;
-  for (const auto &[name, group] : config.groups) {
-    auto &g =
-        topology.add_group(std::make_unique<Group>(name, group.capacity, group.layer));
-    g.set_overflow_policy(make_overflow_policy(group.overflow_policy, &g));
-    V += group.capacity;
-  }
-  for (const auto &[name, group] : config.groups) {
-    for (const auto &connected_group : group.connected) {
-      topology.connect_groups(name, connected_group);
-    }
-  }
-
-  std::unordered_map<GroupName, Weight> weights_sum_per_group;
-  for (const auto &source : config.sources) {
-    weights_sum_per_group[source.attached] +=
-        config.traffic_classes.at(source.tc_id).weight;
-  }
-
-  Intensity traffic_intensity{0};
-  for (const auto &source : config.sources) {
-    const auto &cfg_tc = config.traffic_classes.at(source.tc_id);
-    const auto ratio = cfg_tc.weight / weights_sum_per_group[source.attached];
-    const auto &group = topology.get_group(source.attached);
-    const auto intensity_multiplier =
-        config.groups.at(group.get_name()).intensity_multiplier;
-    Intensity offered_intensity =
-        A * intensity_multiplier * group.capacity_ * ratio / cfg_tc.size;
-    const auto &tc =
-        topology.add_traffic_class(cfg_tc.id, offered_intensity, cfg_tc.serve_intensity,
-                                   cfg_tc.size, cfg_tc.max_path_length);
-
-    topology.add_source(create_stream(source.type, source, tc));
-    topology.attach_source_to_group(source.name, source.attached);
-
-    traffic_intensity += Intensity{tc.source_intensity / tc.serve_intensity *
-                                   ts::get(tc.size) / ts::get(V)};
-  }
-  // traffic_intensity /= V;
-
-  sim_settings.name += fmt::format(" a={}", traffic_intensity);
-  sim_settings.a = traffic_intensity;
-  sim_settings.A = A;
-  return sim_settings;
-}
 
 int main(int argc, char *argv[])
 {
@@ -232,10 +104,6 @@ int main(int argc, char *argv[])
     }
     return {};
   }();
-  {
-    // print("Time type precision (digits): {}\n",
-    // std::numeric_limits<time_type>::digits10);
-  }
 
   std::vector<std::string> args(argv + 1, argv + argc);
   std::vector<SimulationSettings> scenarios;
