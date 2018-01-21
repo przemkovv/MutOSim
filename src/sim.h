@@ -2,11 +2,13 @@
 #pragma once
 
 #include "config.h"
+#include "scenario_settings.h"
 #include "types.h"
 
+#include <boost/program_options.hpp>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
-#include <boost/program_options.hpp>
 
 struct CLI {
   bool help;
@@ -26,3 +28,6 @@ struct CLI {
 CLI parse_args(const boost::program_options::variables_map &vm);
 boost::program_options::options_description prepare_options_description();
 void print_state(const std::vector<bool> &states);
+nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli);
+void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios, const CLI &cli);
+void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli);

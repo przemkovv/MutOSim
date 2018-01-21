@@ -3,7 +3,6 @@
 
 #include "group.h"
 #include "logger.h"
-#include "scenario_settings.h"
 #include "source_stream/source_stream.h"
 #include "topology_parser.h"
 #include "traffic_class.h"
@@ -66,6 +65,7 @@ CLI parse_args(const boost::program_options::variables_map &vm)
   return cli;
 }
 
+//----------------------------------------------------------------------
 boost::program_options::options_description prepare_options_description()
 {
   namespace po = boost::program_options;
@@ -90,27 +90,51 @@ boost::program_options::options_description prepare_options_description()
 }
 
 //----------------------------------------------------------------------
-int main(int argc, char *argv[])
+nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
 {
-  setlocale(LC_NUMERIC, "en_US.UTF-8");
+  nlohmann::json global_stats = {};
+  std::vector<bool> scenarios_state(scenarios.size());
 
-  namespace po = boost::program_options;
+#pragma omp parallel for if (cli.parallel)
+  for (auto i = 0ul; i < scenarios.size(); ++i) {
+    run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
 
-  auto desc = prepare_options_description();
+    auto A_str = std::to_string(ts::get(scenarios[i].A));
+    auto filename = scenarios[i].filename;
+#pragma omp critical
+    {
+      auto &scenario_stats = global_stats[filename][A_str];
+      scenarios[i].world->append_stats(scenario_stats);
+      scenario_stats["_a"] = ts::get(scenarios[i].a);
+      scenario_stats["_A"] = ts::get(scenarios[i].A);
 
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
-
-  const CLI cli = parse_args(vm);
-
-  if (cli.help) {
-    print("{}", desc);
-    return 0;
+      scenarios_state[i] = true;
+      print_state(scenarios_state);
+    }
   }
+  return global_stats;
+}
+//----------------------------------------------------------------------
 
-  std::vector<ScenarioSettings> scenarios;
+void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
+{
+  for (const auto &config_file : cli.scenario_files) {
+    const auto t = Config::parse_topology_config(config_file);
+    // Config::dump(t);
+    for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
+      for (int i = 0; i < cli.count; ++i) {
+        auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
+        // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
+        scenario.name += fmt::format(" A={}", A);
+        scenario.filename = config_file;
+      }
+    }
+  }
+}
+//----------------------------------------------------------------------
 
+void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
+{
   if ((false)) {
     for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
       std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
@@ -180,59 +204,49 @@ int main(int argc, char *argv[])
     scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(20), Count(40)));
     scenarios.emplace_back(engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
   }
+}
+//----------------------------------------------------------------------
+int main(int argc, char *argv[])
+{
+  setlocale(LC_NUMERIC, "en_US.UTF-8");
 
-  for (const auto &config_file : cli.scenario_files) {
-    const auto t = Config::parse_topology_config(config_file);
-    // Config::dump(t);
-    for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
-      for (int i = 0; i < cli.count; ++i) {
-        auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
-        // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
-        scenario.name += fmt::format(" A={}", A);
-        scenario.filename = config_file;
+  namespace po = boost::program_options;
+
+  auto desc = prepare_options_description();
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);
+
+  const CLI cli = parse_args(vm);
+
+  if (cli.help) {
+    print("{}", desc);
+    return 0;
+  }
+
+  std::vector<ScenarioSettings> scenarios;
+
+  prepare_custom_scenarios(scenarios, cli);
+  load_scenarios_from_files(scenarios, cli);
+
+  auto global_stats = run_scenarios(scenarios, cli);
+
+  if (!cli.quiet) {
+    for (auto &scenario : scenarios) {
+      print("\n[Main] {:-^100}\n", scenario.name);
+      scenario.world->print_stats();
+
+      if (scenario.do_after) {
+        scenario.do_after();
       }
+      print("[Main] {:^^100}\n", scenario.name);
     }
   }
 
-  {
-    nlohmann::json global_stats = {};
-    std::vector<bool> scenarios_state(scenarios.size());
-
-#pragma omp parallel for if (cli.parallel)
-    for (auto i = 0ul; i < scenarios.size(); ++i) {
-      run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
-
-      auto A_str = std::to_string(ts::get(scenarios[i].A));
-      auto filename = scenarios[i].filename;
-#pragma omp critical
-      {
-        auto &scenario_stats = global_stats[filename][A_str];
-        scenarios[i].world->append_stats(scenario_stats);
-        scenario_stats["_a"] = ts::get(scenarios[i].a);
-        scenario_stats["_A"] = ts::get(scenarios[i].A);
-
-        scenarios_state[i] = true;
-        print_state(scenarios_state);
-      }
-    }
-
-    if (!cli.quiet) {
-      for (auto &scenario : scenarios) {
-        print("\n[Main] {:-^100}\n", scenario.name);
-        scenario.world->print_stats();
-
-        if (scenario.do_after) {
-          scenario.do_after();
-        }
-        print("[Main] {:^^100}\n", scenario.name);
-      }
-      {
-        if (!cli.output_file.empty()) {
-          std::ofstream stats_file(cli.output_file);
-          stats_file << global_stats.dump(0);
-        }
-      }
-    }
+  if (!cli.output_file.empty()) {
+    std::ofstream stats_file(cli.output_file);
+    stats_file << global_stats.dump(0);
   }
 
   return 0;
