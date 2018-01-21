@@ -23,6 +23,7 @@
 void print_state(const std::vector<bool> &states)
 {
   constexpr auto width = 120;
+  const auto rows = states.size() / width + 2;
   std::stringstream str;
   int finished = 0;
   int current = 0;
@@ -34,10 +35,12 @@ void print_state(const std::vector<bool> &states)
   }
   str << "\033[0m";
   if (finished > 1) {
-    print("\033[2K\033[2F\033[2K"); // clear current and above line
+    for (auto row = 0u; row < rows; ++row) {
+      print("\033[2K\033[1F"); // clear current and above line
+    }
   }
   // print("\033[H\033[J"); // clear ANSI terminal
-  println("[Main]: Finished {}/{}: \n{}", finished, states.size(), str.str());
+  println("[Main]: {} Finished {}/{}: \n{}", rows, finished, states.size(), str.str());
 };
 
 //----------------------------------------------------------------------
