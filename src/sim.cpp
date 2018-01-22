@@ -98,7 +98,7 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
   nlohmann::json global_stats = {};
   std::vector<bool> scenarios_state(scenarios.size());
 
-#pragma omp parallel for if (cli.parallel)
+#pragma omp parallel for schedule (guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
     run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
 
