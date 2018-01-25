@@ -1,4 +1,18 @@
+"""Usage:
+    plot.py <DATA_FILE> [-p PROPERTY] [--linear] [--y_limit=Y_LIMIT]
+    plot.py -h | --help
 
+Arguments:
+    DATA_FILE   path to the file with data to plot
+
+Options:
+    -h --help               show this help message and exit
+    -p PROPERTY             property from data file to plot [default: P_block]
+    --linear                linear plot (default is log)
+    --y_limit=Y_LIMIT       bottom (for log) or top (for linear) limit on y axis [default: 1e-6]
+
+"""
+from docopt import docopt
 import sys
 import json
 #  from pprint import pprint
@@ -61,15 +75,21 @@ def set_plot_linear_style(ax, top=15e5):
     ax.set_ylim(bottom=0, top=top, auto=True, emit=True)
 
 
-def set_plot_log_style(ax):
+def set_plot_log_style(ax, bottom=1e-6):
     set_plot_style(ax)
     ax.set_yscale("log")
-    ax.set_ylim(bottom=1e-6, top=5, auto=True, emit=True)
+    ax.set_ylim(bottom=bottom, top=5, auto=True, emit=True)
 
 
-def main(argv):
-    print(argv[0])
-    data = json.load(open(argv[0]))
+def main():
+    args = docopt(__doc__, version='0.1')
+    print (args)
+    data = json.load(open(args["<DATA_FILE>"]))
+    property = args["-p"]
+    y_limit = float(args["--y_limit"])
+    logarithmic_plot = not args["--linear"]
+
+
     fig = plt.figure(figsize=(32, 18), tight_layout=True)
     plot_id = 1
 
@@ -82,15 +102,15 @@ def main(argv):
         tc_data_x = []
         tc_data_y = {}
         tc_data_y_by_size = {}
-        if False:
-            stat_name = "served"
+        if not logarithmic_plot:
+            stat_name = property
 
-            def set_style(ax): return set_plot_linear_style(ax, 1.5e5)
+            def set_style(ax): return set_plot_linear_style(ax, y_limit)
             aggregate = True
             plots_number_x = 2 * len(data)
         else:
-            stat_name = "P_block"
-            set_style = set_plot_log_style
+            stat_name = property
+            def set_style(ax): return set_plot_log_style(ax, y_limit)
             aggregate = False
 
         markers = ['+', 'x', 's']
@@ -138,4 +158,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
