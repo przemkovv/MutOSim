@@ -1,5 +1,5 @@
 """Usage:
-    plot.py <DATA_FILE> [-p PROPERTY] [--linear] [--y_limit=Y_LIMIT]
+    plot.py <DATA_FILE> [-p PROPERTY] [--linear] [--y_limit=Y_LIMIT] [-x X] [-y Y]
     plot.py -h | --help
 
 Arguments:
@@ -10,6 +10,8 @@ Options:
     -p PROPERTY             property from data file to plot [default: P_block]
     --linear                linear plot (default is log)
     --y_limit=Y_LIMIT       bottom (for log) or top (for linear) limit on y axis [default: 1e-6]
+    -x X                    number of plots horizontally [default: 3]
+    -y Y                    number of plots vertically [default: 3]
 
 """
 from docopt import docopt
@@ -93,8 +95,9 @@ def main():
     fig = plt.figure(figsize=(32, 18), tight_layout=True)
     plot_id = 1
 
-    plots_number_x = len(data)
-    plots_number_y = 3
+    plots_number_x = args["-x"]
+    #  plots_number_x = len(data)
+    plots_number_y = args["-y"]
 
     for scenario_file, scenario_results in data.items():
         tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
