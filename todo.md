@@ -1,6 +1,8 @@
 
 # Todo
 
+- differentiate tc more
+- capacities differentationt co
 - meta traffic class (for blocking time stats only)
 - traffic class priorities
 - subgroups
