@@ -4,6 +4,7 @@
 #include "group.h"
 #include "load.h"
 #include "source_stream/source_stream.h"
+#include "utils.h"
 
 #include <type_traits>
 
@@ -64,22 +65,6 @@ std::optional<observer_ptr<Group>> OverflowPolicy::find_next_group(const Load &l
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &load)
 {
-  auto contains = [](const auto &container, const auto &value) {
-    return find(begin(container), end(container), value) != end(container);
-  };
-
-  auto count_same_layer_groups = [](const auto &path, auto layer) {
-    return count_if(begin(path), end(path), [layer](const auto &group_ptr) {
-      return group_ptr->layer_ == layer;
-    });
-  };
-
-  auto get_random_element = [](const auto &container, auto &random_engine) {
-    std::remove_cv_t<std::remove_reference_t<decltype(*begin(container))>> elem;
-    std::sample(begin(container), end(container), &elem, 1, random_engine);
-    return elem;
-  };
-
   std::vector<observer_ptr<Group>> available_groups;
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
@@ -110,16 +95,8 @@ std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Load &load)
 {
-  auto contains = [](const auto &container, const auto &value) {
-    return find(begin(container), end(container), value) != end(container);
-  };
-
-  auto count_same_layer_groups = [](const auto &path, auto layer) {
-    return count_if(begin(path), end(path), [layer](const auto &group_ptr) {
-      return group_ptr->layer_ == layer;
-    });
-  };
   std::vector<observer_ptr<Group>> available_groups;
+  
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
                back_inserter(available_groups), [&](const auto &group) {
@@ -144,16 +121,8 @@ std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Lo
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Load &load)
 {
-  auto contains = [](const auto &container, const auto &value) {
-    return find(begin(container), end(container), value) != end(container);
-  };
-
-  auto count_same_layer_groups = [](const auto &path, auto layer) {
-    return count_if(begin(path), end(path), [layer](const auto &group_ptr) {
-      return group_ptr->layer_ == layer;
-    });
-  };
   std::vector<observer_ptr<Group>> available_groups;
+
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
                back_inserter(available_groups), [&](const auto &group) {
