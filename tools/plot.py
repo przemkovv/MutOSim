@@ -16,11 +16,14 @@ Options:
 
 """
 from docopt import docopt
-import sys
+from collections import defaultdict
 import json
-#  from pprint import pprint
+from pprint import pprint
 import matplotlib.pyplot as plt
+import scipy.stats as st
+import numpy as np
 from matplotlib.ticker import AutoMinorLocator
+
 import itertools
 import statistics
 
@@ -54,15 +57,27 @@ def append_tc_stat_for_groups_by_size(tc_data_y, scenario_result, stat_name, tc_
             tc_series.append(data)
 
 
-def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name):
+def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_by_groups):
     for group_name, tcs_stats in scenario_result.items():
         if group_name.startswith("_"):
             continue
         group_y = tc_data_y.setdefault(group_name, {})
-        for tc_id, tc_stats in tcs_stats.items():
+        print(group_name)
+        for tc_id in tcs_served_by_groups[group_name]:
             tc_series = group_y.setdefault(int(tc_id), [])
-            #  tc_series.append(tc_stats[stat_name])
-            tc_series.append(statistics.mean(tc_stats[stat_name]))
+            if tc_id in tcs_stats:
+                tc_stats = tcs_stats[tc_id]
+                tc_serie = tc_stats[stat_name]
+                mean = np.mean(tc_serie)
+                tc_series.append(mean)
+                if len(tc_serie) > 1:
+                    ci_interval = st.t.interval(
+                        0.95, len(tc_serie)-1, loc=mean, scale=st.sem(tc_serie))
+                    pprint((ci_interval - mean )/mean)
+            else:
+                tc_series.append(0)
+
+    print("RRR")
 
 
 def set_plot_style(ax):
@@ -84,20 +99,33 @@ def set_plot_log_style(ax, bottom=1e-6):
     ax.set_ylim(bottom=bottom, top=5, auto=True, emit=True)
 
 
+def get_tcs_served_by_groups(scenario_results):
+    tcs_served_by_groups = {}
+    for _, result in scenario_results.items():
+        for group_name, tcs_stats in result.items():
+            if group_name.startswith("_"):
+                continue
+            tcs_served_by_group = tcs_served_by_groups.setdefault(
+                group_name, [])
+            for tc_id, tc_stats in tcs_stats.items():
+                if tc_id not in tcs_served_by_group:
+                    tcs_served_by_group.append(tc_id)
+    for _, tcs in tcs_served_by_groups.items():
+        tcs.sort()
+    return tcs_served_by_groups
+
+
 def main():
     args = docopt(__doc__, version='0.1')
-    print (args)
     data = json.load(open(args["<DATA_FILE>"]))
     property = args["-p"]
     y_limit = float(args["--y_limit"])
     logarithmic_plot = not args["--linear"]
 
-
     fig = plt.figure(figsize=(32, 18), tight_layout=True)
     plot_id = 1
 
     plots_number_x = args["-x"]
-    #  plots_number_x = len(data)
     plots_number_y = args["-y"]
 
     for scenario_file, scenario_results in data.items():
@@ -114,14 +142,18 @@ def main():
             plots_number_x = 2 * len(data)
         else:
             stat_name = property
+
             def set_style(ax): return set_plot_log_style(ax, y_limit)
             aggregate = False
 
         markers = ['+', 'x', 's']
 
+        tcs_served_by_groups = get_tcs_served_by_groups(scenario_results)
+
         for A, result in scenario_results.items():
             tc_data_x.append(float(result["_a"]))
-            append_tc_stat_for_groups(tc_data_y, result, stat_name)
+            append_tc_stat_for_groups(
+                tc_data_y, result, stat_name, tcs_served_by_groups)
             if aggregate:
                 append_tc_stat_for_groups_by_size(
                     tc_data_y_by_size, result, stat_name, tc_sizes)
