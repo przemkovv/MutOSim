@@ -24,6 +24,12 @@ make_overflow_policy(std::optional<std::string_view> name, gsl::not_null<Group *
     if (name == "no_overflow"sv) {
       return std::make_unique<NoOverflow>(group);
     }
+    if (name == "highest_free_capacity"sv) {
+      return std::make_unique<HighestFreeCapacity>(group);
+    }
+    if (name == "lowest_free_capacity"sv) {
+      return std::make_unique<HighestFreeCapacity>(group);
+    }
     if (name == "default"sv) {
       return std::make_unique<Default>(group);
     }

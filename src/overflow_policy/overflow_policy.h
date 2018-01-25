@@ -27,6 +27,8 @@ protected:
   observer_ptr<Group> group_;
   observer_ptr<World> world_;
 
+  static constexpr int overflows_per_layer = 1;
+
 public:
   OverflowPolicy(gsl::not_null<Group *> group);
   virtual std::optional<observer_ptr<Group>> find_next_group(const Load &load);

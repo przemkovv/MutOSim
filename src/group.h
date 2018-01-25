@@ -42,6 +42,7 @@ struct Group {
   void set_end_time(Load &load);
   bool forward(Load load);
 
+  Size free_capacity() { return capacity_ - size_; }
   bool can_serve(const Size &load_size);
   bool can_serve_recursive(const TrafficClass &tc, Path &path);
   void block(TrafficClassId tc_id, const Load &load);

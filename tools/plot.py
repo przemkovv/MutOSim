@@ -1,3 +1,4 @@
+#!/bin/python
 """Usage:
     plot.py <DATA_FILE> [-p PROPERTY] [--linear] [--y_limit=Y_LIMIT] [-x X] [-y Y]
     plot.py -h | --help
@@ -156,7 +157,7 @@ def main():
             plot_id += 1
             ax.legend()
 
-    plt.savefig("test.pdf")
+    #  plt.savefig("test.pdf")
     plt.show()
 
 
