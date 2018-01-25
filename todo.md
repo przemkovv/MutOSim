@@ -47,6 +47,12 @@
 - add traffic class id
 
 
+# Notes
+
+## Computing offered traffic intensity
+
+Should be all topology be taken into account?
+
 # Dictionary
 
 - lambda - intensywność zgłoszeń - (ang. request intensity)
