@@ -15,6 +15,7 @@ struct CLI {
   bool use_random_seed;
   bool quiet;
   std::string output_file;
+  std::string output_dir;
   bool parallel;
   Duration duration;
   Intensity A_start;

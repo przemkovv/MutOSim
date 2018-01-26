@@ -14,6 +14,7 @@
 #include "scenarios/topology_based.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/program_options/parsers.hpp>
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <fstream>
@@ -53,6 +54,7 @@ CLI parse_args(const boost::program_options::variables_map &vm)
   cli.use_random_seed = vm.count("random") > 0;
   cli.quiet = vm.count("quiet") > 0;
   cli.output_file = vm["output-file"].as<std::string>();
+  cli.output_dir = vm["output-dir"].as<std::string>();
   cli.parallel = vm["parallel"].as<bool>();
   cli.duration = Duration{vm["duration"].as<time_type>()};
   cli.A_start = Intensity{vm["start"].as<intensity_t>()};
@@ -81,6 +83,8 @@ boost::program_options::options_description prepare_options_description()
                         "a file with scenario")
     ("output-file,o", po::value<std::string>()->default_value(""),
                         "output file with stats")
+    ("output-dir,d", po::value<std::string>()->default_value(""),
+                        "output directory")
     ("duration,t", po::value<time_type>()->default_value(100'000), "duration of the simulation")
     ("parallel,p", po::value<bool>()->default_value(true), "run simulations in parallel")
     ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group")
@@ -222,8 +226,12 @@ int main(int argc, char *argv[])
 
   po::variables_map vm;
   // po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
-  po::notify(vm);
+  {
+    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+    std::ifstream cfg_file{"mutosim.cfg"};
+    po::store(po::parse_config_file(cfg_file, desc), vm);
+    po::notify(vm);
+  }
 
   const CLI cli = parse_args(vm);
 
@@ -235,11 +243,12 @@ int main(int argc, char *argv[])
   if (!std::all_of(begin(cli.scenario_files), end(cli.scenario_files),
                    [](const std::string &file) {
                      namespace fs = boost::filesystem;
-                     if (exists(fs::path{file})) {
+                     if (auto path = fs::path{file}; exists(path)) {
                        return true;
+                     } else {
+                       println("[Main] Scenario file {} doesn't exists.", path);
+                       return false;
                      }
-                     println("[Main] Scenario file '{}' doesn't exists.", file);
-                     return false;
                    })) {
     return ENOENT;
   }
@@ -264,7 +273,10 @@ int main(int argc, char *argv[])
   }
 
   if (!cli.output_file.empty()) {
-    std::ofstream stats_file(cli.output_file);
+    boost::filesystem::path output_file{cli.output_dir};
+    output_file /= cli.output_file;
+    create_directories(output_file.parent_path());
+    std::ofstream stats_file(output_file.string());
     stats_file << global_stats.dump(0);
   }
 
