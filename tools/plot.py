@@ -66,22 +66,15 @@ def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_
         if group_name.startswith("_"):
             continue
         group_y = tc_data_y.setdefault(group_name, {})
-        print(group_name)
         for tc_id in tcs_served_by_groups[group_name]:
             tc_series = group_y.setdefault(int(tc_id), [])
             if tc_id in tcs_stats:
                 tc_stats = tcs_stats[tc_id]
                 tc_serie = tc_stats[stat_name]
                 mean = np.mean(tc_serie)
-                tc_series.append(mean)
-                if len(tc_serie) > 1:
-                    ci_interval = st.t.interval(
-                        0.95, len(tc_serie)-1, loc=mean, scale=st.sem(tc_serie))
-                    pprint((ci_interval - mean)/mean)
+                tc_series.append(tc_serie)
             else:
                 tc_series.append(0)
-
-    print("RRR")
 
 
 def set_plot_style(ax):
@@ -180,7 +173,10 @@ def main():
             for tc_id, data_y in group_data_y.items():
                 #  ax.plot(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
                 #  marker=next(markerscycle))
-                ax.plot(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
+
+                ax.boxplot(data_y, positions=tc_data_x, notch=False,
+                           widths=0.05, bootstrap=10000, sym='', vert=True, patch_artist=False, manage_xticks=False)
+                ax.plot(tc_data_x, np.mean(data_y, 1), label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
                         marker=next(markerscycle))
 
             set_style(ax)
@@ -192,7 +188,8 @@ def main():
 
     if args["--save"]:
         output_dir = args["--output-dir"]
-        os.makedirs(output_dir)
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
         output_file = path.splitext(path.basename(data_file))[0] + ".pdf"
         output_file = path.join(output_dir, output_file)
         plt.savefig(output_file)
