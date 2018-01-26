@@ -28,10 +28,12 @@
   - chaining policies, e.g.
     - select_available ->  limit_groups_per_layer -> select highest_capacity_groups,
     - select_available ->  limit_groups_per_layer -> select random
-  - graphviz to display topology
   - divide simulation into epochs?
 
 # Done
+
+- Technical
+  - graphviz to display topology
 
 - statistics: export to json
 - plotting
