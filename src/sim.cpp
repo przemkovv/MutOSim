@@ -13,6 +13,7 @@
 #include "scenarios/single_overflow.h"
 #include "scenarios/topology_based.h"
 
+#include <boost/filesystem.hpp>
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <fstream>
@@ -98,7 +99,7 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
   nlohmann::json global_stats = {};
   std::vector<bool> scenarios_state(scenarios.size());
 
-#pragma omp parallel for schedule (guided, 8) if (cli.parallel)
+#pragma omp parallel for schedule(guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
     run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
 
@@ -216,9 +217,12 @@ int main(int argc, char *argv[])
   namespace po = boost::program_options;
 
   auto desc = prepare_options_description();
+  po::positional_options_description p;
+  p.add("scenario-file", -1);
 
   po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
+  // po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
   po::notify(vm);
 
   const CLI cli = parse_args(vm);
@@ -226,6 +230,18 @@ int main(int argc, char *argv[])
   if (cli.help) {
     print("{}", desc);
     return 0;
+  }
+
+  if (!std::all_of(begin(cli.scenario_files), end(cli.scenario_files),
+                   [](const std::string &file) {
+                     namespace fs = boost::filesystem;
+                     if (exists(fs::path{file})) {
+                       return true;
+                     }
+                     println("[Main] Scenario file '{}' doesn't exists.", file);
+                     return false;
+                   })) {
+    return ENOENT;
   }
 
   std::vector<ScenarioSettings> scenarios;
