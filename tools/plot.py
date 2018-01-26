@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 
 """
+Simulator of network with Mutual Overflows.
+
 Usage:
-    plot.py <DATA_FILE> [-p PROPERTY] [--linear] [--y_limit=Y_LIMIT] [-x X] [-y Y] [--save] [--output-dir=DIR]
+    plot.py <DATA_FILE> [-p PROPERTY]
+            [--linear] [--y_limit=Y_LIMIT]
+            [-x X] [-y Y]
+            [--save] [--output-dir=DIR]
     plot.py -h | --help
 
 Arguments:
@@ -22,13 +27,11 @@ Options:
 import os.path as path
 import os
 import json
-from pprint import pprint
 import statistics
 import itertools
 from docopt import docopt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
-import scipy.stats as st
 import numpy as np
 
 
@@ -71,7 +74,6 @@ def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_
             if tc_id in tcs_stats:
                 tc_stats = tcs_stats[tc_id]
                 tc_serie = tc_stats[stat_name]
-                mean = np.mean(tc_serie)
                 tc_series.append(tc_serie)
             else:
                 tc_series.append(0)

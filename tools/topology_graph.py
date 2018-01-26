@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-"""Usage:
+"""
+Visualizer of the topology.
+
+Usage:
     topology_graph.py <TOPOLOGY_FILE> [--output-dir=DIR] [--view]
     topology_graph.py -h | --help
 
@@ -9,7 +12,7 @@ Arguments:
 
 Options:
     -h --help                   show this help message and exit
-    -v, --view                  show the output file
+    -v, --view                  show the output file with default viewier
     -d DIR, --output-dir=DIR    directory where the files are saved [default: data/results/]
 """
 import json
