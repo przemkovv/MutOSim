@@ -1,31 +1,32 @@
 #!/bin/python
 """Usage:
-    plot.py <DATA_FILE> [-p PROPERTY] [--linear] [--y_limit=Y_LIMIT] [-x X] [-y Y]
+    plot.py <DATA_FILE> [-p PROPERTY] [--linear] [--y_limit=Y_LIMIT] [-x X] [-y Y] [--save] [--output-dir=DIR]
     plot.py -h | --help
 
 Arguments:
     DATA_FILE   path to the file with data to plot
 
 Options:
-    -h --help               show this help message and exit
-    -p PROPERTY             property from data file to plot [default: P_block]
-    --linear                linear plot (default is log)
-    --y_limit=Y_LIMIT       bottom (for log) or top (for linear) limit on y axis [default: 1e-6]
-    -x X                    number of plots horizontally [default: 3]
-    -y Y                    number of plots vertically [default: 3]
+    -h --help                   show this help message and exit
+    -p PROPERTY                 property from data file to plot [default: P_block]
+    --linear                    linear plot (default is log)
+    --y_limit=Y_LIMIT           bottom (for log) or top (for linear) limit on y axis [default: 1e-6]
+    -x X                        number of plots horizontally [default: 3]
+    -y Y                        number of plots vertically [default: 3]
+    -s, --save                  save to file
+    -d DIR, --output-dir=DIR    directory where the files are saved [default: data/results/]
 
 """
-from docopt import docopt
-from collections import defaultdict
+import os.path as path
 import json
 from pprint import pprint
+import statistics
+import itertools
+from docopt import docopt
 import matplotlib.pyplot as plt
+from matplotlib.ticker import AutoMinorLocator
 import scipy.stats as st
 import numpy as np
-from matplotlib.ticker import AutoMinorLocator
-
-import itertools
-import statistics
 
 
 def load_traffic_classes_sizes(scenario_file):
@@ -117,7 +118,8 @@ def get_tcs_served_by_groups(scenario_results):
 
 def main():
     args = docopt(__doc__, version='0.1')
-    data = json.load(open(args["<DATA_FILE>"]))
+    data_file = args["<DATA_FILE>"]
+    data = json.load(open(data_file))
     property = args["-p"]
     y_limit = float(args["--y_limit"])
     logarithmic_plot = not args["--linear"]
@@ -189,7 +191,11 @@ def main():
             plot_id += 1
             ax.legend()
 
-    #  plt.savefig("test.pdf")
+    if args["--save"]:
+        output_dir=args["--output-dir"]
+        output_file = path.splitext(path.basename(data_file))[0] + ".pdf"
+        output_file = path.join(output_dir, output_file)
+        plt.savefig(output_file)
     plt.show()
 
 
