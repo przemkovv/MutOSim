@@ -165,19 +165,19 @@ void from_json(const json &j, Topology &t)
     result.update(j2);
     return result;
   };
-  for (const auto &tc_j : json::iterator_wrapper(j["traffic_classes"])) {
+  for (const auto &tc_j : j["traffic_classes"].items()) {
     if (tc_j.key() == "_default")
       continue;
     TrafficClass tc = merge(default_tc, tc_j.value());
     tc.id = TrafficClassId{stoul(tc_j.key())};
     t.traffic_classes.emplace(tc.id, std::move(tc));
   }
-  for (const auto &source_j : json::iterator_wrapper(j["sources"])) {
+  for (const auto &source_j : j["sources"].items()) {
     Source source = source_j.value();
     source.name = SourceName{source_j.key()};
     t.sources.push_back(source);
   }
-  for (const auto &group_j : json::iterator_wrapper(j["groups"])) {
+  for (const auto &group_j : j["groups"].items()) {
     Group group = group_j.value();
     group.name = GroupName{group_j.key()};
     t.groups.emplace(group.name, group);
