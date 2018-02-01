@@ -13,7 +13,7 @@
 #include <queue>
 #include <random>
 
-#include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 
 struct Group;
 class SourceStream;

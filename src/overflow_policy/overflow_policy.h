@@ -27,7 +27,7 @@ protected:
   observer_ptr<Group> group_;
   observer_ptr<World> world_;
 
-  static constexpr int overflows_per_layer = 1;
+  static constexpr int overflows_per_layer = 2;
 
 public:
   OverflowPolicy(gsl::not_null<Group *> group);

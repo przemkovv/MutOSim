@@ -6,7 +6,7 @@
 #include "types.h"
 
 #include <boost/program_options.hpp>
-#include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <vector>
 

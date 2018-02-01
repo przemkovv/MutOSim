@@ -3,3 +3,4 @@ tags
 .clang-tidy-fixes
 compile_commands.json
 tags.*
+data/results/

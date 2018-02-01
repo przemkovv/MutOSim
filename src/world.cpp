@@ -6,6 +6,8 @@
 #include "logger.h"
 #include "source_stream/source_stream.h"
 
+#include <nlohmann/json.hpp>
+
 World::World(uint64_t seed, Duration duration)
   : seed_(seed), duration_(duration)
 {

@@ -14,6 +14,7 @@
 #include "scenarios/topology_based.h"
 
 #include <boost/filesystem.hpp>
+#include <nlohmann/json.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <experimental/memory>
 #include <fmt/format.h>
