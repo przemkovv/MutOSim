@@ -75,11 +75,7 @@ std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &
                });
   sort(begin(available_groups), end(available_groups),
        [](const auto &group_ptr1, const auto &group_ptr2) {
-         if (group_ptr1->layer_ == group_ptr2->layer_) {
-           return group_ptr1->free_capacity() < group_ptr2->free_capacity();
-         } else {
-           return group_ptr1->layer_ < group_ptr2->layer_;
-         }
+         return group_ptr1->layer_ < group_ptr2->layer_;
        });
   std::vector<observer_ptr<Group>> available_groups_same_layer;
   std::copy_if(begin(available_groups), end(available_groups),
@@ -88,6 +84,9 @@ std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &
                  return group->layer_ == layer;
                });
   if (!available_groups_same_layer.empty()) {
+    if (available_groups_same_layer.size() == 1) {
+      return available_groups_same_layer.front();
+    }
     return get_random_element(available_groups_same_layer, world_->get_random_engine());
   }
   return {};
