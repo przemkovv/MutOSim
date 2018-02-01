@@ -77,7 +77,7 @@ def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_
                 tc_serie = tc_stats[stat_name]
                 tc_series.append(tc_serie)
             else:
-                tc_series.append(0.0)
+                tc_series.append([0.0])
 
 
 def set_plot_style(ax):
