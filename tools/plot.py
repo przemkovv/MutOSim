@@ -8,6 +8,7 @@ Usage:
             [--linear] [--y_limit=Y_LIMIT]
             [-x X] [-y Y]
             [--save] [--output-dir=DIR]
+            [--bp]
     plot.py -h | --help
 
 Arguments:
@@ -22,6 +23,7 @@ Options:
     -y Y                        number of plots vertically [default: 3]
     -s, --save                  save to file
     -d DIR, --output-dir=DIR    directory where the files are saved [default: data/results/plots/]
+    --bp                        enable box plots
 
 """
 import os.path as path
@@ -75,7 +77,7 @@ def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_
                 tc_serie = tc_stats[stat_name]
                 tc_series.append(tc_serie)
             else:
-                tc_series.append([0.0] * 10)
+                tc_series.append(0.0)
 
 
 def set_plot_style(ax):
@@ -120,8 +122,12 @@ def main():
     stat_name = args["-p"]
     y_limit = float(args["--y_limit"])
     logarithmic_plot = not args["--linear"]
+    enable_boxplots = args["--bp"]
+
+    title = path.splitext(path.basename(data_file))[0] + "_" + stat_name
 
     fig = plt.figure(figsize=(32, 18), tight_layout=True)
+    fig.canvas.set_window_title(title)
     plot_id = 1
 
     plots_number_x = args["-x"]
@@ -172,9 +178,11 @@ def main():
             ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
             for tc_id, data_y in group_data_y.items():
 
-                ax.boxplot(data_y, positions=tc_data_x, notch=False,
-                           widths=0.05, bootstrap=10000, sym='',
-                           vert=True, patch_artist=False, manage_xticks=False)
+                if enable_boxplots:
+                    ax.boxplot(data_y, positions=tc_data_x, notch=False,
+                               widths=0.05, bootstrap=10000, sym='',
+                               vert=True, patch_artist=False, manage_xticks=False)
+
                 ax.plot(tc_data_x,
                         [statistics.mean(serie) for serie in data_y],
                         label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
@@ -193,8 +201,7 @@ def main():
         output_dir = args["--output-dir"]
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
-        output_file = path.splitext(path.basename(data_file))[
-            0] + "_" + stat_name + ".pdf"
+        output_file = title + ".pdf"
         output_file = path.join(output_dir, output_file)
         plt.savefig(output_file)
     plt.show()
