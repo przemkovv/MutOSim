@@ -32,7 +32,6 @@ import itertools
 from docopt import docopt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
-import numpy as np
 
 
 def load_traffic_classes_sizes(scenario_file):
@@ -76,7 +75,7 @@ def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_
                 tc_serie = tc_stats[stat_name]
                 tc_series.append(tc_serie)
             else:
-                tc_series.append(0)
+                tc_series.append([0.0] * 10)
 
 
 def set_plot_style(ax):
@@ -158,7 +157,6 @@ def main():
             markerscycle = itertools.cycle(markers)
             ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
             for tc_size, data_y in group_data_y.items():
-                #  ax.boxplot(data_y,positions=tc_data_x, notch=True, widths=0.05,sym='')
                 ax.plot(tc_data_x, data_y, label="S{}".format(tc_size),
                         marker=next(markerscycle))
 
@@ -173,16 +171,19 @@ def main():
             markerscycle = itertools.cycle(markers)
             ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
             for tc_id, data_y in group_data_y.items():
-                #  ax.plot(tc_data_x, data_y, label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
-                #  marker=next(markerscycle))
 
                 ax.boxplot(data_y, positions=tc_data_x, notch=False,
-                           widths=0.05, bootstrap=10000, sym='', vert=True, patch_artist=False, manage_xticks=False)
-                ax.plot(tc_data_x, np.mean(data_y, 1), label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
+                           widths=0.05, bootstrap=10000, sym='',
+                           vert=True, patch_artist=False, manage_xticks=False)
+                ax.plot(tc_data_x,
+                        [statistics.mean(serie) for serie in data_y],
+                        label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
                         marker=next(markerscycle))
 
             set_style(ax)
-            ax.set_title("{} ({})".format(group_name, scenario["name"]))
+            ax.set_title("{} V{} ({})".format(group_name,
+                                              scenario["groups"][group_name]["capacity"],
+                                              scenario["name"]))
             ax.set_ylabel(stat_name)
             ax.set_xlabel("a")
             plot_id += 1
@@ -192,7 +193,8 @@ def main():
         output_dir = args["--output-dir"]
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
-        output_file = path.splitext(path.basename(data_file))[0] + ".pdf"
+        output_file = path.splitext(path.basename(data_file))[
+            0] + "_" + stat_name + ".pdf"
         output_file = path.join(output_dir, output_file)
         plt.savefig(output_file)
     plt.show()

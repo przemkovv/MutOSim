@@ -188,9 +188,12 @@ Stats Group::get_stats()
 {
   Stats stats;
 
+
   auto sim_duration = Duration{world_->get_time()};
   for (auto &[tc_id, load_stats] : served_by_tc) {
     auto &serve_stats = served_by_tc[tc_id];
+    if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
+      continue;
     stats.by_traffic_class[tc_id] = {{serve_stats.lost, serve_stats.served},
                                      blocked_by_tc[tc_id].block_time,
                                      sim_duration};

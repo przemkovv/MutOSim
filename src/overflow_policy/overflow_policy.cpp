@@ -96,7 +96,7 @@ std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &
 std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Load &load)
 {
   std::vector<observer_ptr<Group>> available_groups;
-  
+
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
                back_inserter(available_groups), [&](const auto &group) {
@@ -106,15 +106,29 @@ std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Lo
                });
 
   if (!available_groups.empty()) {
+    if (available_groups.size() == 1) {
+      return available_groups.front();
+    }
     sort(begin(available_groups), end(available_groups),
          [](const auto &group_ptr1, const auto &group_ptr2) {
            if (group_ptr1->layer_ == group_ptr2->layer_) {
-             return group_ptr1->free_capacity() < group_ptr2->free_capacity();
+             return group_ptr1->free_capacity() > group_ptr2->free_capacity();
            } else {
              return group_ptr1->layer_ < group_ptr2->layer_;
            }
          });
-    return available_groups.front();
+
+    std::vector<observer_ptr<Group>> final_groups;
+    final_groups.reserve(available_groups.size());
+    std::copy_if(begin(available_groups), end(available_groups),
+                 back_inserter(final_groups), [&g1 = available_groups.front()](auto &g2) {
+                   return g1->free_capacity() == g2->free_capacity() &&
+                          g1->layer_ == g2->layer_;
+                 });
+    if (final_groups.size() == 1) {
+      return final_groups.front();
+    }
+    return get_random_element(final_groups, world_->get_random_engine());
   }
   return {};
 }
@@ -132,6 +146,9 @@ std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Loa
                });
 
   if (!available_groups.empty()) {
+    if (available_groups.size() == 1) {
+      return available_groups.front();
+    }
     sort(begin(available_groups), end(available_groups),
          [](const auto &group_ptr1, const auto &group_ptr2) {
            if (group_ptr1->layer_ == group_ptr2->layer_) {
@@ -140,7 +157,17 @@ std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Loa
              return group_ptr1->layer_ < group_ptr2->layer_;
            }
          });
-    return available_groups.front();
+    std::vector<observer_ptr<Group>> final_groups;
+    final_groups.reserve(available_groups.size());
+    std::copy_if(begin(available_groups), end(available_groups),
+                 back_inserter(final_groups), [&g1 = available_groups.front()](auto &g2) {
+                   return g1->free_capacity() == g2->free_capacity() &&
+                          g1->layer_ == g2->layer_;
+                 });
+    if (final_groups.size() == 1) {
+      return final_groups.front();
+    }
+    return get_random_element(final_groups, world_->get_random_engine());
   }
   return {};
 }
