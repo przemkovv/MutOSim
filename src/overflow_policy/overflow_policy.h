@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types.h"
 #include "load.h"
+#include "types.h"
 #include <gsl/gsl>
 #include <optional>
 
@@ -21,6 +21,7 @@ class LowestFreeCapacity;
 
 using Default = NoOverflow;
 
+using GroupPtr = observer_ptr<Group>;
 //----------------------------------------------------------------------
 class OverflowPolicy
 {
@@ -31,7 +32,11 @@ protected:
   static constexpr int overflows_per_layer = 2;
   std::array<int, MaxLayersNumber> count_layers_usage(const Path &path) const;
 
-  std::optional<observer_ptr<Group>> fallback_policy();
+  std::optional<GroupPtr> fallback_policy();
+  std::vector<GroupPtr> get_available_groups(const Load &load);
+
+  template <typename BeginIt, typename EndIt>
+  GroupPtr pick_random(BeginIt &&begin, EndIt &&end);
 
 public:
   OverflowPolicy(gsl::not_null<Group *> group);

@@ -20,6 +20,12 @@ void OverflowPolicy::set_world(gsl::not_null<World *> world)
   world_ = make_observer(world.get());
 }
 
+template <typename BeginIt, typename EndIt>
+GroupPtr OverflowPolicy::pick_random(BeginIt &&begin, EndIt &&end)
+{
+  return get_random_element(begin, end, world_->get_random_engine());
+}
+
 std::array<int, MaxLayersNumber>
 OverflowPolicy::count_layers_usage(const Path &path) const
 {
@@ -29,19 +35,33 @@ OverflowPolicy::count_layers_usage(const Path &path) const
   }
   return layers_usage_counter;
 }
+std::vector<GroupPtr> OverflowPolicy::get_available_groups(const Load &load)
+{
+  const auto layers_usage = count_layers_usage(load.path);
+  std::vector<observer_ptr<Group>> available_groups;
+
+  available_groups.reserve(group_->next_groups_.size());
+  std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
+               back_inserter(available_groups), [&](const auto &group) {
+                 return layers_usage[group->layer_] < overflows_per_layer &&
+                        group->can_serve(load.size) && !contains(load.path, group);
+               });
+  return available_groups;
+}
 
 std::optional<observer_ptr<Group>> OverflowPolicy::fallback_policy()
 {
   std::vector<observer_ptr<Group>> available_groups;
+
   available_groups.reserve(group_->next_groups_.size());
   auto current_layer = group_->layer_;
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
                back_inserter(available_groups), [current_layer](const auto &group) {
                  return group->layer_ > current_layer;
                });
+
   if (!available_groups.empty()) {
-    return get_random_element(begin(available_groups), end(available_groups),
-                              world_->get_random_engine());
+    return pick_random(begin(available_groups), end(available_groups));
   }
   return {};
 }
@@ -91,15 +111,7 @@ std::optional<observer_ptr<Group>> OverflowPolicy::find_next_group(const Load &l
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &load)
 {
-  const auto layers_usage = count_layers_usage(load.path);
-
-  std::vector<observer_ptr<Group>> available_groups;
-  available_groups.reserve(group_->next_groups_.size());
-  std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
-               back_inserter(available_groups), [&](const auto &group) {
-                 return layers_usage[group->layer_] < overflows_per_layer &&
-                        group->can_serve(load.size) && !contains(load.path, group);
-               });
+  auto available_groups = get_available_groups(load);
 
   if (!available_groups.empty()) {
     if (available_groups.size() == 1) {
@@ -114,23 +126,15 @@ std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &
     auto end_of_layer_it =
         std::find_if_not(next(begin(available_groups)), end(available_groups),
                          [=](const auto &group) { return group->layer_ == layer; });
-    return get_random_element(begin(available_groups), end_of_layer_it,
-                              world_->get_random_engine());
+
+    return pick_random(begin(available_groups), end_of_layer_it);
   }
   return fallback_policy();
 }
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Load &load)
 {
-  const auto layers_usage = count_layers_usage(load.path);
-  std::vector<observer_ptr<Group>> available_groups;
-
-  available_groups.reserve(group_->next_groups_.size());
-  std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
-               back_inserter(available_groups), [&](const auto &group) {
-                 return layers_usage[group->layer_] < overflows_per_layer &&
-                        group->can_serve(load.size) && !contains(load.path, group);
-               });
+  auto available_groups = get_available_groups(load);
 
   if (!available_groups.empty()) {
     sort(begin(available_groups), end(available_groups),
@@ -147,23 +151,15 @@ std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Lo
         next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
           return g1->free_capacity() == g2->free_capacity() && g1->layer_ == g2->layer_;
         });
-    return get_random_element(begin(available_groups), end_of_equal_groups_it,
-                              world_->get_random_engine());
+
+    return pick_random(begin(available_groups), end_of_equal_groups_it);
   }
   return fallback_policy();
 }
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Load &load)
 {
-  const auto layers_usage = count_layers_usage(load.path);
-  std::vector<observer_ptr<Group>> available_groups;
-
-  available_groups.reserve(group_->next_groups_.size());
-  std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
-               back_inserter(available_groups), [&](const auto &group) {
-                 return layers_usage[group->layer_] < overflows_per_layer &&
-                        group->can_serve(load.size) && !contains(load.path, group);
-               });
+  auto available_groups = get_available_groups(load);
 
   if (!available_groups.empty()) {
     sort(begin(available_groups), end(available_groups),
@@ -180,8 +176,7 @@ std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Loa
         next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
           return g1->free_capacity() == g2->free_capacity() && g1->layer_ == g2->layer_;
         });
-    return get_random_element(begin(available_groups), end_of_equal_groups_it,
-                              world_->get_random_engine());
+    return pick_random(begin(available_groups), end_of_equal_groups_it);
   }
   return fallback_policy();
 }
