@@ -30,6 +30,22 @@ OverflowPolicy::count_layers_usage(const Path &path) const
   return layers_usage_counter;
 }
 
+std::optional<observer_ptr<Group>> OverflowPolicy::fallback_policy()
+{
+  std::vector<observer_ptr<Group>> available_groups;
+  available_groups.reserve(group_->next_groups_.size());
+  auto current_layer = group_->layer_;
+  std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
+               back_inserter(available_groups), [current_layer](const auto &group) {
+                 return group->layer_ > current_layer;
+               });
+  if (!available_groups.empty()) {
+    return get_random_element(begin(available_groups), end(available_groups),
+                              world_->get_random_engine());
+  }
+  return {};
+}
+
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> NoOverflow::find_next_group(const Load & /* load */)
 {
@@ -101,7 +117,7 @@ std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &
     return get_random_element(begin(available_groups), end_of_layer_it,
                               world_->get_random_engine());
   }
-  return {};
+  return fallback_policy();
 }
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Load &load)
@@ -134,7 +150,7 @@ std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Lo
     return get_random_element(begin(available_groups), end_of_equal_groups_it,
                               world_->get_random_engine());
   }
-  return {};
+  return fallback_policy();
 }
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Load &load)
@@ -167,7 +183,7 @@ std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Loa
     return get_random_element(begin(available_groups), end_of_equal_groups_it,
                               world_->get_random_engine());
   }
-  return {};
+  return fallback_policy();
 }
 
 } // namespace overflow_policy

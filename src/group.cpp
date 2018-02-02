@@ -80,9 +80,6 @@ bool Group::try_serve(Load load)
     world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
   }
-    if (layer_ == 1) {
-      println("End");
-    }
   debug_print("{} Forwarding request: {}\n", *this, load);
   load.path.emplace_back(make_observer(this));
   return forward(load);

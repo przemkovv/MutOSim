@@ -31,6 +31,8 @@ protected:
   static constexpr int overflows_per_layer = 2;
   std::array<int, MaxLayersNumber> count_layers_usage(const Path &path) const;
 
+  std::optional<observer_ptr<Group>> fallback_policy();
+
 public:
   OverflowPolicy(gsl::not_null<Group *> group);
   virtual std::optional<observer_ptr<Group>> find_next_group(const Load &load);
