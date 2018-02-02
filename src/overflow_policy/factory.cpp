@@ -1,13 +1,13 @@
 
 #include "factory.h"
 
-#include "overflow_policy.h"
 #include "logger.h"
+#include "overflow_policy.h"
 
-namespace overflow_policy {
-
+namespace overflow_policy
+{
 std::unique_ptr<overflow_policy::OverflowPolicy>
-make_overflow_policy(std::optional<std::string_view> name, gsl::not_null<Group *> group)
+make_overflow_policy(std::optional<std::string_view> name, Group &group)
 {
   using namespace overflow_policy;
   using namespace std::literals;

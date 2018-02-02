@@ -49,7 +49,7 @@ ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
     auto &g =
         topology.add_group(std::make_unique<Group>(name, group.capacity, group.layer));
     g.set_overflow_policy(
-        overflow_policy::make_overflow_policy(group.overflow_policy, &g));
+        overflow_policy::make_overflow_policy(group.overflow_policy, g));
     V += group.capacity;
   }
   for (const auto &[name, group] : config.groups) {

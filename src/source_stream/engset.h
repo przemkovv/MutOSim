@@ -27,11 +27,6 @@ public:
   void notify_on_service_accept(const LoadServiceRequestEvent *event) override;
   void notify_on_service_drop(const LoadServiceRequestEvent *event) override;
 
-  void reset() override
-  {
-    SourceStream::reset();
-    active_sources_ = Count{0};
-  }
   EngsetSourceStream(const SourceName &name,
                       const TrafficClass &tc,
                       Count sources_number);

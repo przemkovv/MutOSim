@@ -28,6 +28,7 @@ protected:
   Group *group_;
   World *world_;
 
+  // TODO(PW): extract it to scenario settings
   static constexpr int overflows_per_layer = 2;
   std::array<int, MaxLayersNumber> count_layers_usage(const Path &path) const;
 
@@ -38,9 +39,9 @@ protected:
   Group *pick_random(BeginIt &&begin, EndIt &&end);
 
 public:
-  OverflowPolicy(gsl::not_null<Group *> group);
+  OverflowPolicy(Group& group);
   virtual std::optional<Group *> find_next_group(const Load &load);
-  void set_world(gsl::not_null<World *> world);
+  void set_world(World& world);
   virtual ~OverflowPolicy() = default;
 };
 

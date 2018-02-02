@@ -12,7 +12,6 @@ class PoissonSourceStream : public SourceStream
 
 public:
   PoissonSourceStream(const SourceName &name, const TrafficClass &tc);
-  void reset() override { SourceStream::reset(); }
 
   void init() override;
   void notify_on_service_start(const LoadServiceRequestEvent *event) override;

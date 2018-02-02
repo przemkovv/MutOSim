@@ -17,9 +17,6 @@ using time_type = long double;
 using duration_t = long double;
 using count_t = int64_t;
 
-// using time_type = boost::multiprecision::static_mpfr_float_100;
-// using duration_t = boost::multiprecision::static_mpfr_float_100;
-// using Size = int64_t;
 using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
@@ -27,7 +24,7 @@ using weight_t = uint64_t;
 using ratio_t = long double;
 using Layer = uint64_t;
 using Length = uint64_t;
-using OverflowPolicyName = std::string;
+using OverflowPolicyName = name_t;
 
 constexpr auto MaxPathLength = std::numeric_limits<Length>::max();
 constexpr Layer MaxLayersNumber = 3;

@@ -23,23 +23,6 @@ void World::init()
   }
 }
 
-void World::reset()
-{
-  blocked_by_tc.clear();
-  blocked_by_size.clear();
-  time_ = Time{0};
-  current_time_ = Time{0};
-  last_id = Uuid{0};
-  events_ = decltype(events_){}; // NOTE(PW): std::priority_queue doesn't have clear
-
-  for (auto &[name, source] : topology_->sources) {
-    source->reset();
-  }
-  for (auto &[name, group] : topology_->groups) {
-    group->reset();
-  }
-}
-
 bool World::next_iteration()
 {
   debug_print("{} Time = {:-<80}\n", *this, time_);
@@ -159,10 +142,10 @@ void World::run(bool quiet)
     print_stats();
   }
 }
-void World::set_topology(gsl::not_null<Topology *> topology)
+void World::set_topology(Topology &topology)
 {
-  topology_ = topology.get();
-  topology_->set_world(this); // TODO(PW): rethink this relation
+  topology_ = &topology;
+  topology_->set_world(*this); // TODO(PW): rethink this relation
 }
 
 void World::schedule(std::unique_ptr<Event> event)

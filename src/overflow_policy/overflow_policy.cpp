@@ -10,13 +10,13 @@
 
 namespace overflow_policy
 {
-OverflowPolicy::OverflowPolicy(gsl::not_null<Group *> group) : group_(group.get())
+OverflowPolicy::OverflowPolicy(Group& group) : group_(&group)
 {
 }
 
-void OverflowPolicy::set_world(gsl::not_null<World *> world)
+void OverflowPolicy::set_world(World& world)
 {
-  world_ = world.get();
+  world_ = &world;
 }
 
 template <typename BeginIt, typename EndIt>
@@ -36,14 +36,14 @@ OverflowPolicy::count_layers_usage(const Path &path) const
 }
 std::vector<Group *> OverflowPolicy::get_available_groups(const Load &load)
 {
-  const auto layers_usage = count_layers_usage(load.path);
+  const auto layers_usage = count_layers_usage(load.served_by);
   std::vector<Group *> available_groups;
 
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
                back_inserter(available_groups), [&](const auto &group) {
                  return layers_usage[group->layer_] < overflows_per_layer &&
-                        group->can_serve(load.size) && !contains(load.path, group);
+                        group->can_serve(load.size) && !contains(load.served_by, group);
                });
   return available_groups;
 }
@@ -75,7 +75,7 @@ std::optional<Group *> NoOverflow::find_next_group(const Load & /* load */)
 std::optional<Group *> FirstAvailable::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {
-    if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
+    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) == std::end(load.served_by)) {
       auto is_served = next_group->can_serve(load.size);
       if (is_served) {
         return next_group;
@@ -89,7 +89,7 @@ std::optional<Group *> FirstAvailable::find_next_group(const Load &load)
 std::optional<Group *> AlwaysFirst::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {
-    if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
+    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) == std::end(load.served_by)) {
       return next_group;
     }
   }
@@ -100,7 +100,7 @@ std::optional<Group *> AlwaysFirst::find_next_group(const Load &load)
 std::optional<Group *> OverflowPolicy::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {
-    if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
+    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) == std::end(load.served_by)) {
       return next_group;
     }
   }

@@ -46,14 +46,14 @@ void SourceStream::init()
 {
 }
 
-void SourceStream::attach_to_group(gsl::not_null<Group *> target_group)
+void SourceStream::attach_to_group(Group& target_group)
 {
-  target_group_ = target_group.get();
+  target_group_ = &target_group;
 }
 
-void SourceStream::set_world(gsl::not_null<World *> world)
+void SourceStream::set_world(World& world)
 {
-  world_ = world.get();
+  world_ = &world;
 }
 
 void SourceStream::print_stats()

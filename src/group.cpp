@@ -16,21 +16,14 @@ Group::Group(GroupName name, Capacity capacity, Layer layer)
   : name_(std::move(name)),
     capacity_(capacity),
     layer_(layer),
-    overflow_policy_(overflow_policy::make_overflow_policy("default", this))
+    overflow_policy_(overflow_policy::make_overflow_policy("default", *this))
 {
   assert(layer_ < MaxLayersNumber);
 }
 
-void Group::reset()
+void Group::set_world(World &world)
 {
-  served_by_tc.clear();
-  blocked_by_tc.clear();
-  size_ = Size{0};
-}
-
-void Group::set_world(gsl::not_null<World *> world)
-{
-  world_ = world.get();
+  world_ = &world;
   overflow_policy_->set_world(world);
 }
 
@@ -45,9 +38,9 @@ void Group::set_end_time(Load &load)
   load.end_time = load.send_time + t_serv;
 }
 
-void Group::add_next_group(gsl::not_null<Group *> group)
+void Group::add_next_group(Group &group)
 {
-  next_groups_.emplace_back(group.get());
+  next_groups_.emplace_back(&group);
 }
 
 void Group::set_traffic_classes(const TrafficClasses &traffic_classes)
@@ -68,10 +61,11 @@ void Group::notify_on_service_end(LoadServiceEndEvent *event)
 
 bool Group::try_serve(Load load)
 {
+  load.served_by.emplace_back(this);
+
   if (can_serve(load.size)) {
     debug_print("{} Start serving request: {}\n", *this, load);
     size_ += load.size;
-    load.served_by = this;
     set_end_time(load);
 
     update_block_stat(load);
@@ -81,7 +75,6 @@ bool Group::try_serve(Load load)
     return true;
   }
   debug_print("{} Forwarding request: {}\n", *this, load);
-  load.path.emplace_back(this);
   return forward(load);
 }
 
@@ -160,7 +153,7 @@ bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
   }
 
   for (const auto &next_group : next_groups_) {
-    if (find(begin(path), end(path), next_group) == end(path)) {
+    if (std::find(std::begin(path), std::end(path), next_group) == std::end(path)) {
       return next_group->can_serve_recursive(tc, path);
     }
   }
@@ -170,7 +163,7 @@ bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 bool Group::forward(Load load)
 {
   // TODO(PW): if the max path has been reached, pass the load to the next layer
-  if (load.drop || load.path.size() >= traffic_classes_->at(load.tc_id).max_path_length) {
+  if (load.drop || load.served_by.size() >= traffic_classes_->at(load.tc_id).max_path_length) {
     drop(load);
     return false;
   }

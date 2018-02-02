@@ -7,10 +7,10 @@
 #include "types.h"
 #include "world.h"
 
-#include <gsl/gsl>
 #include <queue>
 #include <random>
 #include <unordered_map>
+#include <boost/container/flat_map.hpp>
 #include <vector>
 
 using overflow_policy::OverflowPolicy;
@@ -22,23 +22,25 @@ struct Group {
   Size size_;
   Layer layer_;
 
-  std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_;
 
-  std::unordered_map<TrafficClassId, LostServedStats> served_by_tc;
-  std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
+  boost::container::flat_map<TrafficClassId, LostServedStats> served_by_tc;
+  boost::container::flat_map<TrafficClassId, BlockStats> blocked_by_tc;
+
+  World *world_;
   const TrafficClasses *traffic_classes_;
+  std::vector<Group *> next_groups_{};
+  std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_;
 
   std::exponential_distribution<time_type> exponential{};
 
-  World *world_;
 
-  void set_world(gsl::not_null<World *> world);
-
-  std::vector<Group *> next_groups_{};
-
-  void add_next_group(gsl::not_null<Group *> group);
+  void set_world(World& world);
+  void set_traffic_classes(const TrafficClasses &traffic_classes);
+  void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
+  void add_next_group(Group& group);
 
   void set_end_time(Load &load);
+
   bool forward(Load load);
 
   Size free_capacity() { return capacity_ - size_; }
@@ -51,11 +53,6 @@ struct Group {
 
   Group(GroupName name, Capacity capacity, Layer layer);
   Group(GroupName name, Capacity capacity);
-
-  void reset();
-  void set_traffic_classes(const TrafficClasses &traffic_classes);
-
-  void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
 
   bool try_serve(Load load);
   void take_off(const Load &load);

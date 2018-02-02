@@ -5,7 +5,6 @@
 #include "types.h"
 
 #include <fmt/format.h>
-#include <gsl/gsl>
 #include <memory>
 
 struct Event;

@@ -23,9 +23,8 @@ void run_scenario(ScenarioSettings &scenario,
 {
   scenario.world = std::make_unique<World>(seed(use_random_seed), duration);
   auto &world = *scenario.world;
-  world.set_topology(&scenario.topology);
+  world.set_topology(scenario.topology);
 
-  world.reset();
   world.init();
   if (scenario.do_before) {
     scenario.do_before();

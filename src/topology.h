@@ -1,9 +1,9 @@
 #pragma once
 
-#include "types.h"
 #include "traffic_class.h"
+#include "types.h"
 
-#include <gsl/gsl>
+#include <boost/container/flat_map.hpp>
 #include <map>
 #include <memory>
 #include <optional>
@@ -16,11 +16,10 @@ class SourceStream;
 struct Topology {
   Uuid last_id = 0;
 
-  std::map<GroupName, std::unique_ptr<Group>> groups{};
-  std::map<SourceName, std::unique_ptr<SourceStream>> sources{};
+  boost::container::flat_map<GroupName, std::unique_ptr<Group>> groups{};
+  boost::container::flat_map<SourceName, std::unique_ptr<SourceStream>> sources{};
 
   TrafficClasses traffic_classes{};
-
 
   Group &add_group(std::unique_ptr<Group> group);
   SourceStream &add_source(std::unique_ptr<SourceStream> source_stream);
@@ -39,7 +38,7 @@ struct Topology {
 
   void attach_source_to_group(const SourceName &source, const GroupName &group);
 
-  void set_world(gsl::not_null<World *> world);
+  void set_world(World &world);
 
   std::optional<SourceStream *> find_source_by_tc_id(TrafficClassId id) const;
   std::optional<SourceId> get_source_id(const SourceName &name) const;

@@ -7,7 +7,8 @@
 template <typename Container, typename T>
 auto contains(const Container &container, const T &value)
 {
-  return find(begin(container), end(container), value) != end(container);
+  return std::find(std::begin(container), std::end(container), value) !=
+         std::end(container);
 }
 
 template <typename BeginIt, typename EndIt, typename RandomEngine>

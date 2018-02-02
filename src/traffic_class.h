@@ -4,6 +4,7 @@
 #include <fmt/format.h>
 
 #include <unordered_map>
+#include <boost/container/flat_map.hpp>
 
 struct TrafficClass {
   TrafficClassId id;
@@ -13,7 +14,7 @@ struct TrafficClass {
   Length max_path_length;
 };
 
-using TrafficClasses = std::unordered_map<TrafficClassId, TrafficClass>;
+using TrafficClasses = boost::container::flat_map<TrafficClassId, TrafficClass>;
 
 void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,

@@ -7,7 +7,6 @@
 #include "topology.h"
 #include "types.h"
 
-#include <gsl/gsl>
 #include <memory>
 #include <queue>
 #include <random>
@@ -50,11 +49,10 @@ public:
   Time get_current_time() const { return current_time_; }
   auto get_progress() const { return Duration{time_} / duration_; }
 
-  void set_topology(gsl::not_null<Topology *> topology);
+  void set_topology(Topology &topology);
   void schedule(std::unique_ptr<Event> event);
 
   void init();
-  void reset();
   bool next_iteration();
   void run(bool quiet);
 
