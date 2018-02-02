@@ -72,7 +72,7 @@ def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_
         group_y = tc_data_y.setdefault(group_name, {})
         for tc_id in tcs_served_by_groups[group_name]:
             tc_series = group_y.setdefault(int(tc_id), [])
-            if tc_id in tcs_stats:
+            if tcs_stats is not None and tc_id in tcs_stats:
                 tc_stats = tcs_stats[tc_id]
                 tc_serie = tc_stats[stat_name]
                 tc_series.append(tc_serie)
@@ -103,7 +103,7 @@ def get_tcs_served_by_groups(scenario_results):
     tcs_served_by_groups = {}
     for _, result in scenario_results.items():
         for group_name, tcs_stats in result.items():
-            if group_name.startswith("_"):
+            if group_name.startswith("_") or tcs_stats is None:
                 continue
             tcs_served_by_group = tcs_served_by_groups.setdefault(
                 group_name, [])

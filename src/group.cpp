@@ -18,6 +18,7 @@ Group::Group(GroupName name, Capacity capacity, Layer layer)
     layer_(layer),
     overflow_policy_(overflow_policy::make_overflow_policy("default", this))
 {
+  assert(layer_ < MaxLayersNumber);
 }
 
 void Group::reset()
@@ -79,6 +80,9 @@ bool Group::try_serve(Load load)
     world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
   }
+    if (layer_ == 1) {
+      println("End");
+    }
   debug_print("{} Forwarding request: {}\n", *this, load);
   load.path.emplace_back(make_observer(this));
   return forward(load);
@@ -187,7 +191,6 @@ bool Group::forward(Load load)
 Stats Group::get_stats()
 {
   Stats stats;
-
 
   auto sim_duration = Duration{world_->get_time()};
   for (auto &[tc_id, load_stats] : served_by_tc) {

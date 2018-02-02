@@ -20,6 +20,16 @@ void OverflowPolicy::set_world(gsl::not_null<World *> world)
   world_ = make_observer(world.get());
 }
 
+std::array<int, MaxLayersNumber>
+OverflowPolicy::count_layers_usage(const Path &path) const
+{
+  std::array<int, MaxLayersNumber> layers_usage_counter{0};
+  for (const auto &group : path) {
+    layers_usage_counter[group->layer_]++;
+  }
+  return layers_usage_counter;
+}
+
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> NoOverflow::find_next_group(const Load & /* load */)
 {
@@ -65,49 +75,48 @@ std::optional<observer_ptr<Group>> OverflowPolicy::find_next_group(const Load &l
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &load)
 {
-  std::vector<observer_ptr<Group>> available_groups;
-  available_groups.reserve(group_->next_groups_.size());
-  std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
-               back_inserter(available_groups), [&](const auto &group) {
-                 return group->can_serve(load.size) && !contains(load.path, group) &&
-                        count_same_layer_groups(load.path, group->layer_) <=
-                            overflows_per_layer;
-               });
-  sort(begin(available_groups), end(available_groups),
-       [](const auto &group_ptr1, const auto &group_ptr2) {
-         return group_ptr1->layer_ < group_ptr2->layer_;
-       });
-  std::vector<observer_ptr<Group>> available_groups_same_layer;
-  std::copy_if(begin(available_groups), end(available_groups),
-               back_inserter(available_groups_same_layer),
-               [&layer = available_groups.front()->layer_](const auto &group) {
-                 return group->layer_ == layer;
-               });
-  if (!available_groups_same_layer.empty()) {
-    if (available_groups_same_layer.size() == 1) {
-      return available_groups_same_layer.front();
-    }
-    return get_random_element(available_groups_same_layer, world_->get_random_engine());
-  }
-  return {};
-}
-//----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Load &load)
-{
-  std::vector<observer_ptr<Group>> available_groups;
+  const auto layers_usage = count_layers_usage(load.path);
 
+  std::vector<observer_ptr<Group>> available_groups;
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
                back_inserter(available_groups), [&](const auto &group) {
-                 return group->can_serve(load.size) && !contains(load.path, group) &&
-                        count_same_layer_groups(load.path, group->layer_) <=
-                            overflows_per_layer;
+                 return layers_usage[group->layer_] < overflows_per_layer &&
+                        group->can_serve(load.size) && !contains(load.path, group);
                });
 
   if (!available_groups.empty()) {
     if (available_groups.size() == 1) {
       return available_groups.front();
     }
+    sort(begin(available_groups), end(available_groups),
+         [](const auto &group_ptr1, const auto &group_ptr2) {
+           return group_ptr1->layer_ < group_ptr2->layer_;
+         });
+
+    auto layer = available_groups.front()->layer_;
+    auto end_of_layer_it =
+        std::find_if_not(next(begin(available_groups)), end(available_groups),
+                         [=](const auto &group) { return group->layer_ == layer; });
+    return get_random_element(begin(available_groups), end_of_layer_it,
+                              world_->get_random_engine());
+  }
+  return {};
+}
+//----------------------------------------------------------------------
+std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Load &load)
+{
+  const auto layers_usage = count_layers_usage(load.path);
+  std::vector<observer_ptr<Group>> available_groups;
+
+  available_groups.reserve(group_->next_groups_.size());
+  std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
+               back_inserter(available_groups), [&](const auto &group) {
+                 return layers_usage[group->layer_] < overflows_per_layer &&
+                        group->can_serve(load.size) && !contains(load.path, group);
+               });
+
+  if (!available_groups.empty()) {
     sort(begin(available_groups), end(available_groups),
          [](const auto &group_ptr1, const auto &group_ptr2) {
            if (group_ptr1->layer_ == group_ptr2->layer_) {
@@ -117,37 +126,30 @@ std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Lo
            }
          });
 
-    std::vector<observer_ptr<Group>> final_groups;
-    final_groups.reserve(available_groups.size());
-    std::copy_if(begin(available_groups), end(available_groups),
-                 back_inserter(final_groups), [&g1 = available_groups.front()](auto &g2) {
-                   return g1->free_capacity() == g2->free_capacity() &&
-                          g1->layer_ == g2->layer_;
-                 });
-    if (final_groups.size() == 1) {
-      return final_groups.front();
-    }
-    return get_random_element(final_groups, world_->get_random_engine());
+    auto &g1 = available_groups.front();
+    auto end_of_equal_groups_it = std::find_if_not(
+        next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
+          return g1->free_capacity() == g2->free_capacity() && g1->layer_ == g2->layer_;
+        });
+    return get_random_element(begin(available_groups), end_of_equal_groups_it,
+                              world_->get_random_engine());
   }
   return {};
 }
 //----------------------------------------------------------------------
 std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Load &load)
 {
+  const auto layers_usage = count_layers_usage(load.path);
   std::vector<observer_ptr<Group>> available_groups;
 
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
                back_inserter(available_groups), [&](const auto &group) {
-                 return group->can_serve(load.size) && !contains(load.path, group) &&
-                        count_same_layer_groups(load.path, group->layer_) <=
-                            overflows_per_layer;
+                 return layers_usage[group->layer_] < overflows_per_layer &&
+                        group->can_serve(load.size) && !contains(load.path, group);
                });
 
   if (!available_groups.empty()) {
-    if (available_groups.size() == 1) {
-      return available_groups.front();
-    }
     sort(begin(available_groups), end(available_groups),
          [](const auto &group_ptr1, const auto &group_ptr2) {
            if (group_ptr1->layer_ == group_ptr2->layer_) {
@@ -156,17 +158,14 @@ std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Loa
              return group_ptr1->layer_ < group_ptr2->layer_;
            }
          });
-    std::vector<observer_ptr<Group>> final_groups;
-    final_groups.reserve(available_groups.size());
-    std::copy_if(begin(available_groups), end(available_groups),
-                 back_inserter(final_groups), [&g1 = available_groups.front()](auto &g2) {
-                   return g1->free_capacity() == g2->free_capacity() &&
-                          g1->layer_ == g2->layer_;
-                 });
-    if (final_groups.size() == 1) {
-      return final_groups.front();
-    }
-    return get_random_element(final_groups, world_->get_random_engine());
+
+    auto &g1 = available_groups.front();
+    auto end_of_equal_groups_it = std::find_if_not(
+        next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
+          return g1->free_capacity() == g2->free_capacity() && g1->layer_ == g2->layer_;
+        });
+    return get_random_element(begin(available_groups), end_of_equal_groups_it,
+                              world_->get_random_engine());
   }
   return {};
 }

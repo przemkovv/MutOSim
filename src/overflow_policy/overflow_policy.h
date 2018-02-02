@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "load.h"
 #include <gsl/gsl>
 #include <optional>
 
@@ -28,6 +29,7 @@ protected:
   observer_ptr<World> world_;
 
   static constexpr int overflows_per_layer = 2;
+  std::array<int, MaxLayersNumber> count_layers_usage(const Path &path) const;
 
 public:
   OverflowPolicy(gsl::not_null<Group *> group);
@@ -61,7 +63,7 @@ public:
 };
 
 //----------------------------------------------------------------------
-class RandomAvailable: public OverflowPolicy
+class RandomAvailable : public OverflowPolicy
 {
 public:
   using OverflowPolicy::OverflowPolicy;

@@ -35,6 +35,7 @@ using Length = uint64_t;
 using OverflowPolicyName = std::string;
 
 constexpr auto MaxPathLength = std::numeric_limits<Length>::max();
+constexpr Layer MaxLayersNumber = 3;
 
 struct Ratio : ts::strong_typedef<Ratio, ratio_t>,
                ts::strong_typedef_op::equality_comparison<Ratio>,

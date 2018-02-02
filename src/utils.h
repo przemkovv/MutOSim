@@ -10,12 +10,18 @@ auto contains(const Container &container, const T &value)
   return find(begin(container), end(container), value) != end(container);
 }
 
+template <typename BeginIt, typename EndIt, typename RandomEngine>
+auto get_random_element(BeginIt &&begin, EndIt &&end, RandomEngine &random_engine)
+{
+  std::remove_cv_t<std::remove_reference_t<decltype(*begin)>> elem;
+  std::sample(begin, end, &elem, 1, random_engine);
+  return elem;
+};
+
 template <typename Container, typename RandomEngine>
 auto get_random_element(const Container &container, RandomEngine &random_engine)
 {
-  std::remove_cv_t<std::remove_reference_t<decltype(*begin(container))>> elem;
-  std::sample(begin(container), end(container), &elem, 1, random_engine);
-  return elem;
+  return get_random_element(begin(container), end(container), random_engine);
 };
 
 template <typename GroupsContainer, typename Layer>

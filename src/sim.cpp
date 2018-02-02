@@ -52,7 +52,7 @@ CLI parse_args(const boost::program_options::variables_map &vm)
 {
   CLI cli;
   cli.help = vm.count("help") > 0;
-  cli.use_random_seed = vm.count("random") > 0;
+  cli.use_random_seed = vm["random"].as<bool>();
   cli.quiet = vm.count("quiet") > 0;
   cli.output_file = vm["output-file"].as<std::string>();
   cli.output_dir = vm["output-dir"].as<std::string>();
@@ -93,7 +93,7 @@ boost::program_options::options_description prepare_options_description()
     ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group")
     ("count,c", po::value<int>()->default_value(1), "number of repeats of each scenario")
     ("quiet,q", po::value<bool>()->default_value(false), "do not print stats")
-    ("random,r",  "use random seed");
+    ("random,r",  po::value<bool>()->default_value(false), "use random seed");
   /* clang-format on */
   return desc;
 }
