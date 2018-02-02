@@ -8,7 +8,7 @@ Usage:
             [--linear] [--y_limit=Y_LIMIT]
             [-x X] [-y Y]
             [--save] [--output-dir=DIR]
-            [--bp]
+            [--bp] [-i INDICES]
     plot.py -h | --help
 
 Arguments:
@@ -16,14 +16,18 @@ Arguments:
 
 Options:
     -h --help                   show this help message and exit
-    -p PROPERTY                 property from data file to plot [default: P_block]
+    -p PROPERTY                 property from data file to plot
+                                [default: P_block]
     --linear                    linear plot (default is log)
-    --y_limit=Y_LIMIT           bottom (for log) or top (for linear) limit on y axis [default: 1e-6]
+    --y_limit=Y_LIMIT           bottom (for log) or top (for linear) limit on
+                                y axis [default: 1e-6]
     -x X                        number of plots horizontally [default: 3]
     -y Y                        number of plots vertically [default: 3]
     -s, --save                  save to file
-    -d DIR, --output-dir=DIR    directory where the files are saved [default: data/results/plots/]
+    -d DIR, --output-dir=DIR    directory where the files are saved
+                                [default: data/results/plots/]
     --bp                        enable box plots
+    -i INDICES                  indices of scenarios to plot [default: -1]
 
 """
 import os.path as path
@@ -47,7 +51,10 @@ def load_traffic_classes_sizes(scenario_file):
     return (tc_sizes, scenario)
 
 
-def append_tc_stat_for_groups_by_size(tc_data_y, scenario_result, stat_name, tc_sizes):
+def append_tc_stat_for_groups_by_size(tc_data_y,
+                                      scenario_result,
+                                      stat_name,
+                                      tc_sizes):
     for group_name, tcs_stats in scenario_result.items():
         if group_name.startswith("_"):
             continue
@@ -55,8 +62,6 @@ def append_tc_stat_for_groups_by_size(tc_data_y, scenario_result, stat_name, tc_
         new_data = {}
         for tc_id, tc_stats in tcs_stats.items():
             size = tc_sizes[int(tc_id)]
-            #  new_data.setdefault(size, tc_stats[stat_name])
-            #  new_data[size] = [sum(x) for x in zip ( new_data[size], tc_stats[stat_name])]
             new_data.setdefault(size, 0)
             new_data[size] += statistics.mean(tc_stats[stat_name])
 
@@ -65,7 +70,10 @@ def append_tc_stat_for_groups_by_size(tc_data_y, scenario_result, stat_name, tc_
             tc_series.append(data)
 
 
-def append_tc_stat_for_groups(tc_data_y, scenario_result, stat_name, tcs_served_by_groups):
+def append_tc_stat_for_groups(tc_data_y,
+                              scenario_result,
+                              stat_name,
+                              tcs_served_by_groups):
     for group_name, tcs_stats in scenario_result.items():
         if group_name.startswith("_"):
             continue
@@ -133,18 +141,27 @@ def main():
     plots_number_x = args["-x"]
     plots_number_y = args["-y"]
 
-    for scenario_file, scenario_results in data.items():
+    if args["-i"] == "-1":
+        filtered_data = data
+    else:
+        indices = map(int, args["-i"].split(','))
+        filtered_data = {k: data[k]
+                         for k in [sorted(data.keys())[i] for i in indices]}
+
+    for scenario_file, scenario_results in filtered_data.items():
         tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
         print(scenario_file)
         tc_data_x = []
         tc_data_y = {}
         tc_data_y_by_size = {}
         if not logarithmic_plot:
-            def set_style(ax): return set_plot_linear_style(ax, y_limit)
+            def set_style(ax):
+                return set_plot_linear_style(ax, y_limit)
             aggregate = True
             plots_number_x = 2 * len(data)
         else:
-            def set_style(ax): return set_plot_log_style(ax, y_limit)
+            def set_style(ax):
+                return set_plot_log_style(ax, y_limit)
             aggregate = False
 
         markers = ['+', 'x', 's']
@@ -181,7 +198,8 @@ def main():
                 if enable_boxplots:
                     ax.boxplot(data_y, positions=tc_data_x, notch=False,
                                widths=0.05, bootstrap=10000, sym='',
-                               vert=True, patch_artist=False, manage_xticks=False)
+                               vert=True, patch_artist=False,
+                               manage_xticks=False)
 
                 ax.plot(tc_data_x,
                         [statistics.mean(serie) for serie in data_y],
@@ -189,9 +207,10 @@ def main():
                         marker=next(markerscycle))
 
             set_style(ax)
-            ax.set_title("{} V{} ({})".format(group_name,
-                                              scenario["groups"][group_name]["capacity"],
-                                              scenario["name"]))
+            ax.set_title("{} V{} ({})"
+                         .format(group_name,
+                                 scenario["groups"][group_name]["capacity"],
+                                 scenario["name"]))
             ax.set_ylabel(stat_name)
             ax.set_xlabel("a")
             plot_id += 1
@@ -209,3 +228,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
