@@ -14,13 +14,13 @@
 #include "scenarios/topology_based.h"
 
 #include <boost/filesystem.hpp>
-#include <nlohmann/json.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <experimental/memory>
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
 
 void print_state(const std::vector<bool> &states)
@@ -69,6 +69,12 @@ CLI parse_args(const boost::program_options::variables_map &vm)
     }
     return {};
   }();
+  cli.scenarios_dirs = [&vm]() -> std::vector<std::string> {
+    if (vm.count("scenarios-dir") > 0) {
+      return vm["scenarios-dir"].as<std::vector<std::string>>();
+    }
+    return {};
+  }();
   return cli;
 }
 
@@ -82,6 +88,8 @@ boost::program_options::options_description prepare_options_description()
     ("help", "produce help message")
     ("scenario-file,f", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
                         "a file with scenario")
+    ("scenarios-dir,I", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
+                        "a directories with scenario files")
     ("output-file,o", po::value<std::string>()->default_value(""),
                         "output file with stats")
     ("output-dir,d", po::value<std::string>()->default_value(""),
@@ -126,11 +134,36 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
   }
   return global_stats;
 }
+std::vector<std::string> find_all_scenario_files(const std::string &path)
+{
+  namespace fs = boost::filesystem;
+  std::vector<std::string> list_of_scenario_files;
+  if (fs::exists(path) && fs::is_directory(path)) {
+    fs::recursive_directory_iterator iter(path);
+    fs::recursive_directory_iterator end;
+
+    while (iter != end) {
+      if (is_regular_file(iter->path()) && iter->path().extension() == ".json") {
+        list_of_scenario_files.push_back(iter->path().string());
+      }
+
+      boost::system::error_code ec;
+      iter.increment(ec);
+      if (ec) {
+        std::cerr << "Error While Accessing : " << iter->path().string()
+                  << " :: " << ec.message() << '\n';
+      }
+    }
+  }
+  return list_of_scenario_files;
+}
 //----------------------------------------------------------------------
 
-void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
+void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
+                               const std::vector<std::string> &scenario_files,
+                               const CLI &cli)
 {
-  for (const auto &config_file : cli.scenario_files) {
+  for (const auto &config_file : scenario_files) {
     const auto t = Config::parse_topology_config(config_file);
     // Config::dump(t);
     for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
@@ -260,7 +293,16 @@ int main(int argc, char *argv[])
   std::vector<ScenarioSettings> scenarios;
 
   prepare_custom_scenarios(scenarios, cli);
-  load_scenarios_from_files(scenarios, cli);
+  load_scenarios_from_files(scenarios, cli.scenario_files, cli);
+
+  {
+    std::vector<std::string> scenario_files;
+    for (const auto &dir : cli.scenarios_dirs) {
+      auto files = find_all_scenario_files(dir);
+      scenario_files.insert(end(scenario_files), begin(files), end(files));
+    }
+    load_scenarios_from_files(scenarios, scenario_files, cli);
+  }
 
   auto global_stats = run_scenarios(scenarios, cli);
 
