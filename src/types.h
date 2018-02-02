@@ -2,16 +2,11 @@
 #pragma once
 
 #include <cstdint>
-#include <experimental/memory>
 #include <string_view>
 #include <type_safe/strong_typedef.hpp>
 
 #include <fmt/ostream.h>
 #include <string>
-
-// TODO(PW): when possible: remove this
-using std::experimental::make_observer;
-using std::experimental::observer_ptr;
 
 namespace ts = type_safe;
 

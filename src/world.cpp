@@ -8,8 +8,7 @@
 
 #include <nlohmann/json.hpp>
 
-World::World(uint64_t seed, Duration duration)
-  : seed_(seed), duration_(duration)
+World::World(uint64_t seed, Duration duration) : seed_(seed), duration_(duration)
 {
   // print("[World] {:=^100}\n", " New world ");
 }
@@ -162,7 +161,7 @@ void World::run(bool quiet)
 }
 void World::set_topology(gsl::not_null<Topology *> topology)
 {
-  topology_ = make_observer(topology.get());
+  topology_ = topology.get();
   topology_->set_world(this); // TODO(PW): rethink this relation
 }
 

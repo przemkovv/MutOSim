@@ -1,8 +1,8 @@
 
 #include "source_stream.h"
 
-#include "world.h"
 #include "group.h"
+#include "world.h"
 
 #include <fmt/ostream.h>
 SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc)
@@ -18,7 +18,7 @@ Load SourceStream::create_load(Time time, Size size)
   load.tc_id = tc_.id;
   load.send_time = time;
   load.size = size;
-  load.produced_by = make_observer(this);
+  load.produced_by = this;
   load.target_group = target_group_;
   return load;
 }
@@ -48,12 +48,12 @@ void SourceStream::init()
 
 void SourceStream::attach_to_group(gsl::not_null<Group *> target_group)
 {
-  target_group_ = make_observer(target_group.get());
+  target_group_ = target_group.get();
 }
 
 void SourceStream::set_world(gsl::not_null<World *> world)
 {
-  world_ = make_observer(world.get());
+  world_ = world.get();
 }
 
 void SourceStream::print_stats()

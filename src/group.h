@@ -7,7 +7,6 @@
 #include "types.h"
 #include "world.h"
 
-#include <experimental/memory>
 #include <gsl/gsl>
 #include <queue>
 #include <random>
@@ -27,15 +26,15 @@ struct Group {
 
   std::unordered_map<TrafficClassId, LostServedStats> served_by_tc;
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
-  observer_ptr<const TrafficClasses> traffic_classes_;
+  const TrafficClasses *traffic_classes_;
 
   std::exponential_distribution<time_type> exponential{};
 
-  observer_ptr<World> world_;
+  World *world_;
 
   void set_world(gsl::not_null<World *> world);
 
-  std::vector<observer_ptr<Group>> next_groups_{};
+  std::vector<Group *> next_groups_{};
 
   void add_next_group(gsl::not_null<Group *> group);
 

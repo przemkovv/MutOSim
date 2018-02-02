@@ -1,10 +1,10 @@
 
 #include "pascal.h"
 
+#include "group.h"
 #include "logger.h"
 #include "types.h"
 #include "world.h"
-#include "group.h"
 
 #include <fmt/ostream.h>
 #include <optional>
@@ -20,7 +20,7 @@ template <typename M>
 std::optional<typename M::const_iterator> find_event(const M &map, const Event *event)
 {
   auto it = find_if(begin(map), end(map),
-                    [&event](const auto &p) { return p.second.get() == event; });
+                    [&event](const auto &p) { return p.second == event; });
   if (it != map.end()) {
     return std::make_optional(it);
   }
@@ -38,7 +38,7 @@ void PascalSourceStream::notify_on_service_start(const LoadServiceRequestEvent *
   if (auto it = find_event(linked_sources_, event); it.has_value()) {
     debug_print("{} INCEPTION!!! {}\n", *this, *event);
     linked_sources_count_++;
-    linked_sources_.emplace(it.value()->first, make_observer(new_event.get()));
+    linked_sources_.emplace(it.value()->first, new_event.get());
     debug_print("{} [on service start] Add event {} linked to load id {}\n", *this,
                 *new_event, it.value()->first);
   }
@@ -74,7 +74,7 @@ void PascalSourceStream::notify_on_service_accept(const LoadServiceRequestEvent 
   debug_print("{} on accept {}\n", *this, *new_event);
 
   linked_sources_count_++;
-  linked_sources_.emplace(event->load.id, make_observer(new_event.get()));
+  linked_sources_.emplace(event->load.id, new_event.get());
   debug_print("{} [on accept] Add event {} linked to load id {}\n", *this, *new_event,
               event->load.id);
 
@@ -106,7 +106,7 @@ void PascalSourceStream::notify_on_produce(const ProduceServiceRequestEvent *eve
   if (auto it = find_event(linked_sources_, event);
       it.has_value()) { // the event is already linked to another request
 
-    linked_sources_.emplace(it.value()->first, make_observer(new_event.get()));
+    linked_sources_.emplace(it.value()->first, new_event.get());
     debug_print("{} [on produce] Add event {} linked to load id {}\n", *this, *new_event,
                 it.value()->first);
 

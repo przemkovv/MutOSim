@@ -7,7 +7,6 @@
 #include "topology.h"
 #include "types.h"
 
-#include <experimental/memory>
 #include <gsl/gsl>
 #include <memory>
 #include <queue>
@@ -35,7 +34,7 @@ class World
   std::priority_queue<EventPtr, std::vector<EventPtr>, by_time> events_;
   RandomEngine random_engine_{seed_};
 
-  observer_ptr<Topology> topology_;
+  Topology *topology_;
   std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
   std::unordered_map<Size, BlockStats> blocked_by_size;
 

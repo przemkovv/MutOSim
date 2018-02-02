@@ -18,9 +18,9 @@ public:
   const TrafficClass tc_;
 
 protected:
-  observer_ptr<World> world_;
+  World *world_;
 
-  observer_ptr<Group> target_group_;
+  Group *target_group_;
 
   bool pause_ = false;
   uint64_t loads_produced_{0};

@@ -10,18 +10,17 @@
 
 namespace overflow_policy
 {
-OverflowPolicy::OverflowPolicy(gsl::not_null<Group *> group)
-  : group_(make_observer(group.get()))
+OverflowPolicy::OverflowPolicy(gsl::not_null<Group *> group) : group_(group.get())
 {
 }
 
 void OverflowPolicy::set_world(gsl::not_null<World *> world)
 {
-  world_ = make_observer(world.get());
+  world_ = world.get();
 }
 
 template <typename BeginIt, typename EndIt>
-GroupPtr OverflowPolicy::pick_random(BeginIt &&begin, EndIt &&end)
+Group *OverflowPolicy::pick_random(BeginIt &&begin, EndIt &&end)
 {
   return get_random_element(begin, end, world_->get_random_engine());
 }
@@ -35,10 +34,10 @@ OverflowPolicy::count_layers_usage(const Path &path) const
   }
   return layers_usage_counter;
 }
-std::vector<GroupPtr> OverflowPolicy::get_available_groups(const Load &load)
+std::vector<Group *> OverflowPolicy::get_available_groups(const Load &load)
 {
   const auto layers_usage = count_layers_usage(load.path);
-  std::vector<observer_ptr<Group>> available_groups;
+  std::vector<Group *> available_groups;
 
   available_groups.reserve(group_->next_groups_.size());
   std::copy_if(begin(group_->next_groups_), end(group_->next_groups_),
@@ -49,9 +48,9 @@ std::vector<GroupPtr> OverflowPolicy::get_available_groups(const Load &load)
   return available_groups;
 }
 
-std::optional<observer_ptr<Group>> OverflowPolicy::fallback_policy()
+std::optional<Group *> OverflowPolicy::fallback_policy()
 {
-  std::vector<observer_ptr<Group>> available_groups;
+  std::vector<Group *> available_groups;
 
   available_groups.reserve(group_->next_groups_.size());
   auto current_layer = group_->layer_;
@@ -67,13 +66,13 @@ std::optional<observer_ptr<Group>> OverflowPolicy::fallback_policy()
 }
 
 //----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> NoOverflow::find_next_group(const Load & /* load */)
+std::optional<Group *> NoOverflow::find_next_group(const Load & /* load */)
 {
   return {};
 }
 
 //----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> FirstAvailable::find_next_group(const Load &load)
+std::optional<Group *> FirstAvailable::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {
     if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
@@ -87,7 +86,7 @@ std::optional<observer_ptr<Group>> FirstAvailable::find_next_group(const Load &l
 }
 
 //----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> AlwaysFirst::find_next_group(const Load &load)
+std::optional<Group *> AlwaysFirst::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {
     if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
@@ -98,7 +97,7 @@ std::optional<observer_ptr<Group>> AlwaysFirst::find_next_group(const Load &load
 }
 
 //----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> OverflowPolicy::find_next_group(const Load &load)
+std::optional<Group *> OverflowPolicy::find_next_group(const Load &load)
 {
   for (const auto &next_group : group_->next_groups_) {
     if (find(begin(load.path), end(load.path), next_group) == end(load.path)) {
@@ -109,7 +108,7 @@ std::optional<observer_ptr<Group>> OverflowPolicy::find_next_group(const Load &l
 }
 
 //----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &load)
+std::optional<Group *> RandomAvailable::find_next_group(const Load &load)
 {
   auto available_groups = get_available_groups(load);
 
@@ -132,7 +131,7 @@ std::optional<observer_ptr<Group>> RandomAvailable::find_next_group(const Load &
   return fallback_policy();
 }
 //----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Load &load)
+std::optional<Group *> HighestFreeCapacity::find_next_group(const Load &load)
 {
   auto available_groups = get_available_groups(load);
 
@@ -157,7 +156,7 @@ std::optional<observer_ptr<Group>> HighestFreeCapacity::find_next_group(const Lo
   return fallback_policy();
 }
 //----------------------------------------------------------------------
-std::optional<observer_ptr<Group>> LowestFreeCapacity::find_next_group(const Load &load)
+std::optional<Group *> LowestFreeCapacity::find_next_group(const Load &load)
 {
   auto available_groups = get_available_groups(load);
 

@@ -1,9 +1,8 @@
 #pragma once
 
-#include "types.h"
 #include "traffic_class.h"
+#include "types.h"
 
-#include <experimental/memory>
 #include <fmt/format.h>
 #include <gsl/gsl>
 #include <vector>
@@ -11,7 +10,7 @@
 struct Group;
 class SourceStream;
 
-using Path = std::vector<observer_ptr<Group>>;
+using Path = std::vector<Group *>;
 
 struct Load {
   LoadId id;
@@ -23,13 +22,9 @@ struct Load {
 
   Path path{};
 
-  std::experimental::observer_ptr<Group> served_by{};
-  std::experimental::observer_ptr<SourceStream> produced_by{};
-  std::experimental::observer_ptr<Group> target_group{};
-
+  Group *served_by{};
+  SourceStream *produced_by{};
+  Group *target_group{};
 };
 
-
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const Load &load);
+void format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const Load &load);

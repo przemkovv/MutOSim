@@ -30,7 +30,7 @@ void Group::reset()
 
 void Group::set_world(gsl::not_null<World *> world)
 {
-  world_ = make_observer(world.get());
+  world_ = world.get();
   overflow_policy_->set_world(world);
 }
 
@@ -47,12 +47,12 @@ void Group::set_end_time(Load &load)
 
 void Group::add_next_group(gsl::not_null<Group *> group)
 {
-  next_groups_.emplace_back(make_observer(group.get()));
+  next_groups_.emplace_back(group.get());
 }
 
 void Group::set_traffic_classes(const TrafficClasses &traffic_classes)
 {
-  traffic_classes_ = make_observer(&traffic_classes);
+  traffic_classes_ = &traffic_classes;
 }
 
 void Group::set_overflow_policy(
@@ -71,7 +71,7 @@ bool Group::try_serve(Load load)
   if (can_serve(load.size)) {
     debug_print("{} Start serving request: {}\n", *this, load);
     size_ += load.size;
-    load.served_by.reset(this);
+    load.served_by = this;
     set_end_time(load);
 
     update_block_stat(load);
@@ -81,7 +81,7 @@ bool Group::try_serve(Load load)
     return true;
   }
   debug_print("{} Forwarding request: {}\n", *this, load);
-  load.path.emplace_back(make_observer(this));
+  load.path.emplace_back(this);
   return forward(load);
 }
 
@@ -152,7 +152,7 @@ bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
   if (can_serve(tc.size)) {
     return true;
   }
-  path.emplace_back(make_observer(this));
+  path.emplace_back(this);
   auto pop_on_exit = gsl::finally([&path]() { path.pop_back(); });
 
   if (path.size() >= tc.max_path_length) {

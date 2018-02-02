@@ -4,7 +4,6 @@
 #include "load.h"
 #include "types.h"
 
-#include <experimental/memory>
 #include <fmt/format.h>
 #include <gsl/gsl>
 #include <memory>
@@ -41,7 +40,6 @@ struct LoadServiceRequestEvent : public Event {
 
   void process() override;
   void skip_notify() override;
-
 };
 
 //----------------------------------------------------------------------
@@ -53,13 +51,12 @@ struct LoadServiceEndEvent : public Event {
 
   void process() override;
   void skip_notify() override;
-
 };
 
 //----------------------------------------------------------------------
 
 struct ProduceServiceRequestEvent : public Event {
-  std::experimental::observer_ptr<SourceStream> source_stream;
+  SourceStream *source_stream;
 
   ProduceServiceRequestEvent(Uuid id, Time time_, SourceStream *source_stream_);
 
