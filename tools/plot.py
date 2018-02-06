@@ -8,6 +8,7 @@ Usage:
             [--linear] [--y_limit=Y_LIMIT]
             [-x X] [-y Y]
             [--save] [--output-dir=DIR]
+            [--quiet]
             [--bp] [-i INDICES]
     plot.py -h | --help
 
@@ -24,6 +25,7 @@ Options:
     -x X                        number of plots horizontally [default: 3]
     -y Y                        number of plots vertically [default: 3]
     -s, --save                  save to file
+    -q, --quiet                 don't show plot window
     -d DIR, --output-dir=DIR    directory where the files are saved
                                 [default: data/results/plots/]
     --bp                        enable box plots
@@ -223,7 +225,8 @@ def main():
         output_file = title + ".pdf"
         output_file = path.join(output_dir, output_file)
         plt.savefig(output_file)
-    plt.show()
+    if "--quiet" not in args:
+        plt.show()
 
 
 if __name__ == "__main__":
