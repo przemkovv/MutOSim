@@ -33,7 +33,7 @@ protected:
   std::array<int, MaxLayersNumber> count_layers_usage(const Path &path) const;
 
   std::optional<Group *> fallback_policy();
-  std::vector<Group *> get_available_groups(const Load &load);
+  std::vector<Group *> get_available_groups(const Load &load, Layer layer);
 
   template <typename BeginIt, typename EndIt>
   Group *pick_random(BeginIt &&begin, EndIt &&end);
