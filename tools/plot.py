@@ -13,6 +13,7 @@ Usage:
             [--quiet]
             [--bp] [-i INDICES]
             [-r]
+            [-n NAME]
     plot.py -h | --help
 
 Arguments:
@@ -34,6 +35,7 @@ Options:
     --bp                        enable box plots
     -i INDICES                  indices of scenarios to plot [default: -1]
     -r, --relatives             plot relations
+    -n NAME, --name=NAME        suffix added to filename
 
 """
 import os.path as path
@@ -157,6 +159,8 @@ def main():
     title = path.splitext(path.basename(data_file))[0] + "_" + stat_name
     if args['--relatives']:
         title += "_relatives"
+    if args['--name']:
+        title += args['--name']
 
     fig = plt.figure(figsize=(32, 18), tight_layout=True)
     fig.canvas.set_window_title(title)
@@ -217,7 +221,7 @@ def main():
                 ax.set_ylabel(stat_name)
                 ax.set_xlabel("a")
                 plot_id += 1
-                ax.legend()
+                ax.legend(loc=4, ncol=3)
 
             for group_name, group_data_y in tc_data_y.items():
                 markerscycle = itertools.cycle(markers)
@@ -243,7 +247,7 @@ def main():
                 ax.set_ylabel(stat_name)
                 ax.set_xlabel("a")
                 plot_id += 1
-                ax.legend()
+                ax.legend(loc=4, ncol=3)
 
     if args['--relatives']:
         for k1, k2 in itertools.combinations(all_data.keys(), 2):
@@ -252,13 +256,15 @@ def main():
                 print("OK")
             if not compare_dicts_structure(all_data[k1]['y'], all_data[k2]['y']):
                 print("NOT OK")
-                continue
+                #  continue
             for group_name, k1_group_data_y in all_data[k1]['y'].items():
                 k2_group_data_y = all_data[k2]['y'][group_name]
 
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
                 for tc_id, k1_data_y in k1_group_data_y.items():
+                    if tc_id not in k2_group_data_y:
+                        continue
                     k2_data_y = k2_group_data_y[tc_id]
                     k2_data_y_means = [statistics.mean(x) for x in k2_data_y]
                     k1_data_y_means = [statistics.mean(x) for x in k1_data_y]
@@ -279,7 +285,7 @@ def main():
                 ax.set_ylabel("{}'s ratio [%]".format(stat_name))
                 ax.set_xlabel("a")
                 plot_id += 1
-                ax.legend()
+                ax.legend(loc=9, ncol=5, borderaxespad=0)
 
     if args["--save"]:
         output_dir = args["--output-dir"]

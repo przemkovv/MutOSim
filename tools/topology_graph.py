@@ -4,7 +4,7 @@
 Visualizer of the topology.
 
 Usage:
-    topology_graph.py <TOPOLOGY_FILE> [--output-dir=DIR] [--view]
+    topology_graph.py <TOPOLOGY_FILE> [--output-dir=DIR] [--view] [-f OUTPUT_FILE]
     topology_graph.py -h | --help
 
 Arguments:
@@ -14,6 +14,7 @@ Options:
     -h --help                   show this help message and exit
     -v, --view                  show the output file with default viewier
     -d DIR, --output-dir=DIR    directory where the files are saved [default: data/results/]
+    -f OUTPUT_FILE              file name of the output
 """
 import json
 from os import path
@@ -105,7 +106,10 @@ def main():
                 g.edge(group_name + ":e", connected_group)
 
     output_dir = args["--output-dir"]
-    output_file = path.splitext(path.basename(topology_file))[0]
+    if args['-f']:
+        output_file = args['-f']
+    else:
+        output_file = path.splitext(path.basename(topology_file))[0]
     output_file = path.join(output_dir, "graph", output_file)
     print(output_file)
     g.render(output_file, cleanup=True,view=args["--view"])
