@@ -13,7 +13,11 @@ Usage:
             [--quiet]
             [--bp] [-i INDICES]
             [-r]
+            [--relative-sums]
+            [--relative-divs]
+            [--normal]
             [-n NAME]
+            [--width W] [--height H]
     plot.py -h | --help
 
 Arguments:
@@ -35,7 +39,12 @@ Options:
     --bp                        enable box plots
     -i INDICES                  indices of scenarios to plot [default: -1]
     -r, --relatives             plot relations
+    --normal                    normal plots
+    --relative-sums             plots of relatives sums
+    --relative-divs             plots of relatives divisions
     -n NAME, --name=NAME        suffix added to filename
+    --width W                   width of generated image [default: 32]
+    --height H                  height of generated image [default: 18]
 
 """
 import os.path as path
@@ -157,12 +166,16 @@ def main():
     enable_boxplots = args["--bp"]
 
     title = path.splitext(path.basename(data_file))[0] + "_" + stat_name
+    if args['--relative-divs']:
+        title += "_relative_div"
+    if args['--relative-sums']:
+        title += "_relative_sum"
     if args['--relatives']:
         title += "_relatives"
     if args['--name']:
         title += args['--name']
 
-    fig = plt.figure(figsize=(32, 18), tight_layout=True)
+    fig = plt.figure(figsize=(int(args["--width"]), int(args["--height"])), tight_layout=True)
     fig.canvas.set_window_title(title)
     plot_id = 1
 
@@ -189,7 +202,7 @@ def main():
             def set_style(ax):
                 return set_plot_linear_style(ax, y_limit_max, y_limit_min)
             aggregate = True
-            if not args['--relatives']:
+            if args['--normal']:
                 plots_number_x = 2 * len(filtered_data)
         else:
             def set_style(ax):
@@ -208,7 +221,7 @@ def main():
                 append_tc_stat_for_groups_by_size(
                     tc_data_y_by_size, result, stat_name, tc_sizes)
 
-        if not args['--relatives']:
+        if args['--normal']:
             for group_name, group_data_y in tc_data_y_by_size.items():
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
@@ -230,9 +243,9 @@ def main():
 
                     if enable_boxplots:
                         ax.boxplot(data_y, positions=tc_data_x, notch=False,
-                                widths=0.05, bootstrap=10000, sym='',
-                                vert=True, patch_artist=False,
-                                manage_xticks=False)
+                                   widths=0.05, bootstrap=10000, sym='',
+                                   vert=True, patch_artist=False,
+                                   manage_xticks=False)
 
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
@@ -241,9 +254,9 @@ def main():
 
                 set_style(ax)
                 ax.set_title("{} V{} ({})"
-                            .format(group_name,
-                                    scenario["groups"][group_name]["capacity"],
-                                    scenario["name"]))
+                             .format(group_name,
+                                     scenario["groups"][group_name]["capacity"],
+                                     scenario["name"]))
                 ax.set_ylabel(stat_name)
                 ax.set_xlabel("a")
                 plot_id += 1
@@ -270,7 +283,7 @@ def main():
                     k1_data_y_means = [statistics.mean(x) for x in k1_data_y]
 
                     plot_data = [x/y*100 if y != 0 else 0
-                                for x, y in zip(k1_data_y_means, k2_data_y_means)]
+                                 for x, y in zip(k1_data_y_means, k2_data_y_means)]
 
                     ax.plot(tc_data_x,
                             plot_data,
@@ -279,13 +292,91 @@ def main():
 
                 set_style(ax)
                 ax.set_title("{} V{}\n ({} / \n{})"
-                            .format(group_name,
-                                    scenario["groups"][group_name]["capacity"],
-                                    k1, k2))
+                             .format(group_name,
+                                     scenario["groups"][group_name]["capacity"],
+                                     k1, k2))
                 ax.set_ylabel("{}'s ratio [%]".format(stat_name))
                 ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=9, ncol=5, borderaxespad=0)
+
+    if args['--relative-sums']:
+        ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
+        markerscycle = itertools.cycle(markers)
+        for k1, k2 in itertools.combinations(all_data.keys(), 2):
+            print((k1, k2))
+            if all_data[k1]['x'] == all_data[k2]['x']:
+                print("OK")
+            if not compare_dicts_structure(all_data[k1]['y'], all_data[k2]['y']):
+                print("NOT OK")
+                #  continue
+            k1_sum = []
+            k2_sum = []
+            for group_name, k1_group_data_y in all_data[k1]['y'].items():
+                k2_group_data_y = all_data[k2]['y'][group_name]
+
+                for tc_id, k1_data_y in k1_group_data_y.items():
+                    k1_data_y_means = [statistics.mean(x) for x in k1_data_y]
+                    k1_sum = [
+                        x+y for x, y in itertools.zip_longest(k1_sum, k1_data_y_means, fillvalue=0)]
+                for tc_id, k2_data_y in k2_group_data_y.items():
+                    k2_data_y_means = [statistics.mean(x) for x in k2_data_y]
+                    k2_sum = [
+                        x+y for x, y in itertools.zip_longest(k2_sum, k2_data_y_means, fillvalue=0)]
+
+            plot_data = [x-y for x, y in zip(k1_sum, k2_sum)]
+
+            ax.plot(tc_data_x,
+                    plot_data,
+                    label="{} - {}".format(path.splitext(path.basename(k1))
+                                           [0], path.splitext(path.basename(k2))[0]),
+                    marker=next(markerscycle))
+
+            set_style(ax)
+            #  ax.set_title("Differences of aggregated statistic")
+            ax.set_ylabel("{} difference".format(stat_name))
+            ax.set_xlabel("a")
+            plot_id += 1
+            ax.legend(loc=9, ncol=2, borderaxespad=0)
+
+    if args['--relative-divs']:
+        ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
+        markerscycle = itertools.cycle(markers)
+        for k1, k2 in itertools.combinations(all_data.keys(), 2):
+            print((k1, k2))
+            if all_data[k1]['x'] == all_data[k2]['x']:
+                print("OK")
+            if not compare_dicts_structure(all_data[k1]['y'], all_data[k2]['y']):
+                print("NOT OK")
+                #  continue
+            k1_sum = []
+            k2_sum = []
+            for group_name, k1_group_data_y in all_data[k1]['y'].items():
+                k2_group_data_y = all_data[k2]['y'][group_name]
+
+                for tc_id, k1_data_y in k1_group_data_y.items():
+                    k1_data_y_means = [statistics.mean(x) for x in k1_data_y]
+                    k1_sum = [
+                        x+y for x, y in itertools.zip_longest(k1_sum, k1_data_y_means, fillvalue=0)]
+                for tc_id, k2_data_y in k2_group_data_y.items():
+                    k2_data_y_means = [statistics.mean(x) for x in k2_data_y]
+                    k2_sum = [
+                        x+y for x, y in itertools.zip_longest(k2_sum, k2_data_y_means, fillvalue=0)]
+
+            plot_data = [x/y*100 if y != 0 else 0 for x, y in zip(k1_sum, k2_sum)]
+
+            ax.plot(tc_data_x,
+                    plot_data,
+                    label="{} / {}".format(path.splitext(path.basename(k1))
+                                           [0], path.splitext(path.basename(k2))[0]),
+                    marker=next(markerscycle))
+
+            set_style(ax)
+            #  ax.set_title("Differences of aggregated statistic")
+            ax.set_ylabel("{} ratio [%]".format(stat_name))
+            ax.set_xlabel("a")
+            plot_id += 1
+            ax.legend(loc=9, ncol=2, borderaxespad=0)
 
     if args["--save"]:
         output_dir = args["--output-dir"]
