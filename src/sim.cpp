@@ -321,8 +321,19 @@ int main(int argc, char *argv[])
     boost::filesystem::path output_file{cli.output_dir};
     output_file /= cli.output_file;
     create_directories(output_file.parent_path());
-    std::ofstream stats_file(output_file.string());
-    stats_file << global_stats.dump(0);
+    std::ofstream stats_file(output_file.string(),
+                             std::ios_base::out | std::ios_base::binary);
+    if (output_file.extension() == ".ubjson") {
+      auto data = nlohmann::json::to_ubjson(global_stats, true, true);
+      stats_file.write(reinterpret_cast<const char *>(data.data()),
+                       static_cast<long>(data.size()));
+    } else if (output_file.extension() == ".cbor") {
+      auto data = nlohmann::json::to_cbor(global_stats);
+      stats_file.write(reinterpret_cast<const char *>(data.data()),
+                       static_cast<long>(data.size()));
+    } else {
+      stats_file << global_stats.dump(0);
+    }
   }
 
   return 0;

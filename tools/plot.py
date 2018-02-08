@@ -50,6 +50,8 @@ Options:
 import os.path as path
 import os
 import json
+import ubjson
+import cbor2
 import statistics
 from pprint import pprint
 import itertools
@@ -158,7 +160,14 @@ def compare_dicts_structure(d1, d2):
 def main():
     args = docopt(__doc__, version='0.1')
     data_file = args["<DATA_FILE>"]
-    data = json.load(open(data_file))
+    ext = path.splitext(data_file)[1]
+    with open(data_file, 'rb') as fp:
+        if ext == ".json":
+            data = json.load(fp)
+        elif ext == ".cbor":
+            data = cbor2.load(fp)
+        elif ext == ".ubjson":
+            data = ubjson.load(fp)
     stat_name = args["-p"]
     y_limit_min = float(args["--y_limit_min"])
     y_limit_max = float(args["--y_limit_max"])
