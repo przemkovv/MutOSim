@@ -1,10 +1,6 @@
 
 # Todo
 
-- Experiments:
-  - differentiate tc more
-  - capacities differentation
-
 - Use cases:
   - filter groups by traffic class
   - support for multiple next groups
@@ -18,7 +14,6 @@
 - Statistics
   - verify global block time
   - distribution of used channels in group
-  - forwarding stats
 
 - Calculations:
   - Analytical model MIMS
@@ -32,8 +27,15 @@
 
 # Done
 
+- Experiments:
+  - differentiate tc more
+  - capacities differentation
+
 - Technical
   - graphviz to display topology
+
+- Statistics
+  - forwarding stats
 
 - statistics: export to json
 - plotting
