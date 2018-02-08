@@ -8,10 +8,10 @@ namespace Math
 constexpr double epsilon = 0.000001;
 
 // using std::pow;
-template <typename T>
-T ratio_to_sum(T s1, T s2)
+template <typename T1, typename... T>
+T1 ratio_to_sum(T1 s1, T... sn)
 {
-  if (auto sum = s1 + s2; sum < epsilon && sum > epsilon) {
+  if (auto sum = s1 + (sn + ...); sum < epsilon && sum > epsilon) {
     return 0;
   } else {
     return s1 / sum;

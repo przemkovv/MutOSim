@@ -83,12 +83,16 @@ nlohmann::json &World::append_stats(nlohmann::json &j)
 
       j_tc["served"].push_back(ts::get(stats.lost_served_stats.served.count));
       j_tc["lost"].push_back(ts::get(stats.lost_served_stats.lost.count));
+      j_tc["forwarded"].push_back(ts::get(stats.lost_served_stats.forwarded.count));
       j_tc["served_u"].push_back(ts::get(stats.lost_served_stats.served.size));
       j_tc["lost_u"].push_back(ts::get(stats.lost_served_stats.lost.size));
+      j_tc["forwarded_u"].push_back(ts::get(stats.lost_served_stats.forwarded.size));
       j_tc["block_time"].push_back(ts::get(stats.block_time));
       j_tc["simulation_time"].push_back(ts::get(stats.simulation_time));
       j_tc["P_loss"].push_back(stats.loss_ratio());
       j_tc["P_loss_u"].push_back(stats.loss_ratio_u());
+      j_tc["P_forward"].push_back(stats.forward_ratio());
+      j_tc["P_forward_u"].push_back(stats.forward_ratio_u());
       j_tc["P_block"].push_back(stats.block_ratio());
     }
   }

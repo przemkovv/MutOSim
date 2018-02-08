@@ -19,13 +19,14 @@ LoadStats &operator+=(LoadStats &s1, const LoadStats &s2)
 
 LostServedStats operator+(const LostServedStats &s1, const LostServedStats &s2)
 {
-  return {s1.lost + s2.lost, s1.served + s2.served};
+  return {s1.lost + s2.lost, s1.served + s2.served, s1.forwarded + s2.forwarded};
 }
 
 LostServedStats &operator+=(LostServedStats &s1, const LostServedStats &s2)
 {
   s1.lost += s2.lost;
   s1.served += s2.served;
+  s1.forwarded += s2.forwarded;
   return s1;
 }
 

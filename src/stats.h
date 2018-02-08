@@ -2,6 +2,7 @@
 
 #include "math.h"
 #include "types.h"
+#include "load.h"
 
 #include <fmt/format.h>
 #include <map>
@@ -24,6 +25,23 @@ struct BlockStats {
 struct LostServedStats {
   LoadStats lost;
   LoadStats served;
+  LoadStats forwarded;
+
+  void serve(const Load &load)
+  {
+    served.size += load.size;
+    served.count++;
+  }
+  void drop(const Load &load)
+  {
+    lost.size += load.size;
+    lost.count++;
+  }
+  void forward(const Load &load)
+  {
+    forwarded.size += load.size;
+    forwarded.count++;
+  }
 };
 
 struct TrafficClassStats {
@@ -33,13 +51,27 @@ struct TrafficClassStats {
 
   double loss_ratio() const
   {
-    return Math::ratio_to_sum<double>(ts::get(lost_served_stats.lost.count),
-                                      ts::get(lost_served_stats.served.count));
+    return Math::ratio_to_sum<double>(get(lost_served_stats.lost.count),
+                                      get(lost_served_stats.served.count),
+                                      get(lost_served_stats.forwarded.count));
   }
   double loss_ratio_u() const
   {
-    return Math::ratio_to_sum<double>(ts::get(lost_served_stats.lost.size),
-                                      ts::get(lost_served_stats.served.size));
+    return Math::ratio_to_sum<double>(get(lost_served_stats.lost.size),
+                                      get(lost_served_stats.served.count),
+                                      get(lost_served_stats.forwarded.count));
+  }
+  double forward_ratio() const
+  {
+    return Math::ratio_to_sum<double>(get(lost_served_stats.forwarded.count),
+                                      get(lost_served_stats.served.count),
+                                      get(lost_served_stats.lost.count));
+  }
+  double forward_ratio_u() const
+  {
+    return Math::ratio_to_sum<double>(get(lost_served_stats.forwarded.size),
+                                      get(lost_served_stats.served.count),
+                                      get(lost_served_stats.lost.count));
   }
   auto block_ratio() const { return block_time / simulation_time; }
 };

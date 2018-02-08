@@ -84,16 +84,12 @@ void Group::take_off(const Load &load)
   size_ -= load.size;
   update_unblock_stat(load);
   world_->update_unblock_stat(load);
-  auto &served = served_by_tc[load.tc_id].served;
-  served.size += load.size;
-  served.count++;
+  served_by_tc[load.tc_id].serve(load);
 }
 void Group::drop(const Load &load)
 {
   debug_print("{} Request has been dropped: {}\n", *this, load);
-  auto &lost = served_by_tc[load.tc_id].lost;
-  lost.size += load.size;
-  lost.count++;
+  served_by_tc[load.tc_id].drop(load);
 }
 
 void Group::update_unblock_stat(const Load &load)
@@ -163,7 +159,8 @@ bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 bool Group::forward(Load load)
 {
   // TODO(PW): if the max path has been reached, pass the load to the next layer
-  if (load.drop || load.served_by.size() >= traffic_classes_->at(load.tc_id).max_path_length) {
+  if (load.drop ||
+      load.served_by.size() >= traffic_classes_->at(load.tc_id).max_path_length) {
     drop(load);
     return false;
   }
@@ -171,6 +168,8 @@ bool Group::forward(Load load)
     auto is_served = (*next_group)->try_serve(load);
     if (!is_served) { // migrated load is considered as dropped by the local group
       drop(load);
+    } else {
+      served_by_tc[load.tc_id].forward(load);
     }
     return is_served;
   }
@@ -187,9 +186,10 @@ Stats Group::get_stats()
     auto &serve_stats = served_by_tc[tc_id];
     if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
       continue;
-    stats.by_traffic_class[tc_id] = {{serve_stats.lost, serve_stats.served},
-                                     blocked_by_tc[tc_id].block_time,
-                                     sim_duration};
+    stats.by_traffic_class[tc_id] = {
+        {serve_stats.lost, serve_stats.served, serve_stats.forwarded},
+        blocked_by_tc[tc_id].block_time,
+        sim_duration};
     stats.total += serve_stats;
   }
   return stats;
