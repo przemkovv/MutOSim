@@ -53,7 +53,6 @@ import json
 import ubjson
 import cbor2
 import statistics
-from pprint import pprint
 import itertools
 from docopt import docopt
 import matplotlib.pyplot as plt
@@ -235,7 +234,7 @@ def main():
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
                 for tc_size, data_y in group_data_y.items():
-                    ax.plot(tc_data_x, data_y, label="S{}".format(tc_size),
+                    ax.plot(tc_data_x, data_y, label="t={}".format(tc_size),
                             marker=next(markerscycle))
 
                 set_style(ax)
@@ -258,11 +257,11 @@ def main():
 
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
-                            label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
+                            label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
                             marker=next(markerscycle))
 
                 set_style(ax)
-                ax.set_title("{} V{} ({})"
+                ax.set_title("{} V={} ({})"
                              .format(group_name,
                                      scenario["groups"][group_name]["capacity"],
                                      scenario["name"]))
@@ -296,11 +295,11 @@ def main():
 
                     ax.plot(tc_data_x,
                             plot_data,
-                            label="TC{} S{}".format(tc_id, tc_sizes[tc_id]),
+                            label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
                             marker=next(markerscycle))
 
                 set_style(ax)
-                ax.set_title("{} V{}\n ({} / \n{})"
+                ax.set_title("{} V={}\n ({} / \n{})"
                              .format(group_name,
                                      scenario["groups"][group_name]["capacity"],
                                      k1, k2))
