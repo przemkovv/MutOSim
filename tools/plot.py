@@ -251,9 +251,9 @@ def main():
 
                     if enable_boxplots:
                         ax.boxplot(data_y, positions=tc_data_x, notch=False,
-                                   widths=0.05, bootstrap=10000, sym='',
-                                   vert=True, patch_artist=False,
-                                   manage_xticks=False)
+                                   widths=0.05, bootstrap=10000, showfliers=False,
+                                   vert=True, patch_artist=False, showcaps=False,
+                                   whis=0, manage_xticks=False)
 
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
