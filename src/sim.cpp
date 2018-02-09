@@ -111,6 +111,8 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
   nlohmann::json global_stats = {};
   std::vector<bool> scenarios_state(scenarios.size());
 
+  print_state(scenarios_state);
+
   sort(begin(scenarios), end(scenarios),
        [](const auto &s1, const auto &s2) { return s1.a > s2.a; });
 
