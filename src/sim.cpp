@@ -36,13 +36,13 @@ void print_state(const std::vector<bool> &states)
       str << '\n';
   }
   str << "\033[0m";
-  if (finished > 1) {
+  if (finished > 0) {
     for (auto row = 0u; row < rows; ++row) {
       print("\033[2K\033[1F"); // clear current and above line
     }
   }
   // print("\033[H\033[J"); // clear ANSI terminal
-  println("[Main]: {} Finished {}/{}: \n{}", rows, finished, states.size(), str.str());
+  println("[Main]: Finished {}/{}: \n{}", finished, states.size(), str.str());
 };
 
 //----------------------------------------------------------------------
@@ -58,7 +58,7 @@ CLI parse_args(const boost::program_options::variables_map &vm)
   cli.parallel = vm["parallel"].as<bool>();
   cli.duration = Duration{vm["duration"].as<time_type>()};
   cli.A_start = Intensity{vm["start"].as<intensity_t>()};
-  cli.A_stop = Intensity{vm["stop"].as<intensity_t>() + 0.01L};
+  cli.A_stop = Intensity{vm["stop"].as<intensity_t>()};
   cli.A_step = Intensity{vm["step"].as<intensity_t>()};
   cli.count = vm["count"].as<int>();
 
@@ -95,8 +95,8 @@ boost::program_options::options_description prepare_options_description()
                         "output directory")
     ("duration,t", po::value<time_type>()->default_value(100'000), "duration of the simulation")
     ("parallel,p", po::value<bool>()->default_value(true), "run simulations in parallel")
-    ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group")
-    ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group")
+    ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group (included)")
+    ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group (not included)")
     ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group")
     ("count,c", po::value<int>()->default_value(1), "number of repeats of each scenario")
     ("quiet,q", po::value<bool>()->default_value(false), "do not print stats")
@@ -167,7 +167,7 @@ void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
   for (const auto &config_file : scenario_files) {
     const auto t = Config::parse_topology_config(config_file);
     // Config::dump(t);
-    for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
+    for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
       for (int i = 0; i < cli.count; ++i) {
         auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
         // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
@@ -182,7 +182,7 @@ void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
 void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
 {
   if ((false)) {
-    for (auto A = cli.A_start; A <= cli.A_stop; A += cli.A_step) {
+    for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
       std::vector<Size> sizes{Size{1}, Size{1}, Size{3}, Size{3}};
       std::vector<int64_t> ratios{1, 1, 1, 1};
       auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0ll);

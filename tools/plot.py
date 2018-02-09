@@ -18,6 +18,7 @@ Usage:
             [--normal]
             [-n NAME]
             [--width W] [--height H]
+            [--pairs PAIRS]
     plot.py -h | --help
 
 Arguments:
@@ -45,6 +46,7 @@ Options:
     -n NAME, --name=NAME        suffix added to filename
     --width W                   width of generated image [default: 32]
     --height H                  height of generated image [default: 18]
+    --pairs PAIRS               list of scenario pairs for relative plots
 
 """
 import os.path as path
@@ -54,6 +56,8 @@ import ubjson
 import cbor2
 import statistics
 import itertools
+import ast
+from pprint import pprint
 from docopt import docopt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
@@ -190,12 +194,20 @@ def main():
     plots_number_x = args["-x"]
     plots_number_y = args["-y"]
 
+    print("All scenarios:")
+    pprint(list(enumerate(data.keys())))
+
     if args["-i"] == "-1":
         filtered_data = data
     else:
         indices = map(int, args["-i"].split(','))
         filtered_data = {k: data[k]
                          for k in [sorted(data.keys())[i] for i in indices]}
+
+
+    print("Filtered scenarios:")
+    pprint(list(enumerate(filtered_data.keys())))
+
 
     all_data = {}
 
@@ -270,8 +282,15 @@ def main():
                 plot_id += 1
                 ax.legend(loc=4, ncol=3)
 
+    if args["--pairs"]:
+        key_pairs_id = list(ast.literal_eval(args["--pairs"]))
+        keys = list(all_data.keys())
+        key_pairs=list(map( lambda p: (keys[p[0]], keys[p[1]]), key_pairs_id))
+    else:
+        key_pairs = itertools.combinations(all_data.keys(), 2)
+
     if args['--relatives']:
-        for k1, k2 in itertools.combinations(all_data.keys(), 2):
+        for k1, k2 in key_pairs:
             print((k1, k2))
             if all_data[k1]['x'] == all_data[k2]['x']:
                 print("OK")
@@ -311,7 +330,7 @@ def main():
     if args['--relative-sums']:
         ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
         markerscycle = itertools.cycle(markers)
-        for k1, k2 in itertools.combinations(all_data.keys(), 2):
+        for k1, k2 in key_pairs:
             print((k1, k2))
             if all_data[k1]['x'] == all_data[k2]['x']:
                 print("OK")
@@ -350,7 +369,7 @@ def main():
     if args['--relative-divs']:
         ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
         markerscycle = itertools.cycle(markers)
-        for k1, k2 in itertools.combinations(all_data.keys(), 2):
+        for k1, k2 in key_pairs:
             print((k1, k2))
             if all_data[k1]['x'] == all_data[k2]['x']:
                 print("OK")
