@@ -70,7 +70,7 @@ def main():
                 merged = remerge([merged, data])
 
         with open(args[-1], 'w') as fp:
-            json.dump(merged, fp, indent=2, sort_keys=True)
+            json.dump(merged, fp, sort_keys=True)
 
 if __name__ == "__main__":
     main()
