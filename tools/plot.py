@@ -20,6 +20,7 @@ Usage:
             [--width W] [--height H]
             [--pairs PAIRS]
             [--groups GROUPS]
+            [--tc TCs]
             [--title-suffix TITLE_SUFFIX]
     plot.py -h | --help
 
@@ -53,6 +54,7 @@ Options:
     --pairs PAIRS               list of scenario pairs for relative plots
     -g GROUPS, --groups=GROUPS  groups that have to be plotted
     --title-suffix=TITLE_SUFFIX title suffix [default: ""]
+    --tc=TCs                    filter TCs [default: None]
 
 """
 import os.path as path
@@ -140,7 +142,7 @@ def set_plot_log_style(ax, top=5, bottom=1e-6):
     ax.set_ylim(bottom=bottom, top=top, auto=True, emit=True)
 
 
-def get_tcs_served_by_groups(scenario_results):
+def get_tcs_served_by_groups(scenario_results, filter):
     tcs_served_by_groups = {}
     for _, result in scenario_results.items():
         for group_name, tcs_stats in result.items():
@@ -150,7 +152,8 @@ def get_tcs_served_by_groups(scenario_results):
                 group_name, [])
             for tc_id, _ in tcs_stats.items():
                 if tc_id not in tcs_served_by_group:
-                    tcs_served_by_group.append(tc_id)
+                    if filter is None or int(tc_id) in filter:
+                        tcs_served_by_group.append(tc_id)
     for _, tcs in tcs_served_by_groups.items():
         tcs.sort()
     return tcs_served_by_groups
@@ -192,6 +195,8 @@ def main():
 
     groups = ast.literal_eval(args["--groups"]) if args["--groups"] else None
 
+    tc_filter = ast.literal_eval(args["--tc"]) if args["--tc"] else []
+
     title = path.splitext(path.basename(data_file))[0] + "_" + stat_name
     if args['--relative-divs']:
         title += "_relative_div"
@@ -203,12 +208,12 @@ def main():
         title += args['--name']
 
     fig = plt.figure(
-        figsize=(int(args["--width"]), int(args["--height"])), tight_layout=True)
+        figsize=(float(args["--width"]), float(args["--height"])), tight_layout=True)
     fig.canvas.set_window_title(title)
     plot_id = 1
 
-    plots_number_x = args["-x"]
-    plots_number_y = args["-y"]
+    plots_number_x = int(args["-x"])
+    plots_number_y = int(args["-y"])
 
     print("All scenarios:")
     pprint(list(enumerate(data.keys())))
@@ -245,7 +250,8 @@ def main():
 
         markers = ['+', 'x', 's']
 
-        tcs_served_by_groups = get_tcs_served_by_groups(scenario_results)
+
+        tcs_served_by_groups = get_tcs_served_by_groups(scenario_results, tc_filter)
 
         for _, result in scenario_results.items():
             a = float(result["_a"])
@@ -271,7 +277,8 @@ def main():
                 set_style(ax)
                 ax.set_title("{} ({})".format(group_name, scenario["name"]))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
-                ax.set_xlabel("a")
+                if plot_id % plots_number_x == 0:
+                    ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=4, ncol=3)
 
@@ -290,16 +297,20 @@ def main():
 
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
-                            label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
+                            #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
+                            label="t={}".format(tc_sizes[tc_id]),
                             marker=next(markerscycle))
 
                 set_style(ax)
-                ax.set_title("{} V={} {}"
+                #  ax.set_title("{} V={} {}"
+                             #  .format(group_name,
+                                     #  scenario["groups"][group_name]["capacity"],
+                ax.set_title("{} {}"
                              .format(group_name,
-                                     scenario["groups"][group_name]["capacity"],
                                      scenario["name"] if title_suffix == None else title_suffix))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
-                ax.set_xlabel("a")
+                if plot_id % plots_number_x == 0:
+                    ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=4, ncol=3)
 
@@ -337,7 +348,8 @@ def main():
                     plot_data = [x/y*100 if y != 0 else 0
                                  for x, y in zip(k1_data_y_means, k2_data_y_means)]
 
-                    label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
+                    label = "t={}".format( tc_sizes[tc_id])
+                    #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
                     ax.plot(tc_data_x,
                             plot_data,
                             label=label,
@@ -349,13 +361,16 @@ def main():
                 else:
                     title_append = "\n({} / \n{})".format(k1,k2)
 
-                ax.set_title("{} V={} {}"
+                #  ax.set_title("{} V={} {}"
+                             #  .format(group_name,
+                                     #  scenario["groups"][group_name]["capacity"],
+                ax.set_title("{} {}"
                              .format(group_name,
-                                     scenario["groups"][group_name]["capacity"],
                                      title_append))
-                ax.set_ylabel("{} ratio [%]".format(
+                ax.set_ylabel("{}\n ratio [%]".format(
                     stats_name2label.get(stat_name, stat_name)))
-                ax.set_xlabel("a")
+                if plot_id % plots_number_x == 0:
+                    ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=9, ncol=5, borderaxespad=0)
 
@@ -398,7 +413,9 @@ def main():
             #  ax.set_title("Differences of aggregated statistic")
             ax.set_ylabel("{} difference".format(
                 stats_name2label(stat_name, stat_name)))
-            ax.set_xlabel("a")
+            if plot_id % plots_number_x == 0:
+                ax.set_xlabel("a")
+
             plot_id += 1
             ax.legend(loc=9, ncol=2, borderaxespad=0)
 
@@ -442,7 +459,8 @@ def main():
             #  ax.set_title("Differences of aggregated statistic")
             ax.set_ylabel("{} ratio [%]".format(
                 stats_name2label.get(stat_name, stat_name)))
-            ax.set_xlabel("a")
+            if plot_id % plots_number_x == 0:
+                ax.set_xlabel("a")
             plot_id += 1
             ax.legend(loc=9, ncol=2, borderaxespad=0)
 
