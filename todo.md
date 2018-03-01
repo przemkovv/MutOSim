@@ -2,6 +2,7 @@
 # Todo
 
 - Use cases:
+  - compression (existing / only new). thresholds per tc and per group
   - filter groups by traffic class
   - support for multiple next groups
   - meta traffic class (for blocking time stats only)
@@ -15,7 +16,7 @@
   - verify global block time
   - distribution of used channels in group
 
-- Calculations:
+- Calculations: +1
   - Analytical model MIMS
   - implement analytical model Fredericks-Hayward
 

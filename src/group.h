@@ -15,6 +15,28 @@
 
 using overflow_policy::OverflowPolicy;
 
+struct GroupStatistics {
+  boost::container::flat_map<TrafficClassId, LostServedStats> served_by_tc;
+  boost::container::flat_map<TrafficClassId, BlockStats> blocked_by_tc;
+
+Stats get_stats(Duration sim_duration)
+{
+  Stats stats;
+
+  for (auto &[tc_id, load_stats] : served_by_tc) {
+    auto &serve_stats = served_by_tc[tc_id];
+    if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
+      continue;
+    stats.by_traffic_class[tc_id] = {
+        {serve_stats.lost, serve_stats.served, serve_stats.forwarded},
+        blocked_by_tc[tc_id].block_time,
+        sim_duration};
+    stats.total += serve_stats;
+  }
+  return stats;
+}
+};
+
 struct Group {
   GroupId id;
   const GroupName name_;
@@ -22,9 +44,8 @@ struct Group {
   Size size_;
   Layer layer_;
 
+  GroupStatistics stats_;
 
-  boost::container::flat_map<TrafficClassId, LostServedStats> served_by_tc;
-  boost::container::flat_map<TrafficClassId, BlockStats> blocked_by_tc;
 
   World *world_;
   const TrafficClasses *traffic_classes_;

@@ -84,12 +84,12 @@ void Group::take_off(const Load &load)
   size_ -= load.size;
   update_unblock_stat(load);
   world_->update_unblock_stat(load);
-  served_by_tc[load.tc_id].serve(load);
+  stats_.served_by_tc[load.tc_id].serve(load);
 }
 void Group::drop(const Load &load)
 {
   debug_print("{} Request has been dropped: {}\n", *this, load);
-  served_by_tc[load.tc_id].drop(load);
+  stats_.served_by_tc[load.tc_id].drop(load);
 }
 
 void Group::update_unblock_stat(const Load &load)
@@ -116,7 +116,7 @@ void Group::update_block_stat(const Load &load)
 }
 void Group::block(TrafficClassId tc_id, const Load &load)
 {
-  auto &block_stats = blocked_by_tc[tc_id];
+  auto &block_stats = stats_.blocked_by_tc[tc_id];
   if (block_stats.try_block(load.send_time)) {
     debug_print("{} Load: {}, Blocking bt={}, sobt={}\n", *this, load,
                 block_stats.block_time, block_stats.start_of_block);
@@ -125,7 +125,7 @@ void Group::block(TrafficClassId tc_id, const Load &load)
 
 void Group::unblock(TrafficClassId tc_id, const Load &load)
 {
-  auto &block_stats = blocked_by_tc[tc_id];
+  auto &block_stats = stats_.blocked_by_tc[tc_id];
   if (block_stats.try_unblock(load.end_time)) {
     debug_print("{} Load: {}, Unblocking bt={}\n", *this, load, block_stats.block_time);
   }
@@ -169,7 +169,7 @@ bool Group::forward(Load load)
     if (!is_served) { // migrated load is considered as dropped by the local group
       drop(load);
     } else {
-      served_by_tc[load.tc_id].forward(load);
+      stats_.served_by_tc[load.tc_id].forward(load);
     }
     return is_served;
   }
@@ -179,20 +179,7 @@ bool Group::forward(Load load)
 
 Stats Group::get_stats()
 {
-  Stats stats;
-
-  auto sim_duration = Duration{world_->get_time()};
-  for (auto &[tc_id, load_stats] : served_by_tc) {
-    auto &serve_stats = served_by_tc[tc_id];
-    if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
-      continue;
-    stats.by_traffic_class[tc_id] = {
-        {serve_stats.lost, serve_stats.served, serve_stats.forwarded},
-        blocked_by_tc[tc_id].block_time,
-        sim_duration};
-    stats.total += serve_stats;
-  }
-  return stats;
+  return stats_.get_stats(Duration{world_->get_time()});
 }
 
 //----------------------------------------------------------------------
