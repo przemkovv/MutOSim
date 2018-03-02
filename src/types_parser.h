@@ -5,7 +5,8 @@
 
 #include <nlohmann/json.hpp>
 
-
+namespace type_safe
+{
 template <typename T, typename UT>
 void from_json(const nlohmann::json &j, ts::strong_typedef<T, UT> &value)
 {
@@ -13,6 +14,17 @@ void from_json(const nlohmann::json &j, ts::strong_typedef<T, UT> &value)
 }
 template <typename T, typename UT>
 void to_json(nlohmann::json &j, const ts::strong_typedef<T, UT> &value)
+{
+  j = ts::get(value);
+}
+
+} // namespace type_safe
+
+inline void from_json(const nlohmann::json &j, GroupName &value)
+{
+  value = GroupName{j.get<ts::underlying_type<GroupName>>()};
+}
+inline void to_json(nlohmann::json &j, const GroupName &value)
 {
   j = ts::get(value);
 }

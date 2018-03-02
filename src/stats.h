@@ -23,9 +23,9 @@ struct BlockStats {
 };
 
 struct LostServedStats {
-  LoadStats lost;
-  LoadStats served;
-  LoadStats forwarded;
+  LoadStats lost{};
+  LoadStats served{};
+  LoadStats forwarded{};
 
   void serve(const Load &load)
   {
@@ -45,9 +45,9 @@ struct LostServedStats {
 };
 
 struct TrafficClassStats {
-  LostServedStats lost_served_stats;
-  Duration block_time;
-  Duration simulation_time;
+  LostServedStats lost_served_stats{};
+  Duration block_time{};
+  Duration simulation_time{};
 
   double loss_ratio() const
   {
@@ -77,8 +77,8 @@ struct TrafficClassStats {
 };
 
 struct Stats {
-  LostServedStats total;
-  std::map<TrafficClassId, TrafficClassStats> by_traffic_class;
+  LostServedStats total{};
+  std::map<TrafficClassId, TrafficClassStats> by_traffic_class{};
 };
 
 LoadStats operator+(const LoadStats &s1, const LoadStats &s2);

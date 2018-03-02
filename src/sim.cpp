@@ -43,7 +43,7 @@ void print_state(const std::vector<bool> &states)
   }
   // print("\033[H\033[J"); // clear ANSI terminal
   println("[Main]: Finished {}/{}: \n{}", finished, states.size(), str.str());
-};
+}
 
 //----------------------------------------------------------------------
 

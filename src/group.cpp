@@ -95,6 +95,7 @@ void Group::drop(const Load &load)
 void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
+    std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
                // load path?
     if (can_serve_recursive(tc, path)) {
@@ -106,6 +107,7 @@ void Group::update_unblock_stat(const Load &load)
 void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
+    std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
                // load path?
     if (!can_serve_recursive(tc, path)) {

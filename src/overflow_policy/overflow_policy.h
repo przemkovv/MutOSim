@@ -25,8 +25,8 @@ using Default = NoOverflow;
 class OverflowPolicy
 {
 protected:
-  Group *group_;
-  World *world_;
+  Group *group_ = nullptr;
+  World *world_ = nullptr;
 
   // TODO(PW): extract it to scenario settings
   static constexpr int overflows_per_layer = 2;
@@ -40,6 +40,9 @@ protected:
 
 public:
   OverflowPolicy(Group& group);
+  OverflowPolicy(const OverflowPolicy& ) = delete;
+  OverflowPolicy& operator=(const OverflowPolicy& ) = delete;
+
   virtual std::optional<Group *> find_next_group(const Load &load);
   void set_world(World& world);
   virtual ~OverflowPolicy() = default;
@@ -84,7 +87,7 @@ public:
   using OverflowPolicy::OverflowPolicy;
   std::optional<Group *> find_next_group(const Load &load) override;
 };
-;
+
 //----------------------------------------------------------------------
 class LowestFreeCapacity : public OverflowPolicy
 {
@@ -92,6 +95,6 @@ public:
   using OverflowPolicy::OverflowPolicy;
   std::optional<Group *> find_next_group(const Load &load) override;
 };
-;
+
 
 } // namespace overflow_policy

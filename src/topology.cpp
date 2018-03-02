@@ -57,16 +57,19 @@ TrafficClass &Topology::add_traffic_class(TrafficClassId id,
 void Topology::set_world(World& world)
 {
   for (auto &[name, group] : groups) {
+    std::ignore = name;
     group->set_world(world);
     group->set_traffic_classes(traffic_classes);
   }
   for (auto &[name, source] : sources) {
+    std::ignore = name;
     source->set_world(world);
   }
 }
 std::optional<SourceStream *> Topology::find_source_by_tc_id(TrafficClassId id) const
 {
   for (auto &[name, source] : sources) {
+    std::ignore = name;
     if (source->tc_.id == id) {
       return source.get();
     }

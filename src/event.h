@@ -58,6 +58,8 @@ struct ProduceServiceRequestEvent : public Event {
   SourceStream *source_stream;
 
   ProduceServiceRequestEvent(Uuid id, Time time_, SourceStream *source_stream_);
+  ProduceServiceRequestEvent(const ProduceServiceRequestEvent& ) = delete;
+  ProduceServiceRequestEvent& operator=(const ProduceServiceRequestEvent& ) = delete;
 
   void process() override;
   void skip_notify() override;

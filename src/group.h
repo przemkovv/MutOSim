@@ -24,6 +24,7 @@ struct GroupStatistics {
     Stats stats;
 
     for (auto &[tc_id, load_stats] : served_by_tc) {
+      std::ignore = load_stats;
       auto &serve_stats = served_by_tc[tc_id];
       if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
         continue;
@@ -38,16 +39,16 @@ struct GroupStatistics {
 };
 
 struct Group {
-  GroupId id;
+  GroupId id{};
   const GroupName name_;
   Capacity capacity_;
-  Size size_;
+  Size size_{};
   Layer layer_;
 
-  GroupStatistics stats_;
+  GroupStatistics stats_{};
 
-  World *world_;
-  const TrafficClasses *traffic_classes_;
+  World *world_ = nullptr;
+  const TrafficClasses *traffic_classes_{};
   std::vector<Group *> next_groups_{};
   std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_;
 
@@ -72,6 +73,8 @@ struct Group {
 
   Group(GroupName name, Capacity capacity, Layer layer);
   Group(GroupName name, Capacity capacity);
+  Group(const Group&) = delete;
+  Group& operator=(const Group&) = delete;
 
   bool try_serve(Load load);
   void take_off(const Load &load);

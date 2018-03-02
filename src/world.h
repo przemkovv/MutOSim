@@ -30,17 +30,19 @@ class World
 
   Uuid last_id = 0;
 
-  std::priority_queue<EventPtr, std::vector<EventPtr>, by_time> events_;
+  std::priority_queue<EventPtr, std::vector<EventPtr>, by_time> events_{};
   RandomEngine random_engine_{seed_};
 
-  Topology *topology_;
-  std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc;
-  std::unordered_map<Size, BlockStats> blocked_by_size;
+  Topology *topology_{};
+  std::unordered_map<TrafficClassId, BlockStats> blocked_by_tc{};
+  std::unordered_map<Size, BlockStats> blocked_by_size{};
 
   void process_event();
 
 public:
   World(uint64_t seed, Duration duration);
+  World(const World&) = delete;
+  World& operator=(const World&) = delete;
 
   Uuid get_uuid();
   RandomEngine &get_random_engine();
