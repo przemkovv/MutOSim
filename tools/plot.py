@@ -71,7 +71,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 
 
-stats_name2label = {'served_u': 'Traffic served',
+stats_name2label = {'served_u': 'Carried traffic',
                     'P_block': 'Blocking probability'}
 
 
@@ -464,15 +464,17 @@ def main():
             plot_id += 1
             ax.legend(loc=9, ncol=2, borderaxespad=0)
 
+    if not args["--quiet"]:
+        plt.show()
+
     if args["--save"]:
         output_dir = args["--output-dir"]
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
         output_file = title + ".pdf"
         output_file = path.join(output_dir, output_file)
-        plt.savefig(output_file)
-    if not args["--quiet"]:
-        plt.show()
+        fig.set_size_inches(float(args["--width"]), float(args["--height"]))
+        fig.savefig(output_file)
 
 
 if __name__ == "__main__":
