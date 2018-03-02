@@ -16,9 +16,11 @@ World::World(uint64_t seed, Duration duration) : seed_(seed), duration_(duration
 void World::init()
 {
   for (auto &[name, source] : topology_->sources) {
+    std::ignore = name;
     source->init();
   }
   for (const auto &[id, tc] : topology_->traffic_classes) {
+    std::ignore = id;
     blocked_by_size.emplace(tc.size, BlockStats{});
   }
 }
@@ -38,6 +40,7 @@ bool World::next_iteration()
 
   if (time_ > finish_time_) {
     for (auto &[name, source] : topology_->sources) {
+      std::ignore = name;
       source->pause();
     }
   }
@@ -77,7 +80,7 @@ nlohmann::json &World::append_stats(nlohmann::json &j)
   for (auto &[name, group] : topology_->groups) {
     auto &j_group = j[ts::get(name)];
 
-    const auto &group_stats = group->get_stats();
+    const auto &group_stats = group->get_stats(Duration{get_time()});
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
       auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
 
@@ -109,7 +112,8 @@ void World::print_stats()
   print("{} Time = {}\n", *this, time_);
   print("{} In queue left {} events\n", *this, events_.size());
   for (auto &[name, group] : topology_->groups) {
-    const auto &group_stats = group->get_stats();
+    std::ignore = name;
+    const auto &group_stats = group->get_stats(Duration{get_time()});
     print("{} {}: {}\n", *this, *group, group_stats);
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
       print("{} {} {}: {}: {}\n", *this, *group,
@@ -118,6 +122,7 @@ void World::print_stats()
     }
   }
   for (auto &[tc_id, tc] : topology_->traffic_classes) {
+    std::ignore = tc_id;
     auto p_block = blocked_by_tc[tc.id].block_time / Duration{ts::get(current_time_)};
     print("{} {}: P_block {:<12} ({:<12})\n", *this, tc, p_block, std::log10(p_block));
   }
@@ -128,6 +133,7 @@ void World::print_stats()
           std::log10(p_block));
   }
   for (auto &[source_id, source] : topology_->sources) {
+    std::ignore = source_id;
     source->print_stats();
   }
 }

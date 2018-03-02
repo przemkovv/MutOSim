@@ -25,6 +25,7 @@
     - select_available ->  limit_groups_per_layer -> select highest_capacity_groups,
     - select_available ->  limit_groups_per_layer -> select random
   - divide simulation into epochs?
+  - end simulation when there is enough number of lost requests
 
 # Done
 

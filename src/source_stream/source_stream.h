@@ -18,9 +18,9 @@ public:
   const TrafficClass tc_;
 
 protected:
-  World *world_;
+  World *world_ = nullptr;
 
-  Group *target_group_;
+  Group *target_group_ = nullptr;
 
   bool pause_ = false;
   uint64_t loads_produced_{0};
@@ -40,6 +40,8 @@ public:
   virtual Intensity get_intensity() const { return tc_.serve_intensity; }
 
   SourceStream(const SourceName &name, const TrafficClass &tc);
+  SourceStream(const SourceStream&) = delete;
+  SourceStream& operator=(const SourceStream&) = delete;
   virtual ~SourceStream() = default;
 
   void set_world(World& world);

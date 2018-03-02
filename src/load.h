@@ -13,10 +13,10 @@ class SourceStream;
 using Path = boost::container::small_vector<Group *, 5>;
 
 struct Load {
-  LoadId id;
-  TrafficClassId tc_id;
-  Time send_time;
-  Size size;
+  LoadId id{};
+  TrafficClassId tc_id{};
+  Time send_time{};
+  Size size{};
   Time end_time{-1};
   bool drop = false;
 

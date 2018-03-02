@@ -24,6 +24,7 @@ ScenarioSettings prepare_scenario_global_A(const Config::Topology &config, Inten
       [](const auto x, const auto &tc) { return tc.second.weight + x; });
 
   for (const auto &[tc_id, tc] : config.traffic_classes) {
+    std::ignore = tc_id;
     const auto ratio = tc.weight / sum;
     Intensity offered_intensity = A * V * ratio / tc.size;
     topology.add_traffic_class(tc.id, offered_intensity, tc.serve_intensity, tc.size);

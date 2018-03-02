@@ -95,6 +95,7 @@ void Group::drop(const Load &load)
 void Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
+    std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
                // load path?
     if (can_serve_recursive(tc, path)) {
@@ -106,6 +107,7 @@ void Group::update_unblock_stat(const Load &load)
 void Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
+    std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
                // load path?
     if (!can_serve_recursive(tc, path)) {
@@ -177,9 +179,9 @@ bool Group::forward(Load load)
   return false;
 }
 
-Stats Group::get_stats()
+Stats Group::get_stats(Duration duration)
 {
-  return stats_.get_stats(Duration{world_->get_time()});
+  return stats_.get_stats(duration);
 }
 
 //----------------------------------------------------------------------

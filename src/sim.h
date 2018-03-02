@@ -11,20 +11,20 @@
 #include <vector>
 
 struct CLI {
-  bool help;
-  bool use_random_seed;
-  bool quiet;
-  std::string output_file;
-  std::string output_dir;
-  bool parallel;
-  Duration duration;
-  Intensity A_start;
-  Intensity A_stop;
-  Intensity A_step;
-  int count;
+  bool help = false;
+  bool use_random_seed = false;
+  bool quiet = false;
+  std::string output_file{};
+  std::string output_dir{};
+  bool parallel = false;
+  Duration duration{};
+  Intensity A_start{};
+  Intensity A_stop{};
+  Intensity A_step{};
+  int count{};
 
-  std::vector<std::string> scenario_files;
-  std::vector<std::string> scenarios_dirs;
+  std::vector<std::string> scenario_files{};
+  std::vector<std::string> scenarios_dirs{};
 };
 
 CLI parse_args(const boost::program_options::variables_map &vm);
