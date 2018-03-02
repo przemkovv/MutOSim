@@ -6,8 +6,8 @@ Simulator of network with Mutual Overflows.
 Usage:
     plot.py <DATA_FILE> [-p PROPERTY]
             [--linear]
-            [--y_limit_max=Y_LIMIT_MAX]
-            [--y_limit_min=Y_LIMIT_MIN]
+            [--y_max=Y_MAX] [--y_min=Y_MIN]
+            [--x_max=X_MAX] [--x_min=X_MIN]
             [-x X] [-y Y]
             [--save] [--output-dir=DIR]
             [--quiet]
@@ -19,6 +19,9 @@ Usage:
             [-n NAME]
             [--width W] [--height H]
             [--pairs PAIRS]
+            [--groups GROUPS]
+            [--tc TCs]
+            [--title-suffix TITLE_SUFFIX]
     plot.py -h | --help
 
 Arguments:
@@ -29,8 +32,10 @@ Options:
     -p PROPERTY                 property from data file to plot
                                 [default: P_block]
     --linear                    linear plot (default is log)
-    --y_limit_max=Y_LIMIT       top limit on y axis [default: 5]
-    --y_limit_min=Y_LIMIT       bottom limit on y axis [default: 1e-6]
+    --x_max=X_MAX               right limit on x axis [default: 3.0]
+    --x_min=X_MIN               left limit on x axis [default: 0.0]
+    --y_max=Y_MAX               top limit on y axis [default: 5]
+    --y_min=Y_MIN               bottom limit on y axis [default: 1e-6]
     -x X                        number of plots horizontally [default: 3]
     -y Y                        number of plots vertically [default: 3]
     -s, --save                  save to file
@@ -47,6 +52,9 @@ Options:
     --width W                   width of generated image [default: 32]
     --height H                  height of generated image [default: 18]
     --pairs PAIRS               list of scenario pairs for relative plots
+    -g GROUPS, --groups=GROUPS  groups that have to be plotted
+    --title-suffix=TITLE_SUFFIX title suffix [default: ""]
+    --tc=TCs                    filter TCs [default: None]
 
 """
 import os.path as path
@@ -61,6 +69,10 @@ from pprint import pprint
 from docopt import docopt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
+
+
+stats_name2label = {'served_u': 'Traffic served',
+                    'P_block': 'Blocking probability'}
 
 
 def load_traffic_classes_sizes(scenario_file):
@@ -130,7 +142,7 @@ def set_plot_log_style(ax, top=5, bottom=1e-6):
     ax.set_ylim(bottom=bottom, top=top, auto=True, emit=True)
 
 
-def get_tcs_served_by_groups(scenario_results):
+def get_tcs_served_by_groups(scenario_results, filter):
     tcs_served_by_groups = {}
     for _, result in scenario_results.items():
         for group_name, tcs_stats in result.items():
@@ -140,7 +152,8 @@ def get_tcs_served_by_groups(scenario_results):
                 group_name, [])
             for tc_id, _ in tcs_stats.items():
                 if tc_id not in tcs_served_by_group:
-                    tcs_served_by_group.append(tc_id)
+                    if filter is None or int(tc_id) in filter:
+                        tcs_served_by_group.append(tc_id)
     for _, tcs in tcs_served_by_groups.items():
         tcs.sort()
     return tcs_served_by_groups
@@ -172,10 +185,17 @@ def main():
         elif ext == ".ubjson":
             data = ubjson.load(fp)
     stat_name = args["-p"]
-    y_limit_min = float(args["--y_limit_min"])
-    y_limit_max = float(args["--y_limit_max"])
+    x_min = float(args["--x_min"])
+    x_max = float(args["--x_max"])
+    y_min = float(args["--y_min"])
+    y_max = float(args["--y_max"])
     logarithmic_plot = not args["--linear"]
     enable_boxplots = args["--bp"]
+    title_suffix = args["--title-suffix"]
+
+    groups = ast.literal_eval(args["--groups"]) if args["--groups"] else None
+
+    tc_filter = ast.literal_eval(args["--tc"]) if args["--tc"] else []
 
     title = path.splitext(path.basename(data_file))[0] + "_" + stat_name
     if args['--relative-divs']:
@@ -187,12 +207,13 @@ def main():
     if args['--name']:
         title += args['--name']
 
-    fig = plt.figure(figsize=(int(args["--width"]), int(args["--height"])), tight_layout=True)
+    fig = plt.figure(
+        figsize=(float(args["--width"]), float(args["--height"])), tight_layout=True)
     fig.canvas.set_window_title(title)
     plot_id = 1
 
-    plots_number_x = args["-x"]
-    plots_number_y = args["-y"]
+    plots_number_x = int(args["-x"])
+    plots_number_y = int(args["-y"])
 
     print("All scenarios:")
     pprint(list(enumerate(data.keys())))
@@ -204,10 +225,8 @@ def main():
         filtered_data = {k: data[k]
                          for k in [sorted(data.keys())[i] for i in indices]}
 
-
     print("Filtered scenarios:")
     pprint(list(enumerate(filtered_data.keys())))
-
 
     all_data = {}
 
@@ -220,20 +239,24 @@ def main():
         tc_data_y_by_size = {}
         if not logarithmic_plot:
             def set_style(ax):
-                return set_plot_linear_style(ax, y_limit_max, y_limit_min)
+                return set_plot_linear_style(ax, y_max, y_min)
             aggregate = True
             if args['--normal']:
                 plots_number_x = 2 * len(filtered_data)
         else:
             def set_style(ax):
-                return set_plot_log_style(ax, y_limit_max, y_limit_min)
+                return set_plot_log_style(ax, y_max, y_min)
             aggregate = False
 
         markers = ['+', 'x', 's']
 
-        tcs_served_by_groups = get_tcs_served_by_groups(scenario_results)
+
+        tcs_served_by_groups = get_tcs_served_by_groups(scenario_results, tc_filter)
 
         for _, result in scenario_results.items():
+            a = float(result["_a"])
+            if (x_min and x_min > a) or (x_max and x_max < a):
+                continue
             tc_data_x.append(float(result["_a"]))
             append_tc_stat_for_groups(
                 tc_data_y, result, stat_name, tcs_served_by_groups)
@@ -243,6 +266,8 @@ def main():
 
         if args['--normal']:
             for group_name, group_data_y in tc_data_y_by_size.items():
+                if groups and group_name not in groups:
+                    continue
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
                 for tc_size, data_y in group_data_y.items():
@@ -251,12 +276,15 @@ def main():
 
                 set_style(ax)
                 ax.set_title("{} ({})".format(group_name, scenario["name"]))
-                ax.set_ylabel(stat_name)
-                ax.set_xlabel("a")
+                ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
+                if plot_id % plots_number_x == 0:
+                    ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=4, ncol=3)
 
             for group_name, group_data_y in tc_data_y.items():
+                if groups and group_name not in groups:
+                    continue
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
                 for tc_id, data_y in group_data_y.items():
@@ -269,28 +297,34 @@ def main():
 
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
-                            label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
+                            #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
+                            label="t={}".format(tc_sizes[tc_id]),
                             marker=next(markerscycle))
 
                 set_style(ax)
-                ax.set_title("{} V={} ({})"
+                #  ax.set_title("{} V={} {}"
+                             #  .format(group_name,
+                                     #  scenario["groups"][group_name]["capacity"],
+                ax.set_title("{} {}"
                              .format(group_name,
-                                     scenario["groups"][group_name]["capacity"],
-                                     scenario["name"]))
-                ax.set_ylabel(stat_name)
-                ax.set_xlabel("a")
+                                     scenario["name"] if title_suffix == None else title_suffix))
+                ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
+                if plot_id % plots_number_x == 0:
+                    ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=4, ncol=3)
 
     if args["--pairs"]:
         key_pairs_id = list(ast.literal_eval(args["--pairs"]))
         keys = list(all_data.keys())
-        key_pairs=list(map( lambda p: (keys[p[0]], keys[p[1]]), key_pairs_id))
+        key_pairs = list(map(lambda p: (
+            keys[p[0]], keys[p[1]], p[2] if len(p) > 2 else None), key_pairs_id))
     else:
         key_pairs = itertools.combinations(all_data.keys(), 2)
+        key_pairs = list(p + (None,) for p in key_pairs)
 
     if args['--relatives']:
-        for k1, k2 in key_pairs:
+        for k1, k2, p_name in key_pairs:
             print((k1, k2))
             if all_data[k1]['x'] == all_data[k2]['x']:
                 print("OK")
@@ -298,6 +332,8 @@ def main():
                 print("NOT OK")
                 #  continue
             for group_name, k1_group_data_y in all_data[k1]['y'].items():
+                if groups and group_name not in groups:
+                    continue
                 k2_group_data_y = all_data[k2]['y'][group_name]
 
                 markerscycle = itertools.cycle(markers)
@@ -312,25 +348,36 @@ def main():
                     plot_data = [x/y*100 if y != 0 else 0
                                  for x, y in zip(k1_data_y_means, k2_data_y_means)]
 
+                    label = "t={}".format( tc_sizes[tc_id])
+                    #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
                     ax.plot(tc_data_x,
                             plot_data,
-                            label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
+                            label=label,
                             marker=next(markerscycle))
 
                 set_style(ax)
-                ax.set_title("{} V={}\n ({} / \n{})"
+                if p_name:
+                    title_append = p_name
+                else:
+                    title_append = "\n({} / \n{})".format(k1,k2)
+
+                #  ax.set_title("{} V={} {}"
+                             #  .format(group_name,
+                                     #  scenario["groups"][group_name]["capacity"],
+                ax.set_title("{} {}"
                              .format(group_name,
-                                     scenario["groups"][group_name]["capacity"],
-                                     k1, k2))
-                ax.set_ylabel("{}'s ratio [%]".format(stat_name))
-                ax.set_xlabel("a")
+                                     title_append))
+                ax.set_ylabel("{}\n ratio [%]".format(
+                    stats_name2label.get(stat_name, stat_name)))
+                if plot_id % plots_number_x == 0:
+                    ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=9, ncol=5, borderaxespad=0)
 
     if args['--relative-sums']:
         ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
         markerscycle = itertools.cycle(markers)
-        for k1, k2 in key_pairs:
+        for k1, k2, p_name in key_pairs:
             print((k1, k2))
             if all_data[k1]['x'] == all_data[k2]['x']:
                 print("OK")
@@ -340,6 +387,8 @@ def main():
             k1_sum = []
             k2_sum = []
             for group_name, k1_group_data_y in all_data[k1]['y'].items():
+                if groups and group_name not in groups:
+                    continue
                 k2_group_data_y = all_data[k2]['y'][group_name]
 
                 for tc_id, k1_data_y in k1_group_data_y.items():
@@ -353,23 +402,27 @@ def main():
 
             plot_data = [x-y for x, y in zip(k1_sum, k2_sum)]
 
+            label = "{} - {}".format(path.splitext(path.basename(k1))[0], path.splitext(
+                path.basename(k2))[0]) if not p_name else p_name
             ax.plot(tc_data_x,
                     plot_data,
-                    label="{} - {}".format(path.splitext(path.basename(k1))
-                                           [0], path.splitext(path.basename(k2))[0]),
+                    label=label,
                     marker=next(markerscycle))
 
             set_style(ax)
             #  ax.set_title("Differences of aggregated statistic")
-            ax.set_ylabel("{} difference".format(stat_name))
-            ax.set_xlabel("a")
+            ax.set_ylabel("{} difference".format(
+                stats_name2label(stat_name, stat_name)))
+            if plot_id % plots_number_x == 0:
+                ax.set_xlabel("a")
+
             plot_id += 1
             ax.legend(loc=9, ncol=2, borderaxespad=0)
 
     if args['--relative-divs']:
         ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
         markerscycle = itertools.cycle(markers)
-        for k1, k2 in key_pairs:
+        for k1, k2, p_name in key_pairs:
             print((k1, k2))
             if all_data[k1]['x'] == all_data[k2]['x']:
                 print("OK")
@@ -379,6 +432,8 @@ def main():
             k1_sum = []
             k2_sum = []
             for group_name, k1_group_data_y in all_data[k1]['y'].items():
+                if groups and group_name not in groups:
+                    continue
                 k2_group_data_y = all_data[k2]['y'][group_name]
 
                 for tc_id, k1_data_y in k1_group_data_y.items():
@@ -390,18 +445,22 @@ def main():
                     k2_sum = [
                         x+y for x, y in itertools.zip_longest(k2_sum, k2_data_y_means, fillvalue=0)]
 
-            plot_data = [x/y*100 if y != 0 else 0 for x, y in zip(k1_sum, k2_sum)]
+            plot_data = [x/y*100 if y != 0 else 0 for x,
+                         y in zip(k1_sum, k2_sum)]
 
+            label = "{} / {}".format(path.splitext(path.basename(k1))[0], path.splitext(
+                path.basename(k2))[0]) if not p_name else p_name
             ax.plot(tc_data_x,
                     plot_data,
-                    label="{} / {}".format(path.splitext(path.basename(k1))
-                                           [0], path.splitext(path.basename(k2))[0]),
+                    label=label,
                     marker=next(markerscycle))
 
             set_style(ax)
             #  ax.set_title("Differences of aggregated statistic")
-            ax.set_ylabel("{} ratio [%]".format(stat_name))
-            ax.set_xlabel("a")
+            ax.set_ylabel("{} ratio [%]".format(
+                stats_name2label.get(stat_name, stat_name)))
+            if plot_id % plots_number_x == 0:
+                ax.set_xlabel("a")
             plot_id += 1
             ax.legend(loc=9, ncol=2, borderaxespad=0)
 
