@@ -177,9 +177,9 @@ bool Group::forward(Load load)
   return false;
 }
 
-Stats Group::get_stats()
+Stats Group::get_stats(Duration duration)
 {
-  return stats_.get_stats(Duration{world_->get_time()});
+  return stats_.get_stats(duration);
 }
 
 //----------------------------------------------------------------------

@@ -7,10 +7,10 @@
 #include "types.h"
 #include "world.h"
 
+#include <boost/container/flat_map.hpp>
 #include <queue>
 #include <random>
 #include <unordered_map>
-#include <boost/container/flat_map.hpp>
 #include <vector>
 
 using overflow_policy::OverflowPolicy;
@@ -19,22 +19,22 @@ struct GroupStatistics {
   boost::container::flat_map<TrafficClassId, LostServedStats> served_by_tc;
   boost::container::flat_map<TrafficClassId, BlockStats> blocked_by_tc;
 
-Stats get_stats(Duration sim_duration)
-{
-  Stats stats;
+  Stats get_stats(Duration sim_duration)
+  {
+    Stats stats;
 
-  for (auto &[tc_id, load_stats] : served_by_tc) {
-    auto &serve_stats = served_by_tc[tc_id];
-    if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
-      continue;
-    stats.by_traffic_class[tc_id] = {
-        {serve_stats.lost, serve_stats.served, serve_stats.forwarded},
-        blocked_by_tc[tc_id].block_time,
-        sim_duration};
-    stats.total += serve_stats;
+    for (auto &[tc_id, load_stats] : served_by_tc) {
+      auto &serve_stats = served_by_tc[tc_id];
+      if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
+        continue;
+      stats.by_traffic_class[tc_id] = {
+          {serve_stats.lost, serve_stats.served, serve_stats.forwarded},
+          blocked_by_tc[tc_id].block_time,
+          sim_duration};
+      stats.total += serve_stats;
+    }
+    return stats;
   }
-  return stats;
-}
 };
 
 struct Group {
@@ -46,7 +46,6 @@ struct Group {
 
   GroupStatistics stats_;
 
-
   World *world_;
   const TrafficClasses *traffic_classes_;
   std::vector<Group *> next_groups_{};
@@ -54,11 +53,10 @@ struct Group {
 
   std::exponential_distribution<time_type> exponential{};
 
-
-  void set_world(World& world);
+  void set_world(World &world);
   void set_traffic_classes(const TrafficClasses &traffic_classes);
   void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
-  void add_next_group(Group& group);
+  void add_next_group(Group &group);
 
   void set_end_time(Load &load);
 
@@ -81,7 +79,7 @@ struct Group {
 
   void notify_on_service_end(LoadServiceEndEvent *event);
 
-  Stats get_stats();
+  Stats get_stats(Duration duration);
   const GroupName &get_name() const { return name_; }
 };
 

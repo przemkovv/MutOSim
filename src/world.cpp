@@ -77,7 +77,7 @@ nlohmann::json &World::append_stats(nlohmann::json &j)
   for (auto &[name, group] : topology_->groups) {
     auto &j_group = j[ts::get(name)];
 
-    const auto &group_stats = group->get_stats();
+    const auto &group_stats = group->get_stats(Duration{get_time()});
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
       auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
 
@@ -109,7 +109,7 @@ void World::print_stats()
   print("{} Time = {}\n", *this, time_);
   print("{} In queue left {} events\n", *this, events_.size());
   for (auto &[name, group] : topology_->groups) {
-    const auto &group_stats = group->get_stats();
+    const auto &group_stats = group->get_stats(Duration{get_time()});
     print("{} {}: {}\n", *this, *group, group_stats);
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
       print("{} {} {}: {}: {}\n", *this, *group,
