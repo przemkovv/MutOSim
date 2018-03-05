@@ -72,6 +72,7 @@ from matplotlib.ticker import AutoMinorLocator
 
 
 stats_name2label = {'served_u': 'Carried traffic',
+                    'served': 'Carried requests',
                     'P_block': 'Blocking probability'}
 
 
@@ -298,7 +299,7 @@ def main():
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
-                            label="t={}".format(tc_sizes[tc_id]),
+                            label="$t_{}={}$".format(tc_id, tc_sizes[tc_id]),
                             marker=next(markerscycle))
 
                 set_style(ax)
@@ -348,7 +349,7 @@ def main():
                     plot_data = [x/y*100 if y != 0 else 0
                                  for x, y in zip(k1_data_y_means, k2_data_y_means)]
 
-                    label = "t={}".format( tc_sizes[tc_id])
+                    label = "$t_{}={}$".format( tc_id, tc_sizes[tc_id])
                     #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
                     ax.plot(tc_data_x,
                             plot_data,

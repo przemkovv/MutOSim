@@ -28,8 +28,8 @@ option(SIM_DEBUG "Enable more detailed tracing" OFF)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     add_compile_options(
         # using Clang
-        -g
-        -glldb
+        # -g
+        # -glldb
         # -pg
         -march=native
         -Werror
@@ -45,8 +45,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     add_compile_options(
-        -g
-        -ggdb
+        # -g
+        # -ggdb
         # -pg
         -Wall
         -march=native
@@ -121,7 +121,7 @@ if (OPENMP_FOUND)
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_package(Boost 1.66 COMPONENTS system program_options filesystem)
+find_package(Boost 1.62 COMPONENTS system program_options filesystem)
 find_library(GMP gmp libgmp)
 find_library(MPFR mpfr libmpfr)
 
