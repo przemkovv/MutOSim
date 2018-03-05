@@ -50,6 +50,7 @@ struct Weight : ts::strong_typedef<Weight, weight_t>,
 
 struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,
+                  ts::strong_typedef_op::relational_comparison<Capacity>,
                   ts::strong_typedef_op::addition<Capacity>,
                   ts::strong_typedef_op::output_operator<Capacity> {
   using strong_typedef::strong_typedef;

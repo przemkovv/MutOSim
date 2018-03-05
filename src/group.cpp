@@ -54,6 +54,15 @@ void Group::set_overflow_policy(
   overflow_policy_ = std::move(overflow_policy);
 }
 
+void Group::add_compression_ratio(TrafficClassId tc_id,
+                                  Capacity threshold,
+                                  Size size,
+                                  IntensityFactor intensity_factor)
+{
+  auto &crs = tcs_compression_[tc_id];
+  crs.emplace(threshold, CompressionRatio{size, intensity_factor});
+}
+
 void Group::notify_on_service_end(LoadServiceEndEvent *event)
 {
   take_off(event->load);

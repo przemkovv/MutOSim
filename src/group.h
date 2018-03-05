@@ -38,6 +38,13 @@ struct GroupStatistics {
   }
 };
 
+struct CompressionRatio {
+  Size size;
+  IntensityFactor intensity_factor;
+};
+
+using CompressionRatios = boost::container::flat_map<Capacity, CompressionRatio>;
+
 struct Group {
   GroupId id{};
   const GroupName name_;
@@ -52,12 +59,19 @@ struct Group {
   std::vector<Group *> next_groups_{};
   std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_;
 
+  std::unordered_map<TrafficClassId, CompressionRatios> tcs_compression_{};
+
   std::exponential_distribution<time_type> exponential{};
 
   void set_world(World &world);
   void set_traffic_classes(const TrafficClasses &traffic_classes);
   void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
   void add_next_group(Group &group);
+
+  void add_compression_ratio(TrafficClassId tc_id,
+                             Capacity threshold,
+                             Size size,
+                             IntensityFactor intensity_factor);
 
   void set_end_time(Load &load);
 
@@ -73,8 +87,8 @@ struct Group {
 
   Group(GroupName name, Capacity capacity, Layer layer);
   Group(GroupName name, Capacity capacity);
-  Group(const Group&) = delete;
-  Group& operator=(const Group&) = delete;
+  Group(const Group &) = delete;
+  Group &operator=(const Group &) = delete;
 
   bool try_serve(Load load);
   void take_off(const Load &load);

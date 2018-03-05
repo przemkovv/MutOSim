@@ -172,6 +172,9 @@ void from_json(const json &j, TrafficClassSettings &c)
   if (j.find("compression") != j.end()) {
     c.compression_ratios = j["compression"].get<std::vector<CompressionRatio>>();
   }
+  std::sort(
+      begin(c.compression_ratios), end(c.compression_ratios),
+      [](const auto &cr1, const auto &cr2) { return cr1.threshold < cr2.threshold; });
 }
 
 void to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
