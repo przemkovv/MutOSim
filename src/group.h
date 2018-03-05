@@ -43,7 +43,7 @@ struct CompressionRatio {
   IntensityFactor intensity_factor;
 };
 
-using CompressionRatios = boost::container::flat_map<Capacity, CompressionRatio>;
+using CompressionRatios = boost::container::flat_map<Capacity, CompressionRatio, std::greater<Capacity>>;
 
 struct Group {
   GroupId id{};
@@ -73,12 +73,13 @@ struct Group {
                              Size size,
                              IntensityFactor intensity_factor);
 
-  void set_end_time(Load &load);
+  void set_end_time(Load &load, IntensityFactor intensity_factor);
 
   bool forward(Load load);
 
   Size free_capacity() { return capacity_ - size_; }
-  bool can_serve(const Size &load_size);
+  std::pair<bool, CompressionRatio*> can_serve(const TrafficClass& tc);
+  std::pair<bool, CompressionRatio*> can_serve(TrafficClassId tc_id);
   bool can_serve_recursive(const TrafficClass &tc, Path &path);
   void block(TrafficClassId tc_id, const Load &load);
   void unblock(TrafficClassId tc_id, const Load &load);

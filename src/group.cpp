@@ -27,10 +27,10 @@ void Group::set_world(World &world)
   overflow_policy_->set_world(world);
 }
 
-void Group::set_end_time(Load &load)
+void Group::set_end_time(Load &load, IntensityFactor intensity_factor)
 {
   const auto &tcs = *traffic_classes_;
-  const auto serve_intensity = tcs.at(load.tc_id).serve_intensity;
+  const auto serve_intensity = intensity_factor * tcs.at(load.tc_id).serve_intensity;
   auto params = decltype(exponential)::param_type(ts::get(serve_intensity));
   exponential.param(params);
 
@@ -72,10 +72,15 @@ bool Group::try_serve(Load load)
 {
   load.served_by.emplace_back(this);
 
-  if (can_serve(load.size)) {
+  if (auto [ok, compression] = can_serve(load.tc_id); ok) {
+    IntensityFactor intensity_factor{1.0l};
+    if (compression) {
+      load.size = compression->size;
+      intensity_factor = compression->intensity_factor;
+    }
     debug_print("{} Start serving request: {}\n", *this, load);
     size_ += load.size;
-    set_end_time(load);
+    set_end_time(load, intensity_factor);
 
     update_block_stat(load);
     world_->update_block_stat(load);
@@ -142,14 +147,27 @@ void Group::unblock(TrafficClassId tc_id, const Load &load)
   }
 }
 
-bool Group::can_serve(const Size &load_size)
+std::pair<bool, CompressionRatio *> Group::can_serve(TrafficClassId tc_id)
 {
-  return size_ + load_size <= capacity_;
+  return can_serve(traffic_classes_->at(tc_id));
 }
+
+std::pair<bool, CompressionRatio *> Group::can_serve(const TrafficClass &tc)
+{
+  if (const auto tc_compression_it = tcs_compression_.find(tc.id);
+      tc_compression_it != end(tcs_compression_)) {
+    if (const auto cr_it = tc_compression_it->second.lower_bound(Capacity{get(size_)});
+        cr_it != end(tc_compression_it->second)) {
+      return {size_ + cr_it->second.size <= capacity_, &cr_it->second};
+    }
+  }
+  return {size_ + tc.size <= capacity_, nullptr};
+}
+
 
 bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 {
-  if (can_serve(tc.size)) {
+  if (auto [ok, compression] = can_serve(tc); ok) {
     return true;
   }
   path.emplace_back(this);
