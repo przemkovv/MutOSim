@@ -28,9 +28,9 @@ struct Source {
 
 // "4": { "compression": { "threshold": 25, "size": 2, "intensity_factor": 1.0} },
 struct CompressionRatio {
-  Capacity threshold;
-  Size size;
-  IntensityFactor intensity_factor;
+  Capacity threshold{};
+  Size size{};
+  IntensityFactor intensity_factor{};
 };
 
 struct TrafficClassSettings {

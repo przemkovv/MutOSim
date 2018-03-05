@@ -168,6 +168,7 @@ std::pair<bool, CompressionRatio *> Group::can_serve(const TrafficClass &tc)
 bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 {
   if (auto [ok, compression] = can_serve(tc); ok) {
+    std::ignore = compression;
     return true;
   }
   path.emplace_back(this);
