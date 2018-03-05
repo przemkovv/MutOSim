@@ -1,4 +1,9 @@
 
+# Poprawki książka
+
+- s. 122 BBU -> JA
+- symbol w tabeli 3.7 nu -> upsilon https://www.sharelatex.com/learn/List_of_Greek_letters_and_math_symbols
+
 # Todo
 
 - Use cases:

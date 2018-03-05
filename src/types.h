@@ -25,6 +25,7 @@ using ratio_t = long double;
 using Layer = uint64_t;
 using Length = uint64_t;
 using OverflowPolicyName = name_t;
+using Threshold = long double;
 
 constexpr auto MaxPathLength = std::numeric_limits<Length>::max();
 constexpr Layer MaxLayersNumber = 3;
