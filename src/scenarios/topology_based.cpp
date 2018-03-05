@@ -40,7 +40,7 @@ ScenarioSettings prepare_scenario_global_A(const Config::Topology &config, Inten
 }
 
 ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
-                                                  Intensity A)
+                                                Intensity A)
 {
   ScenarioSettings sim_settings{config.name};
   Capacity V{0};
@@ -51,6 +51,13 @@ ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
         topology.add_group(std::make_unique<Group>(name, group.capacity, group.layer));
     g.set_overflow_policy(
         overflow_policy::make_overflow_policy(group.overflow_policy, g));
+
+    for (const auto &tcs : group.traffic_classess_settings) {
+      for (const auto &cr : tcs.second.compression_ratios) {
+        g.add_compression_ratio(tcs.first, cr.threshold, cr.size, cr.intensity_factor);
+      }
+    }
+
     V += group.capacity;
   }
   for (const auto &[name, group] : config.groups) {

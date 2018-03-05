@@ -25,6 +25,7 @@ using ratio_t = long double;
 using Layer = uint64_t;
 using Length = uint64_t;
 using OverflowPolicyName = name_t;
+using threshold_t = count_t;
 
 constexpr auto MaxPathLength = std::numeric_limits<Length>::max();
 constexpr Layer MaxLayersNumber = 3;
@@ -49,6 +50,7 @@ struct Weight : ts::strong_typedef<Weight, weight_t>,
 
 struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,
+                  ts::strong_typedef_op::relational_comparison<Capacity>,
                   ts::strong_typedef_op::addition<Capacity>,
                   ts::strong_typedef_op::output_operator<Capacity> {
   using strong_typedef::strong_typedef;
@@ -73,6 +75,8 @@ constexpr auto operator-(const Capacity &c, const Size &s)
 }
 
 struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
+                   ts::strong_typedef_op::multiplication<Intensity>,
+                   ts::strong_typedef_op::addition<Intensity>,
                    ts::strong_typedef_op::relational_comparison<Intensity>,
                    ts::strong_typedef_op::output_operator<Intensity> {
   using strong_typedef::strong_typedef;
@@ -84,10 +88,6 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   {
     return Intensity(ts::get(*this) / ts::get(size));
   }
-  constexpr auto operator*(const Intensity &intensity) const
-  {
-    return Intensity(ts::get(*this) * ts::get(intensity));
-  }
   constexpr auto operator*(const Capacity &capacity) const
   {
     return Intensity(ts::get(*this) * ts::get(capacity));
@@ -96,12 +96,19 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   {
     return Intensity(ts::get(*this) * ts::get(ratio));
   }
-  constexpr auto operator+=(const Intensity &other)
+};
+
+struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t>,
+                         ts::strong_typedef_op::multiplication<IntensityFactor>,
+                         ts::strong_typedef_op::output_operator<IntensityFactor> {
+  using strong_typedef::strong_typedef;
+
+  constexpr auto operator*(const Intensity &intensity) const
   {
-    ts::get(*this) += ts::get(other);
-    return *this;
+    return Intensity(ts::get(*this) * ts::get(intensity));
   }
 };
+
 struct Count : ts::strong_typedef<Count, count_t>,
                ts::strong_typedef_op::equality_comparison<Count>,
                ts::strong_typedef_op::increment<Count>,
@@ -253,6 +260,15 @@ struct hash<Size> {
   std::size_t operator()(const Size &i) const noexcept
   {
     using T = ts::underlying_type<Size>;
+    return std::hash<T>()(static_cast<T>(i));
+  }
+};
+/// Hash specialization for [Capacity].
+template <>
+struct hash<Capacity> {
+  std::size_t operator()(const Capacity &i) const noexcept
+  {
+    using T = ts::underlying_type<Capacity>;
     return std::hash<T>()(static_cast<T>(i));
   }
 };

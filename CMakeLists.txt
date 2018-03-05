@@ -31,6 +31,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         # -g
         # -glldb
         # -pg
+        -march=native
         -Werror
         -Weffc++
         -Weverything
@@ -45,9 +46,10 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # using GCC
     add_compile_options(
         # -g
-        # -glldb
+        # -ggdb
         # -pg
         -Wall
+        -march=native
         -Werror
         -Weffc++
         -Wpedantic
@@ -102,12 +104,12 @@ ExternalProject_Add(fmt
     UPDATE_COMMAND ""
     )
 
-ExternalProject_Add(range-v3
-    GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-    INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DRANGE_V3_NO_TESTING=0
-    UPDATE_COMMAND ""
-    )
+# ExternalProject_Add(range-v3
+    # GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+    # INSTALL_DIR ${PROJECT_BINARY_DIR}
+    # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DRANGE_V3_NO_TESTING=0
+    # UPDATE_COMMAND ""
+    # )
 
 set(FMT_LIB fmt.a)
 
@@ -119,7 +121,7 @@ if (OPENMP_FOUND)
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_package(Boost 1.66 COMPONENTS system program_options filesystem)
+find_package(Boost 1.62 COMPONENTS system program_options filesystem)
 find_library(GMP gmp libgmp)
 find_library(MPFR mpfr libmpfr)
 

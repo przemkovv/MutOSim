@@ -26,6 +26,17 @@ struct Source {
   GroupName attached{};
 };
 
+// "4": { "compression": { "threshold": 25, "size": 2, "intensity_factor": 1.0} },
+struct CompressionRatio {
+  Capacity threshold;
+  Size size;
+  IntensityFactor intensity_factor;
+};
+
+struct TrafficClassSettings {
+  std::vector<CompressionRatio> compression_ratios{};
+};
+
 struct Group {
   GroupName name{};
   Capacity capacity{};
@@ -33,6 +44,7 @@ struct Group {
   Intensity intensity_multiplier{};
   std::optional<OverflowPolicyName> overflow_policy{};
   std::vector<GroupName> connected{};
+  std::unordered_map<TrafficClassId, TrafficClassSettings> traffic_classess_settings{};
 };
 
 struct Topology {

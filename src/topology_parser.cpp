@@ -47,6 +47,18 @@ void from_json(const json &j, Topology &t);
 
 void to_json(json &j, const Group &st);
 void from_json(const json &j, Group &st);
+
+void to_json(json &j, const CompressionRatio &c);
+void from_json(const json &j, CompressionRatio &c);
+
+void to_json(json &j, const TrafficClassSettings &c);
+void from_json(const json &j, TrafficClassSettings &c);
+
+void to_json(json &j,
+             const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+void from_json(const json &j,
+               std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+
 void to_json(json &j, const SourceType &st)
 {
   j = [=]() {
@@ -116,7 +128,8 @@ void to_json(json &j, const Group &g)
        {"connected", g.connected},
        {"layer", g.layer},
        {"intensity_multiplier", g.intensity_multiplier},
-       {"overflow_policy", g.overflow_policy}};
+       {"overflow_policy", g.overflow_policy},
+       {"traffic_classes", g.traffic_classess_settings}};
 }
 void from_json(const json &j, Group &g)
 {
@@ -126,6 +139,56 @@ void from_json(const json &j, Group &g)
   g.connected = j.value("connected", std::vector<GroupName>{});
   if (j.count("overflow_policy")) {
     g.overflow_policy = j.at("overflow_policy");
+  }
+  if (j.find("traffic_classes") != j.end()) {
+    g.traffic_classess_settings =
+        j.at("traffic_classes")
+            .get<std::unordered_map<TrafficClassId, TrafficClassSettings>>();
+  }
+}
+
+void to_json(json &j, const CompressionRatio &c)
+{
+  j = {{"threshold", c.threshold},
+       {"size", c.size},
+       {"intensity_factor", c.intensity_factor}};
+}
+void from_json(const json &j, CompressionRatio &c)
+{
+  c.threshold = j.at("threshold");
+  c.size = j.at("size");
+  c.intensity_factor = j.at("intensity_factor");
+}
+
+void to_json(json &j, const TrafficClassSettings &c)
+{
+  if (!c.compression_ratios.empty()) {
+    j = {{"compression", c.compression_ratios}};
+  }
+}
+
+void from_json(const json &j, TrafficClassSettings &c)
+{
+  if (j.find("compression") != j.end()) {
+    c.compression_ratios = j["compression"].get<std::vector<CompressionRatio>>();
+  }
+  std::sort(
+      begin(c.compression_ratios), end(c.compression_ratios),
+      [](const auto &cr1, const auto &cr2) { return cr1.threshold < cr2.threshold; });
+}
+
+void to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
+{
+  for (const auto &[tc_id, tc_s] : tcs) {
+    j[std::to_string(get(tc_id))] = tc_s;
+  }
+}
+void from_json(const json &j,
+               std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
+{
+  for (const auto &tc_j : j.items()) {
+    tcs.emplace(TrafficClassId{std::stoul(tc_j.key())},
+                tc_j.value().get<TrafficClassSettings>());
   }
 }
 

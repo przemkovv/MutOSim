@@ -1,4 +1,10 @@
 
+# Poprawki książka
+
+- s. 122 BBU -> JA
+- symbol w tabeli 3.7 nu -> upsilon https://www.sharelatex.com/learn/List_of_Greek_letters_and_math_symbols
+- s. 142, tabela 3.8. Liczba mnoga -> liczba pojedyncza
+
 # Todo
 
 - Use cases:
@@ -26,6 +32,7 @@
     - select_available ->  limit_groups_per_layer -> select random
   - divide simulation into epochs?
   - end simulation when there is enough number of lost requests
+  - introduce ServeIntensity and OfferIntensity strong types.
 
 # Done
 
@@ -59,6 +66,7 @@
 
 Should be all topology be taken into account?
 
+
 # Dictionary
 
 - lambda - intensywność zgłoszeń - (ang. request intensity)
@@ -66,36 +74,3 @@ Should be all topology be taken into account?
 - A - natężenie ruchu - (ang. traffic intensity)
 
 
-# Experiments results
-
-## 3+1 groups, (60+50+40)->80, t=1,4,9, all overflows to each other
-
- - The alternative block probability in the alternate group is almost the same
-   in each overflow policy
- - The block probability in primary groups is lower when using highest free
-   capacity overflow policy, than lowest free capacity for t=1 (about 10-20%
-   better). For bigger loads, there is no difference.
- - Random behaves similar to the lowest free capacity.
-
-
-## 3+1 groups, (60+50+40)->80, t=1,4,9, single overflow to each other
-
- - When mutual overflows are enabled, all policies behaves the same. Only the
-   mutually overflwoing group has lower P_block than other.
- - Without mutual overflows are groups behaves the same.
-
-## 3+1 groups, (60+50+40)->80, t=1,4,9, all overflows to each other. G2 IM1.5
-
- - The alternative block probability in the alternate group is almost the same
-   in each overflow policy
- - The block probability in primary groups is lower when using highest free
-   capacity overflow policy, than lowest free capacity for t=1 (about 10-20%
-   better). For bigger loads, there is no difference.
- - Random behaves similar to the lowest free capacity.
-
-
-## 3+1 groups, (60+50+40)->80, t=1,4,9, single overflow to each other G2 IM1.5
-
- - When mutual overflows are enabled, all policies behaves the same. Only the
-   mutually overflwoing group has lower P_block than other.
- - Without mutual overflows are groups behaves the same.
