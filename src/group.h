@@ -11,6 +11,7 @@
 #include <queue>
 #include <random>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 using overflow_policy::OverflowPolicy;
@@ -59,7 +60,8 @@ struct Group {
   std::vector<Group *> next_groups_{};
   std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_;
 
-  std::unordered_map<TrafficClassId, CompressionRatios> tcs_compression_{};
+  boost::container::flat_map<TrafficClassId, CompressionRatios> tcs_compression_{};
+  std::unordered_set<TrafficClassId> tcs_block_{};
 
   std::exponential_distribution<time_type> exponential{};
 
@@ -72,6 +74,7 @@ struct Group {
                              Capacity threshold,
                              Size size,
                              IntensityFactor intensity_factor);
+  void block_traffic_class(TrafficClassId tc_id);
 
   void set_end_time(Load &load, IntensityFactor intensity_factor);
 

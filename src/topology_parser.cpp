@@ -1,6 +1,6 @@
 
-#include "logger.h"
 #include "topology_parser.h"
+#include "logger.h"
 #include "types_parser.h"
 
 #include <fstream>
@@ -163,8 +163,9 @@ void from_json(const json &j, CompressionRatio &c)
 void to_json(json &j, const TrafficClassSettings &c)
 {
   if (!c.compression_ratios.empty()) {
-    j = {{"compression", c.compression_ratios}};
+    j["compression"] = c.compression_ratios;
   }
+  j["block"] = c.block;
 }
 
 void from_json(const json &j, TrafficClassSettings &c)
@@ -175,6 +176,10 @@ void from_json(const json &j, TrafficClassSettings &c)
   std::sort(
       begin(c.compression_ratios), end(c.compression_ratios),
       [](const auto &cr1, const auto &cr2) { return cr1.threshold < cr2.threshold; });
+
+  if (j.find("block") != j.end()) {
+    c.block = j["block"].get<bool>();
+  }
 }
 
 void to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)

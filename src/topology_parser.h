@@ -26,7 +26,6 @@ struct Source {
   GroupName attached{};
 };
 
-// "4": { "compression": { "threshold": 25, "size": 2, "intensity_factor": 1.0} },
 struct CompressionRatio {
   Capacity threshold{};
   Size size{};
@@ -35,6 +34,7 @@ struct CompressionRatio {
 
 struct TrafficClassSettings {
   std::vector<CompressionRatio> compression_ratios{};
+  bool block = false;
 };
 
 struct Group {

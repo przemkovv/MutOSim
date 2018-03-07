@@ -7,8 +7,12 @@
 
 # Todo
 
+- nierównomierne obciążenie wiązek
+- porównanie różnych nierównomiernych obciążeń
+- dopasowanie rozmiarów zgłoszeń (nie 149, tylko coś związanego z UMTS)
+- filtrowanie jaka wiązka przyjmuje jakie typ żądań
+
 - Use cases:
-  - compression (existing / only new). thresholds per tc and per group
   - filter groups by traffic class
   - support for multiple next groups
   - meta traffic class (for blocking time stats only)
@@ -35,6 +39,9 @@
   - introduce ServeIntensity and OfferIntensity strong types.
 
 # Done
+
+- Use cases:
+  - compression (existing / only new). thresholds per tc and per group
 
 - Experiments:
   - differentiate tc more

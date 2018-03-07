@@ -1,8 +1,8 @@
 
+#include "topology_based.h"
 #include "group.h"
 #include "overflow_policy/factory.h"
 #include "source_stream/factory.h"
-#include "topology_based.h"
 
 ScenarioSettings prepare_scenario_global_A(const Config::Topology &config, Intensity A)
 {
@@ -55,6 +55,9 @@ ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
     for (const auto &tcs : group.traffic_classess_settings) {
       for (const auto &cr : tcs.second.compression_ratios) {
         g.add_compression_ratio(tcs.first, cr.threshold, cr.size, cr.intensity_factor);
+      }
+      if (tcs.second.block) {
+        g.block_traffic_class(tcs.first);
       }
     }
 
