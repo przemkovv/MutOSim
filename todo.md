@@ -7,20 +7,18 @@
 
 # Todo
 
-- nierównomierne obciążenie wiązek
-- porównanie różnych nierównomiernych obciążeń
-- dopasowanie rozmiarów zgłoszeń (nie 149, tylko coś związanego z UMTS)
-- filtrowanie jaka wiązka przyjmuje jakie typ żądań
+Publication:
+  - nierównomierne obciążenie wiązek
+  - porównanie różnych nierównomiernych obciążeń
+  - dopasowanie rozmiarów zgłoszeń (nie 149, tylko coś związanego z UMTS)
+  - filtrowanie jaka wiązka przyjmuje jakie typ żądań
 
 - Use cases:
-  - filter groups by traffic class
   - support for multiple next groups
   - meta traffic class (for blocking time stats only)
   - traffic class priorities
   - subgroups
   - reserved capacity
-  - elastic traffic
-  - adaptive traffic
 
 - Statistics
   - verify global block time
@@ -41,7 +39,10 @@
 # Done
 
 - Use cases:
+  - filter groups by traffic class
   - compression (existing / only new). thresholds per tc and per group
+  - elastic traffic
+  - adaptive traffic
 
 - Experiments:
   - differentiate tc more
