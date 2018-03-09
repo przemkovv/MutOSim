@@ -14,7 +14,6 @@ struct ScenarioSettings {
   Intensity a{0};
 
   std::string filename = "";
-  std::string appended_filename = "";
 
   Topology topology{};
   nlohmann::json json{};

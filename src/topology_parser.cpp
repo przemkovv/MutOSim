@@ -284,11 +284,12 @@ nlohmann::json load_topology_config(const std::string &filename)
   return config;
 }
 
-std::pair<Topology, nlohmann::json> parse_topology_config(const std::string &filename,
-                               const std::string &append_filename)
+std::pair<Topology, nlohmann::json>
+parse_topology_config(const std::string &filename,
+                      const std::vector<std::string> &append_filenames)
 {
   auto main_scenario = load_topology_config(filename);
-  if (!append_filename.empty()) {
+  for (const auto &append_filename : append_filenames) {
     auto patch_scenario = load_topology_config(append_filename);
     auto main_scenario_name = main_scenario["name"].get<std::string>();
     auto patch_scenario_name = patch_scenario["name"].get<std::string>();
@@ -296,7 +297,7 @@ std::pair<Topology, nlohmann::json> parse_topology_config(const std::string &fil
     main_scenario["name"] = fmt::format("{} {}", main_scenario_name, patch_scenario_name);
   }
   return {main_scenario, main_scenario};
-}
+} // namespace Config
 
 void dump(const Topology &topology)
 {

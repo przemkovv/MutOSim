@@ -62,7 +62,12 @@ CLI parse_args(const boost::program_options::variables_map &vm)
   cli.A_step = Intensity{vm["step"].as<intensity_t>()};
   cli.count = vm["count"].as<int>();
 
-  cli.append_scenario_file = vm["append-scenario-file"].as<std::string>();
+  cli.append_scenario_files = [&vm]() -> std::vector<std::string> {
+    if (vm.count("append-scenario-files") > 0) {
+      return vm["append-scenario-files"].as<std::vector<std::string>>();
+    }
+    return {};
+  }();
   cli.scenario_files = [&vm]() -> std::vector<std::string> {
     if (vm.count("scenario-file") > 0) {
       return vm["scenario-file"].as<std::vector<std::string>>();
@@ -88,7 +93,7 @@ boost::program_options::options_description prepare_options_description()
     ("help", "produce help message")
     ("scenario-file,f", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
                         "a file with scenario")
-    ("append-scenario-file,a", po::value<std::string>()->default_value(""),
+    ("append-scenario-files,a", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
                         "a file with a patch scenario that will be merge after the main scenario")
     ("scenarios-dir,I", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
                         "a directories with scenario files")
@@ -125,9 +130,6 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
 
     auto A_str = std::to_string(ts::get(scenarios[i].A));
     auto filename = scenarios[i].filename;
-    if (!scenarios[i].appended_filename.empty()) {
-      filename += ";" + scenarios[i].appended_filename;
-    }
 #pragma omp critical
     {
       if (global_stats.find(filename) == end(global_stats)) {
@@ -175,15 +177,22 @@ void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
 {
   for (const auto &config_file : scenario_files) {
     const auto [t, j] =
-        Config::parse_topology_config(config_file, cli.append_scenario_file);
+        Config::parse_topology_config(config_file, cli.append_scenario_files);
     Config::dump(t);
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
       for (int i = 0; i < cli.count; ++i) {
         auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
         // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
         scenario.name += fmt::format(" A={}", A);
-        scenario.filename = config_file;
-        scenario.appended_filename = cli.append_scenario_file;
+
+        std::string filename = config_file;
+        auto &appended_filenames = cli.append_scenario_files;
+        if (!appended_filenames.empty()) {
+          filename = fmt::format(
+              "{};{}", config_file,
+              fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
+        }
+        scenario.filename = filename;
         scenario.json = j;
       }
     }

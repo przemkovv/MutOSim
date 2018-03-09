@@ -57,7 +57,7 @@ struct Topology {
 
 nlohmann::json load_topology_config(const std::string &filename);
 std::pair<Topology, nlohmann::json>
-parse_topology_config(const std::string &filename, const std::string &append_filename);
+parse_topology_config(const std::string &filename, const std::vector<std::string> &append_filenames);
 
 void dump(const Topology &topology);
 
