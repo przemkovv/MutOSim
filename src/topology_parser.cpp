@@ -7,6 +7,8 @@
 #include <nlohmann/json.hpp>
 #include <unordered_map>
 
+#include <boost/filesystem.hpp>
+
 using nlohmann::json;
 
 namespace std
@@ -254,8 +256,32 @@ void from_json(const json &j, Topology &t)
 
 Topology parse_topology_config(std::string_view filename)
 {
-  std::ifstream file(std::string{filename});
-  return json::parse(file);
+  namespace fs = boost::filesystem;
+  fs::path filename_path{std::string{filename}};
+
+  std::vector<json> configs;
+  bool is_include = false;
+  do {
+    std::ifstream file(filename_path.string());
+    auto &last_config = configs.emplace_back(json::parse(file));
+
+    if (auto include_it = last_config.find("_include"); include_it != end(last_config)) {
+      is_include = true;
+      fs::path included_path = include_it->get<std::string>();
+      last_config.erase(include_it);
+      filename_path = fs::relative(filename_path.parent_path() / included_path);
+    } else {
+      is_include = false;
+      break;
+    }
+  } while (is_include);
+
+  auto config = std::accumulate(configs.rbegin(), configs.rend(), nlohmann::json{},
+                                [](auto &j1, const auto &p) {
+                                  j1.merge_patch(p);
+                                  return j1;
+                                });
+  return config;
 }
 
 void dump(const Topology &topology)
