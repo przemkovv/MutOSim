@@ -178,7 +178,7 @@ void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
   for (const auto &config_file : scenario_files) {
     const auto [t, j] =
         Config::parse_topology_config(config_file, cli.append_scenario_files);
-    Config::dump(t);
+    // Config::dump(t);
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
       for (int i = 0; i < cli.count; ++i) {
         auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
