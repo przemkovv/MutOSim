@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include <nlohmann/json_fwd.hpp>
 #include <string_view>
 #include <unordered_map>
 
@@ -54,7 +55,10 @@ struct Topology {
   std::unordered_map<GroupName, Group> groups{};
 };
 
-Topology parse_topology_config(std::string_view filename);
+nlohmann::json load_topology_config(const std::string &filename);
+std::pair<Topology, nlohmann::json>
+parse_topology_config(const std::string &filename, const std::string &append_filename);
+
 void dump(const Topology &topology);
 
 } // namespace Config

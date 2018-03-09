@@ -254,7 +254,7 @@ void from_json(const json &j, Topology &t)
   }
 }
 
-Topology parse_topology_config(std::string_view filename)
+nlohmann::json load_topology_config(const std::string &filename)
 {
   namespace fs = boost::filesystem;
   fs::path filename_path{std::string{filename}};
@@ -282,6 +282,20 @@ Topology parse_topology_config(std::string_view filename)
                                   return j1;
                                 });
   return config;
+}
+
+std::pair<Topology, nlohmann::json> parse_topology_config(const std::string &filename,
+                               const std::string &append_filename)
+{
+  auto main_scenario = load_topology_config(filename);
+  if (!append_filename.empty()) {
+    auto patch_scenario = load_topology_config(append_filename);
+    auto main_scenario_name = main_scenario["name"].get<std::string>();
+    auto patch_scenario_name = patch_scenario["name"].get<std::string>();
+    main_scenario.merge_patch(patch_scenario);
+    main_scenario["name"] = fmt::format("{} {}", main_scenario_name, patch_scenario_name);
+  }
+  return {main_scenario, main_scenario};
 }
 
 void dump(const Topology &topology)

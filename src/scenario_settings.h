@@ -4,6 +4,7 @@
 
 #include "topology.h"
 #include <functional>
+#include <nlohmann/json.hpp>
 
 class World;
 
@@ -13,8 +14,11 @@ struct ScenarioSettings {
   Intensity a{0};
 
   std::string filename = "";
+  std::string appended_filename = "";
 
   Topology topology{};
+  nlohmann::json json{};
+
 
   std::function<void()> do_before = nullptr;
   std::function<void()> do_after = nullptr;

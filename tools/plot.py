@@ -79,15 +79,17 @@ stats_name2label = {'served_u': 'Carried traffic',
                     'P_block': 'Blocking probability'}
 
 
-def load_traffic_classes_sizes(scenario_file):
-    scenario = json.load(open(scenario_file))
+def get_traffic_classes_sizes(scenario):
     tc_sizes = {}
     for tc_id, tc_data in scenario["traffic_classes"].items():
         if tc_id[0] == "_":
             continue
         tc_sizes[int(tc_id)] = tc_data["size"]
-
     return (tc_sizes, scenario)
+
+
+def load_traffic_classes_sizes(scenario_file):
+    return get_traffic_classes_sizes(json.load(open(scenario_file)))
 
 
 def append_tc_stat_for_groups_by_size(tc_data_y,
@@ -244,7 +246,13 @@ def main():
 
     for scenario_file, scenario_results in filtered_data.items():
         all_data[scenario_file] = {}
-        tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
+        if "_scenario" in scenario_results.keys():
+            tc_sizes, scenario = get_traffic_classes_sizes(
+                scenario_results["_scenario"])
+            scenario_results.pop('_scenario', None)
+        else:
+            tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
+
         print(scenario_file)
         tc_data_x = all_data[scenario_file].setdefault("x", [])
         tc_data_y = all_data[scenario_file].setdefault("y", {})
@@ -309,7 +317,7 @@ def main():
                                    whis=0, manage_xticks=False)
 
                     pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
-                           for serie in data_y])
+                            for serie in data_y])
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
