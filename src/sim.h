@@ -23,6 +23,7 @@ struct CLI {
   Intensity A_step{};
   int count{};
 
+  std::vector<std::string> append_scenario_files{};
   std::vector<std::string> scenario_files{};
   std::vector<std::string> scenarios_dirs{};
 };

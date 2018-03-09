@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include <nlohmann/json_fwd.hpp>
 #include <string_view>
 #include <unordered_map>
 
@@ -26,15 +27,15 @@ struct Source {
   GroupName attached{};
 };
 
-// "4": { "compression": { "threshold": 25, "size": 2, "intensity_factor": 1.0} },
 struct CompressionRatio {
-  Capacity threshold;
-  Size size;
-  IntensityFactor intensity_factor;
+  Capacity threshold{};
+  Size size{};
+  IntensityFactor intensity_factor{};
 };
 
 struct TrafficClassSettings {
   std::vector<CompressionRatio> compression_ratios{};
+  bool block = false;
 };
 
 struct Group {
@@ -54,7 +55,10 @@ struct Topology {
   std::unordered_map<GroupName, Group> groups{};
 };
 
-Topology parse_topology_config(std::string_view filename);
+nlohmann::json load_topology_config(const std::string &filename);
+std::pair<Topology, nlohmann::json>
+parse_topology_config(const std::string &filename, const std::vector<std::string> &append_filenames);
+
 void dump(const Topology &topology);
 
 } // namespace Config

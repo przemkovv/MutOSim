@@ -5,18 +5,42 @@
 - symbol w tabeli 3.7 nu -> upsilon https://www.sharelatex.com/learn/List_of_Greek_letters_and_math_symbols
 - s. 142, tabela 3.8. Liczba mnoga -> liczba pojedyncza
 
+# Publication experiments
+
+ - Topologies:
+   - 3 primary groups:
+     - no mutual overflows
+     - one group mutually overflowing to other
+     - all three mutually overflowing to each other
+   - 3 primary groups, 1 secondary group
+     - no mutual overflows
+     - one group mutually overflowing to other primary groups
+     - all three mutually overflowing to each other primary group
+ - Mutual overflow policies:
+   - highest capacity available
+   - lowest capacity available
+   - random available
+ - Compression:
+   - no compression
+   - adaptive without modification of serve intensity
+   - adaptive with modification of serve intensity
+ - Offered intensity factor for one group:
+   - 1.0
+   - 1.2
+   - 1.5
+  - nierównomierne obciążenie wiązek
+  - porównanie różnych nierównomiernych obciążeń
+  - dopasowanie rozmiarów zgłoszeń (nie 149, tylko coś związanego z UMTS)
+  - filtrowanie jaka wiązka przyjmuje jakie typ żądań
+
 # Todo
 
 - Use cases:
-  - compression (existing / only new). thresholds per tc and per group
-  - filter groups by traffic class
   - support for multiple next groups
   - meta traffic class (for blocking time stats only)
   - traffic class priorities
   - subgroups
   - reserved capacity
-  - elastic traffic
-  - adaptive traffic
 
 - Statistics
   - verify global block time
@@ -33,8 +57,15 @@
   - divide simulation into epochs?
   - end simulation when there is enough number of lost requests
   - introduce ServeIntensity and OfferIntensity strong types.
+  - implement inclusion system in scenario specification
 
 # Done
+
+- Use cases:
+  - filter groups by traffic class
+  - compression (existing / only new). thresholds per tc and per group
+  - elastic traffic
+  - adaptive traffic
 
 - Experiments:
   - differentiate tc more

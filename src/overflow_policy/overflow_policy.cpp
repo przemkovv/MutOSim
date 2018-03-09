@@ -79,6 +79,7 @@ std::optional<Group *> FirstAvailable::find_next_group(const Load &load)
     if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) ==
         std::end(load.served_by)) {
       if (auto [is_served, compression] = next_group->can_serve(load.tc_id); is_served) {
+        std::ignore = compression;
         return next_group;
       }
     }

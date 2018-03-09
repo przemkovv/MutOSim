@@ -11,6 +11,7 @@ import json
 
 from boltons.iterutils import remap, get_path, default_enter, default_visit
 
+
 def remerge(target_list, sourced=False):
     """Takes a list of containers (e.g., dicts) and merges them using
     boltons.iterutils.remap. Containers later in the list take
@@ -60,17 +61,24 @@ def remerge(target_list, sourced=False):
         return ret
     return ret, source_map
 
+
 def main():
     args = sys.argv[1:]
     if len(args) > 2:
         merged = {}
-        for filename in args[:-1]:
+        with open(args[0], 'rb') as fp:
+            data = json.load(fp)
+            merged = remerge([merged, data])
+        for filename in args[1:-1]:
             with open(filename, 'rb') as fp:
                 data = json.load(fp)
+                for key, value in data.items():
+                    value.pop("_scenario", None)
                 merged = remerge([merged, data])
 
         with open(args[-1], 'w') as fp:
             json.dump(merged, fp, sort_keys=True)
+
 
 if __name__ == "__main__":
     main()

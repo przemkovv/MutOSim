@@ -69,6 +69,9 @@ from pprint import pprint
 from docopt import docopt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
+import numpy as np
+import scipy as sp
+import scipy.stats
 
 
 stats_name2label = {'served_u': 'Carried traffic',
@@ -76,15 +79,17 @@ stats_name2label = {'served_u': 'Carried traffic',
                     'P_block': 'Blocking probability'}
 
 
-def load_traffic_classes_sizes(scenario_file):
-    scenario = json.load(open(scenario_file))
+def get_traffic_classes_sizes(scenario):
     tc_sizes = {}
     for tc_id, tc_data in scenario["traffic_classes"].items():
         if tc_id[0] == "_":
             continue
         tc_sizes[int(tc_id)] = tc_data["size"]
-
     return (tc_sizes, scenario)
+
+
+def load_traffic_classes_sizes(scenario_file):
+    return get_traffic_classes_sizes(json.load(open(scenario_file)))
 
 
 def append_tc_stat_for_groups_by_size(tc_data_y,
@@ -174,6 +179,14 @@ def compare_dicts_structure(d1, d2):
     return sorted(describe_dict(d1)) == sorted(describe_dict(d2))
 
 
+def confidence_interval(data, confidence=0.95):
+    a = 1.0*np.array(data)
+    n = len(a)
+    se = scipy.stats.sem(a)
+    h = se * sp.stats.t._ppf((1+confidence)/2., n-1)
+    return h
+
+
 def main():
     args = docopt(__doc__, version='0.1')
     data_file = args["<DATA_FILE>"]
@@ -233,7 +246,13 @@ def main():
 
     for scenario_file, scenario_results in filtered_data.items():
         all_data[scenario_file] = {}
-        tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
+        if "_scenario" in scenario_results.keys():
+            tc_sizes, scenario = get_traffic_classes_sizes(
+                scenario_results["_scenario"])
+            scenario_results.pop('_scenario', None)
+        else:
+            tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
+
         print(scenario_file)
         tc_data_x = all_data[scenario_file].setdefault("x", [])
         tc_data_y = all_data[scenario_file].setdefault("y", {})
@@ -251,8 +270,8 @@ def main():
 
         markers = ['+', 'x', 's']
 
-
-        tcs_served_by_groups = get_tcs_served_by_groups(scenario_results, tc_filter)
+        tcs_served_by_groups = get_tcs_served_by_groups(
+            scenario_results, tc_filter)
 
         for _, result in scenario_results.items():
             a = float(result["_a"])
@@ -288,6 +307,7 @@ def main():
                     continue
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
+                pprint(tc_data_x)
                 for tc_id, data_y in group_data_y.items():
 
                     if enable_boxplots:
@@ -296,6 +316,8 @@ def main():
                                    vert=True, patch_artist=False, showcaps=False,
                                    whis=0, manage_xticks=False)
 
+                    pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
+                            for serie in data_y])
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
@@ -304,8 +326,8 @@ def main():
 
                 set_style(ax)
                 #  ax.set_title("{} V={} {}"
-                             #  .format(group_name,
-                                     #  scenario["groups"][group_name]["capacity"],
+                #  .format(group_name,
+                #  scenario["groups"][group_name]["capacity"],
                 ax.set_title("{} {}"
                              .format(group_name,
                                      scenario["name"] if title_suffix == None else title_suffix))
@@ -349,7 +371,7 @@ def main():
                     plot_data = [x/y*100 if y != 0 else 0
                                  for x, y in zip(k1_data_y_means, k2_data_y_means)]
 
-                    label = "$t_{}={}$".format( tc_id, tc_sizes[tc_id])
+                    label = "$t_{}={}$".format(tc_id, tc_sizes[tc_id])
                     #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
                     ax.plot(tc_data_x,
                             plot_data,
@@ -360,11 +382,11 @@ def main():
                 if p_name:
                     title_append = p_name
                 else:
-                    title_append = "\n({} / \n{})".format(k1,k2)
+                    title_append = "\n({} / \n{})".format(k1, k2)
 
                 #  ax.set_title("{} V={} {}"
-                             #  .format(group_name,
-                                     #  scenario["groups"][group_name]["capacity"],
+                    #  .format(group_name,
+                    #  scenario["groups"][group_name]["capacity"],
                 ax.set_title("{} {}"
                              .format(group_name,
                                      title_append))

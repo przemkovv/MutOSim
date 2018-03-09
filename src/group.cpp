@@ -63,6 +63,11 @@ void Group::add_compression_ratio(TrafficClassId tc_id,
   crs.emplace(threshold, CompressionRatio{size, intensity_factor});
 }
 
+void Group::block_traffic_class(TrafficClassId tc_id)
+{
+  tcs_block_.insert(tc_id);
+}
+
 void Group::notify_on_service_end(LoadServiceEndEvent *event)
 {
   take_off(event->load);
@@ -154,6 +159,9 @@ std::pair<bool, CompressionRatio *> Group::can_serve(TrafficClassId tc_id)
 
 std::pair<bool, CompressionRatio *> Group::can_serve(const TrafficClass &tc)
 {
+  if (tcs_block_.find(tc.id) != end(tcs_block_)) {
+    return {false, nullptr};
+  }
   if (const auto tc_compression_it = tcs_compression_.find(tc.id);
       tc_compression_it != end(tcs_compression_)) {
     if (const auto cr_it = tc_compression_it->second.lower_bound(Capacity{get(size_)});
@@ -164,10 +172,10 @@ std::pair<bool, CompressionRatio *> Group::can_serve(const TrafficClass &tc)
   return {size_ + tc.size <= capacity_, nullptr};
 }
 
-
 bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 {
   if (auto [ok, compression] = can_serve(tc); ok) {
+    std::ignore = compression;
     return true;
   }
   path.emplace_back(this);

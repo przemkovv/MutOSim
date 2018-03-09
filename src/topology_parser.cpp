@@ -1,11 +1,13 @@
 
-#include "logger.h"
 #include "topology_parser.h"
+#include "logger.h"
 #include "types_parser.h"
 
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
+
+#include <boost/filesystem.hpp>
 
 using nlohmann::json;
 
@@ -163,8 +165,9 @@ void from_json(const json &j, CompressionRatio &c)
 void to_json(json &j, const TrafficClassSettings &c)
 {
   if (!c.compression_ratios.empty()) {
-    j = {{"compression", c.compression_ratios}};
+    j["compression"] = c.compression_ratios;
   }
+  j["block"] = c.block;
 }
 
 void from_json(const json &j, TrafficClassSettings &c)
@@ -175,6 +178,10 @@ void from_json(const json &j, TrafficClassSettings &c)
   std::sort(
       begin(c.compression_ratios), end(c.compression_ratios),
       [](const auto &cr1, const auto &cr2) { return cr1.threshold < cr2.threshold; });
+
+  if (j.find("block") != j.end()) {
+    c.block = j["block"].get<bool>();
+  }
 }
 
 void to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
@@ -247,11 +254,50 @@ void from_json(const json &j, Topology &t)
   }
 }
 
-Topology parse_topology_config(std::string_view filename)
+nlohmann::json load_topology_config(const std::string &filename)
 {
-  std::ifstream file(std::string{filename});
-  return json::parse(file);
+  namespace fs = boost::filesystem;
+  fs::path filename_path{std::string{filename}};
+
+  std::vector<json> configs;
+  bool is_include = false;
+  do {
+    std::ifstream file(filename_path.string());
+    auto &last_config = configs.emplace_back(json::parse(file));
+
+    if (auto include_it = last_config.find("_include"); include_it != end(last_config)) {
+      is_include = true;
+      fs::path included_path = include_it->get<std::string>();
+      last_config.erase(include_it);
+      filename_path = fs::relative(filename_path.parent_path() / included_path);
+    } else {
+      is_include = false;
+      break;
+    }
+  } while (is_include);
+
+  auto config = std::accumulate(configs.rbegin(), configs.rend(), nlohmann::json{},
+                                [](auto &j1, const auto &p) {
+                                  j1.merge_patch(p);
+                                  return j1;
+                                });
+  return config;
 }
+
+std::pair<Topology, nlohmann::json>
+parse_topology_config(const std::string &filename,
+                      const std::vector<std::string> &append_filenames)
+{
+  auto main_scenario = load_topology_config(filename);
+  for (const auto &append_filename : append_filenames) {
+    auto patch_scenario = load_topology_config(append_filename);
+    auto main_scenario_name = main_scenario["name"].get<std::string>();
+    auto patch_scenario_name = patch_scenario["name"].get<std::string>();
+    main_scenario.merge_patch(patch_scenario);
+    main_scenario["name"] = fmt::format("{} {}", main_scenario_name, patch_scenario_name);
+  }
+  return {main_scenario, main_scenario};
+} // namespace Config
 
 void dump(const Topology &topology)
 {
