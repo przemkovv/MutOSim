@@ -5,8 +5,6 @@ Merge multiple json files into one.
 """
 
 import sys
-import os.path as path
-import os
 import json
 
 from boltons.iterutils import remap, get_path, default_enter, default_visit
@@ -42,7 +40,10 @@ def remerge(target_list, sourced=False):
 
         if isinstance(value, list):
             # lists are purely additive. See https://github.com/mahmoud/boltons/issues/81
-            new_parent.extend(value)
+            if "_scenario" in path:
+                new_parent = value
+            else:
+                new_parent.extend(value)
             new_items = []
 
         return new_parent, new_items
@@ -66,14 +67,9 @@ def main():
     args = sys.argv[1:]
     if len(args) > 2:
         merged = {}
-        with open(args[0], 'rb') as fp:
-            data = json.load(fp)
-            merged = remerge([merged, data])
-        for filename in args[1:-1]:
+        for filename in args[:-1]:
             with open(filename, 'rb') as fp:
                 data = json.load(fp)
-                for key, value in data.items():
-                    value.pop("_scenario", None)
                 merged = remerge([merged, data])
 
         with open(args[-1], 'w') as fp:
