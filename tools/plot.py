@@ -253,6 +253,7 @@ def main():
         else:
             tc_sizes, scenario = load_traffic_classes_sizes(scenario_file)
 
+        scenario['name'] = scenario["name"].replace(";", "\n")
         print(scenario_file)
         tc_data_x = all_data[scenario_file].setdefault("x", [])
         tc_data_y = all_data[scenario_file].setdefault("y", {})
@@ -307,7 +308,7 @@ def main():
                     continue
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
-                pprint(tc_data_x)
+                #  pprint(tc_data_x)
                 for tc_id, data_y in group_data_y.items():
 
                     if enable_boxplots:
@@ -316,8 +317,8 @@ def main():
                                    vert=True, patch_artist=False, showcaps=False,
                                    whis=0, manage_xticks=False)
 
-                    pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
-                            for serie in data_y])
+                    #  pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
+                        #  for serie in data_y])
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
@@ -379,10 +380,14 @@ def main():
                             marker=next(markerscycle))
 
                 set_style(ax)
+
+                def remove_prefix(s):
+                    return s.replace("data/journal/", "")
                 if p_name:
                     title_append = p_name
                 else:
-                    title_append = "\n({} / \n{})".format(k1, k2)
+                    title_append = "\n({} / \n{})".format(
+                        remove_prefix(k1), remove_prefix(k2))
 
                 #  ax.set_title("{} V={} {}"
                     #  .format(group_name,
@@ -425,8 +430,10 @@ def main():
 
             plot_data = [x-y for x, y in zip(k1_sum, k2_sum)]
 
-            label = "{} - {}".format(path.splitext(path.basename(k1))[0], path.splitext(
-                path.basename(k2))[0]) if not p_name else p_name
+            def clean(s):
+                s.replace("data/journal/", "").replace(".json", "")
+            label = "{} - {}".format(clean(k1), clean(k2)
+                                     ) if not p_name else p_name
             ax.plot(tc_data_x,
                     plot_data,
                     label=label,
@@ -435,7 +442,7 @@ def main():
             set_style(ax)
             #  ax.set_title("Differences of aggregated statistic")
             ax.set_ylabel("{} difference".format(
-                stats_name2label(stat_name, stat_name)))
+                stats_name2label.get(stat_name, stat_name)))
             if plot_id % plots_number_x == 0:
                 ax.set_xlabel("a")
 
@@ -471,8 +478,10 @@ def main():
             plot_data = [x/y*100 if y != 0 else 0 for x,
                          y in zip(k1_sum, k2_sum)]
 
-            label = "{} / {}".format(path.splitext(path.basename(k1))[0], path.splitext(
-                path.basename(k2))[0]) if not p_name else p_name
+            def clean(s):
+                return s.replace("data/journal/", "").replace(".json", "")
+            label = "{} - {}".format(clean(k1), clean(k2)
+                                     ) if not p_name else p_name
             ax.plot(tc_data_x,
                     plot_data,
                     label=label,
