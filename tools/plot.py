@@ -275,10 +275,12 @@ def main():
             scenario_results, tc_filter)
 
         for _, result in scenario_results.items():
+            # TODO(PW): make this range properly work on different intensity
+            # multipliers
             a = float(result["_a"])
-            if (x_min and x_min > a) or (x_max and x_max < a):
-                continue
-            tc_data_x.append(float(result["_a"]))
+            #  if (x_min and x_min > a) or (x_max and x_max < a):
+                #  continue
+            tc_data_x.append(a)
             append_tc_stat_for_groups(
                 tc_data_y, result, stat_name, tcs_served_by_groups)
             if aggregate:
@@ -292,6 +294,7 @@ def main():
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
                 for tc_size, data_y in group_data_y.items():
+                    ax.set_xlim(x_min, x_max)
                     ax.plot(tc_data_x, data_y, label="t={}".format(tc_size),
                             marker=next(markerscycle))
 
@@ -312,6 +315,7 @@ def main():
                 for tc_id, data_y in group_data_y.items():
 
                     if enable_boxplots:
+                        ax.set_xlim(x_min, x_max)
                         ax.boxplot(data_y, positions=tc_data_x, notch=False,
                                    widths=0.05, bootstrap=10000, showfliers=False,
                                    vert=True, patch_artist=False, showcaps=False,
@@ -319,6 +323,7 @@ def main():
 
                     #  pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
                         #  for serie in data_y])
+                    ax.set_xlim(x_min, x_max)
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
@@ -374,7 +379,10 @@ def main():
 
                     label = "$t_{}={}$".format(tc_id, tc_sizes[tc_id])
                     #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
-                    ax.plot(tc_data_x,
+                    data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
+                    #  ax.plot(tc_data_x,
+                    ax.set_xlim(x_min, x_max)
+                    ax.plot(np.average(data_x, axis=0),
                             plot_data,
                             label=label,
                             marker=next(markerscycle))
@@ -434,7 +442,10 @@ def main():
                 s.replace("data/journal/", "").replace(".json", "")
             label = "{} - {}".format(clean(k1), clean(k2)
                                      ) if not p_name else p_name
-            ax.plot(tc_data_x,
+            data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
+            #  ax.plot(tc_data_x,
+            ax.set_xlim(x_min, x_max)
+            ax.plot(np.average(data_x, axis=0),
                     plot_data,
                     label=label,
                     marker=next(markerscycle))
@@ -455,10 +466,14 @@ def main():
         for k1, k2, p_name in key_pairs:
             print((k1, k2))
             if all_data[k1]['x'] == all_data[k2]['x']:
-                print("OK")
+                print("X: OK")
+            else:
+                print("X: NOT OK")
+                #  pprint((all_data[k1]['x'], all_data[k2]['x']))
+
             if not compare_dicts_structure(all_data[k1]['y'], all_data[k2]['y']):
-                print("NOT OK")
-                #  continue
+                print("Y: NOT OK")
+
             k1_sum = []
             k2_sum = []
             for group_name, k1_group_data_y in all_data[k1]['y'].items():
@@ -482,12 +497,18 @@ def main():
                 return s.replace("data/journal/", "").replace(".json", "")
             label = "{} - {}".format(clean(k1), clean(k2)
                                      ) if not p_name else p_name
-            ax.plot(tc_data_x,
+            data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
+            #  ax.plot(tc_data_x,
+            #  pprint(np.average(data_x, axis=0))
+            ax.set_xlim(x_min, x_max)
+            ax.plot(np.average(data_x, axis=0),
                     plot_data,
                     label=label,
                     marker=next(markerscycle))
 
             set_style(ax)
+            if title_suffix:
+                ax.set_title(title_suffix)
             #  ax.set_title("Differences of aggregated statistic")
             ax.set_ylabel("{} ratio [%]".format(
                 stats_name2label.get(stat_name, stat_name)))

@@ -58,6 +58,8 @@
   - end simulation when there is enough number of lost requests
   - introduce ServeIntensity and OfferIntensity strong types.
   - implement inclusion system in scenario specification
+  - properly serve 'a' offered intenstity with various intensities multipliers
+    in plot.py
 
 # Done
 
