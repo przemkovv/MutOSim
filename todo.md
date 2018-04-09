@@ -33,6 +33,9 @@
   - dopasowanie rozmiarów zgłoszeń (nie 149, tylko coś związanego z UMTS)
   - filtrowanie jaka wiązka przyjmuje jakie typ żądań
 
+  Other ideas:
+   - compare scenarios with mutual overflows and with adaptive traffic.
+
 # Todo
 
 - Use cases:
