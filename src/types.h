@@ -109,6 +109,10 @@ struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t>,
   }
 };
 
+constexpr auto operator/(const Size& size, const IntensityFactor& intensity_factor) {
+  return Size{static_cast<count_t>(get(size)/get(intensity_factor))};
+}
+
 struct Count : ts::strong_typedef<Count, count_t>,
                ts::strong_typedef_op::equality_comparison<Count>,
                ts::strong_typedef_op::increment<Count>,

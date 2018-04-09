@@ -82,6 +82,7 @@ bool Group::try_serve(Load load)
     if (compression) {
       load.size = compression->size;
       intensity_factor = compression->intensity_factor;
+      load.compression_ratio = compression;
     }
     debug_print("{} Start serving request: {}\n", *this, load);
     size_ += load.size;

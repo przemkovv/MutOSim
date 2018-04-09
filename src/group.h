@@ -39,11 +39,6 @@ struct GroupStatistics {
   }
 };
 
-struct CompressionRatio {
-  Size size;
-  IntensityFactor intensity_factor;
-};
-
 using CompressionRatios = boost::container::flat_map<Capacity, CompressionRatio, std::greater<Capacity>>;
 
 struct Group {

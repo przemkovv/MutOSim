@@ -1,8 +1,8 @@
 #pragma once
 
+#include "load.h"
 #include "math.h"
 #include "types.h"
-#include "load.h"
 
 #include <fmt/format.h>
 #include <map>
@@ -29,7 +29,13 @@ struct LostServedStats {
 
   void serve(const Load &load)
   {
-    served.size += load.size;
+    if (load.compression_ratio == nullptr) {
+      served.size += load.size;
+    } else {
+      // TODO(PW): make it more accurate (casting to int)
+      served.size +=
+          load.compression_ratio->size / load.compression_ratio->intensity_factor;
+    }
     served.count++;
   }
   void drop(const Load &load)
