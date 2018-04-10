@@ -390,7 +390,7 @@ def main():
                 set_style(ax)
 
                 def remove_prefix(s):
-                    return s.replace("data/journal/", "")
+                    return s.replace("data/journal/", "").replace("data/journal2/", "").replace(".json", "")
                 if p_name:
                     title_append = p_name
                 else:
@@ -439,7 +439,7 @@ def main():
             plot_data = [x-y for x, y in zip(k1_sum, k2_sum)]
 
             def clean(s):
-                s.replace("data/journal/", "").replace(".json", "")
+                return s.replace("data/journal/", "").replace("data/journal2/", "").replace(".json", "")
             label = "{} - {}".format(clean(k1), clean(k2)
                                      ) if not p_name else p_name
             data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
@@ -494,7 +494,7 @@ def main():
                          y in zip(k1_sum, k2_sum)]
 
             def clean(s):
-                return s.replace("data/journal/", "").replace(".json", "")
+                return s.replace("data/journal/", "").replace("data/journal2/", "").replace(".json", "")
             label = "{} - {}".format(clean(k1), clean(k2)
                                      ) if not p_name else p_name
             data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
