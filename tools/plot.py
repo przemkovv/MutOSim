@@ -73,6 +73,7 @@ import numpy as np
 import scipy as sp
 import scipy.stats
 
+from matplotlib import rc
 
 stats_name2label = {'served_u': 'Carried traffic',
                     'served': 'Carried requests',
@@ -220,6 +221,11 @@ def main():
         title += "_relatives"
     if args['--name']:
         title += args['--name']
+
+    #  rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
+    ## for Palatino and other serif fonts use:
+    #rc('font',**{'family':'serif','serif':['Palatino']})
+    #  rc('text', usetex=True)
 
     fig = plt.figure(
         figsize=(float(args["--width"]), float(args["--height"])), tight_layout=True)
@@ -400,15 +406,18 @@ def main():
                 #  ax.set_title("{} V={} {}"
                     #  .format(group_name,
                     #  scenario["groups"][group_name]["capacity"],
+                #  ax.set_title("{} {}"
+                             #  .format(group_name,
+                                     #  title_append))
                 ax.set_title("{} {}"
                              .format(group_name,
-                                     title_append))
+                                     title_append if title_suffix == None else title_suffix))
                 ax.set_ylabel("{}\n ratio [%]".format(
                     stats_name2label.get(stat_name, stat_name)))
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
                 plot_id += 1
-                ax.legend(loc=9, ncol=5, borderaxespad=0)
+                ax.legend(loc=9, ncol=3, borderaxespad=0)
 
     if args['--relative-sums']:
         ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
