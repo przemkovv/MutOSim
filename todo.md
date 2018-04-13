@@ -34,7 +34,7 @@
   - filtrowanie jaka wiązka przyjmuje jakie typ żądań
 
   Other ideas:
-   - compare scenarios with mutual overflows and with adaptive traffic.
+   - compare scenarios with mutual overflows and with threshold mechanisms.
 
 # Todo
 
