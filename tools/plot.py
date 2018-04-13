@@ -72,6 +72,7 @@ from matplotlib.ticker import AutoMinorLocator
 import numpy as np
 import scipy as sp
 import scipy.stats
+import math
 
 from matplotlib import rc
 
@@ -79,6 +80,18 @@ stats_name2label = {'served_u': 'Carried traffic',
                     'served': 'Carried requests',
                     'P_block': 'Blocking probability'}
 
+def flip(items, ncol):
+    return itertools.chain(*[items[i::ncol] for i in range(ncol)])
+
+def cols_number(items):
+    items_number = len(items)
+    max_per_column = 5
+    if items_number <= max_per_column:
+        return items_number
+    elif items_number <= 2 * max_per_column:
+        return math.ceil(items_number / 2)
+    else:
+        return max_per_column
 
 def get_traffic_classes_sizes(scenario):
     tc_sizes = {}
@@ -417,7 +430,10 @@ def main():
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
                 plot_id += 1
-                ax.legend(loc=9, ncol=3, borderaxespad=0)
+                handles, labels = ax.get_legend_handles_labels()
+                ncol = cols_number(labels)
+                ax.legend(flip(handles, ncol), flip(labels, ncol), loc=9, ncol=ncol, borderaxespad=0)
+                #  ax.legend(loc=9, ncol=5, borderaxespad=0)
 
     if args['--relative-sums']:
         ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
@@ -524,7 +540,10 @@ def main():
             if plot_id % plots_number_x == 0:
                 ax.set_xlabel("a")
             plot_id += 1
-            ax.legend(loc=9, ncol=2, borderaxespad=0)
+            handles, labels = ax.get_legend_handles_labels()
+            ncol = cols_number(labels)
+            ax.legend(flip(handles, ncol), flip(labels, ncol), loc=9, ncol=ncol, borderaxespad=0)
+            #  ax.legend(loc=9, ncol=2, borderaxespad=0)
 
     if not args["--quiet"]:
         plt.show()
@@ -536,7 +555,7 @@ def main():
         output_file = title + ".pdf"
         output_file = path.join(output_dir, output_file)
         fig.set_size_inches(float(args["--width"]), float(args["--height"]))
-        fig.savefig(output_file)
+        fig.savefig(output_file, transparent=True)
 
 
 if __name__ == "__main__":
