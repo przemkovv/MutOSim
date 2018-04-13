@@ -1,7 +1,7 @@
 #pragma once
 
 #include "load.h"
-#include "math.h"
+#include "math_utils.h"
 #include "types.h"
 
 #include <fmt/format.h>

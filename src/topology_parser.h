@@ -6,6 +6,7 @@
 #include <nlohmann/json_fwd.hpp>
 #include <string_view>
 #include <unordered_map>
+#include <optional>
 
 namespace Config
 {

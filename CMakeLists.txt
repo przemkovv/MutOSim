@@ -31,6 +31,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         # -g
         # -glldb
         # -pg
+        -stdlib=libc++
         -march=native
         -Werror
         -Weffc++

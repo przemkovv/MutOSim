@@ -1,6 +1,5 @@
 #include "stats.h"
 
-#include "math.h"
 #include <fmt/ostream.h>
 
 //----------------------------------------------------------------------
