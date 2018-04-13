@@ -1,4 +1,4 @@
 [submodule "data"]
 	path = data
-	url = ../mutosim-data
+	url = ../../przemkovv/mutosim-data
 	branch = master
