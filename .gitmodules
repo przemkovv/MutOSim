@@ -1,0 +1,4 @@
+[submodule "data"]
+	path = data
+	url = ../mutosim-data
+	branch = master
