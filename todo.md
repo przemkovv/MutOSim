@@ -36,7 +36,20 @@
   Other ideas:
    - compare scenarios with mutual overflows and with threshold mechanisms.
 
+  Scenariusze dlaczego kompresja:
+   - kompresja jednej klasy ruchu, ale wszędzie
+   - kompresja w jednej grupie  - zostaniesz obsłużony przez kogo innego, ale z
+     kompresją
+
 # Todo
+ Analytical models:
+ - Wiązka z ograniczoną dostępnością 75
+  - metoda Sandersa porównanie z Hawyarded -- znaleźć
+
+  - model analityczny - podgrupy, LAG, s.212, prof 3.4.2.1, równe pojemność
+
+
+
 
 - Use cases:
   - support for multiple next groups
@@ -52,6 +65,7 @@
 - Calculations: +1
   - Analytical model MIMS
   - implement analytical model Fredericks-Hayward
+  - implement analytical model of Sandars
 
 - Technical:
   - chaining policies, e.g.
