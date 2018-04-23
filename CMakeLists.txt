@@ -91,36 +91,6 @@ ExternalProject_Add(gsl
     UPDATE_COMMAND ""
     )
 
-# ExternalProject_Add(json
-    # GIT_REPOSITORY https://github.com/nlohmann/json.git
-    # GIT_TAG develop
-    # INSTALL_DIR ${PROJECT_BINARY_DIR}
-    # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0 -DJSON_MultipleHeaders=ON
-    # UPDATE_COMMAND ""
-    # )
-
-# ExternalProject_Add(type_safe
-    # GIT_REPOSITORY https://github.com/foonathan/type_safe
-    # INSTALL_DIR ${PROJECT_BINARY_DIR}
-    # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0
-    # UPDATE_COMMAND ""
-    # )
-
-# ExternalProject_Add(fmt
-    # GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    # GIT_TAG 4.x
-    # INSTALL_DIR ${PROJECT_BINARY_DIR}
-    # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DFMT_TEST=0 -DFMT_INSTALL=1
-    # UPDATE_COMMAND ""
-    # )
-
-# ExternalProject_Add(range-v3
-    # GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-    # INSTALL_DIR ${PROJECT_BINARY_DIR}
-    # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DRANGE_V3_NO_TESTING=0
-    # UPDATE_COMMAND ""
-    # )
-
 hunter_add_package(Boost COMPONENTS system program_options filesystem)
 find_package(Boost CONFIG REQUIRED system program_options filesystem)
 
@@ -133,8 +103,6 @@ find_package(nlohmann_json CONFIG REQUIRED)
 hunter_add_package(fmt)
 find_package(fmt CONFIG REQUIRED)
 
-# set(FMT_LIB fmt.a)
-
 find_package(OpenMP)
 
 if (OPENMP_FOUND)
@@ -143,9 +111,6 @@ if (OPENMP_FOUND)
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-# find_package(Boost 1.62 COMPONENTS system program_options filesystem)
-find_library(GMP gmp libgmp)
-find_library(MPFR mpfr libmpfr)
 
 
 function(append value)
@@ -184,6 +149,5 @@ include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
 link_directories(${PROJECT_BINARY_DIR}/lib64 ${PROJECT_BINARY_DIR}/lib)
 
 add_subdirectory(src)
-# add_subdirectory(tests)
 
 set_target_properties(sim PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
