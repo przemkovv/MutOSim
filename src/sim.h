@@ -5,10 +5,13 @@
 #include "scenario_settings.h"
 #include "types.h"
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <vector>
+
+namespace fs = boost::filesystem;
 
 struct CLI {
   bool help = false;
@@ -37,4 +40,7 @@ void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
                                const CLI &cli);
 void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli);
 
-std::vector<std::string> find_all_scenario_files(const std::string& path);
+std::vector<std::string> find_all_scenario_files(const std::string &path);
+
+void save_json(const nlohmann::json &j, const fs::path &dir, const fs::path &filename);
+void print_stats(const std::vector<ScenarioSettings> &scenarios);

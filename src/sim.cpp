@@ -146,9 +146,9 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
   }
   return global_stats;
 }
+//----------------------------------------------------------------------
 std::vector<std::string> find_all_scenario_files(const std::string &path)
 {
-  namespace fs = boost::filesystem;
   std::vector<std::string> list_of_scenario_files;
   if (fs::exists(path) && fs::is_directory(path)) {
     fs::recursive_directory_iterator iter(path);
@@ -272,6 +272,42 @@ void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CL
     scenarios.emplace_back(engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
   }
 }
+
+//----------------------------------------------------------------------
+void save_json(const nlohmann::json &j,
+               const fs::path &output_dir,
+               const fs::path &filename)
+{
+  boost::filesystem::path output_file{output_dir};
+  output_file /= filename;
+  create_directories(output_file.parent_path());
+  std::ofstream stats_file(output_file.string(),
+                           std::ios_base::out | std::ios_base::binary);
+  if (output_file.extension() == ".ubjson") {
+    auto data = nlohmann::json::to_ubjson(j, true, true);
+    stats_file.write(reinterpret_cast<const char *>(data.data()),
+                     static_cast<long>(data.size()));
+  } else if (output_file.extension() == ".cbor") {
+    auto data = nlohmann::json::to_cbor(j);
+    stats_file.write(reinterpret_cast<const char *>(data.data()),
+                     static_cast<long>(data.size()));
+  } else {
+    stats_file << j.dump(0);
+  }
+}
+//----------------------------------------------------------------------
+void print_stats(const std::vector<ScenarioSettings> &scenarios)
+{
+  for (auto &scenario : scenarios) {
+    print("\n[Main] {:-^100}\n", scenario.name);
+    scenario.world->print_stats();
+
+    if (scenario.do_after) {
+      scenario.do_after();
+    }
+    print("[Main] {:^^100}\n", scenario.name);
+  }
+}
 //----------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
@@ -329,34 +365,11 @@ int main(int argc, char *argv[])
   auto global_stats = run_scenarios(scenarios, cli);
 
   if (!cli.quiet) {
-    for (auto &scenario : scenarios) {
-      print("\n[Main] {:-^100}\n", scenario.name);
-      scenario.world->print_stats();
-
-      if (scenario.do_after) {
-        scenario.do_after();
-      }
-      print("[Main] {:^^100}\n", scenario.name);
-    }
+    print_stats(scenarios);
   }
 
   if (!cli.output_file.empty()) {
-    boost::filesystem::path output_file{cli.output_dir};
-    output_file /= cli.output_file;
-    create_directories(output_file.parent_path());
-    std::ofstream stats_file(output_file.string(),
-                             std::ios_base::out | std::ios_base::binary);
-    if (output_file.extension() == ".ubjson") {
-      auto data = nlohmann::json::to_ubjson(global_stats, true, true);
-      stats_file.write(reinterpret_cast<const char *>(data.data()),
-                       static_cast<long>(data.size()));
-    } else if (output_file.extension() == ".cbor") {
-      auto data = nlohmann::json::to_cbor(global_stats);
-      stats_file.write(reinterpret_cast<const char *>(data.data()),
-                       static_cast<long>(data.size()));
-    } else {
-      stats_file << global_stats.dump(0);
-    }
+    save_json(global_stats, cli.output_dir, cli.output_file);
   }
 
   return 0;
