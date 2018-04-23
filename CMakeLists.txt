@@ -2,9 +2,8 @@ cmake_minimum_required(VERSION 3.9)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.20.42.tar.gz"
-    SHA1 "44c5a98e5e6efc99671af45dbcba2ac6711fde1d"
-    LOCAL
+    URL "https://github.com/ruslo/hunter/archive/v0.20.51.tar.gz"
+    SHA1 "4919c28709340b4fb64a6c11d0bc203301edd685"
 )
 project(MSMutONet)
 
@@ -40,7 +39,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         # -g
         # -glldb
         # -pg
-        -stdlib=libc++
+        # -stdlib=libc++
         -march=native
         -Werror
         -Weffc++
