@@ -4,6 +4,7 @@ include("cmake/HunterGate.cmake")
 HunterGate(
     URL "https://github.com/ruslo/hunter/archive/v0.20.51.tar.gz"
     SHA1 "4919c28709340b4fb64a6c11d0bc203301edd685"
+    LOCAL
 )
 project(MSMutONet)
 
