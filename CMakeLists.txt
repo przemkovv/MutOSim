@@ -1,4 +1,11 @@
 cmake_minimum_required(VERSION 3.9)
+
+include("cmake/HunterGate.cmake")
+HunterGate(
+    URL "https://github.com/ruslo/hunter/archive/v0.20.51.tar.gz"
+    SHA1 "4919c28709340b4fb64a6c11d0bc203301edd685"
+    LOCAL
+)
 project(MSMutONet)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -7,6 +14,8 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+include(hunter_cmake_args)
 
 include(CheckIPOSupported)
 check_ipo_supported()
@@ -31,7 +40,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         # -g
         # -glldb
         # -pg
-        -stdlib=libc++
+        # -stdlib=libc++
         -march=native
         -Werror
         -Weffc++
@@ -82,37 +91,17 @@ ExternalProject_Add(gsl
     UPDATE_COMMAND ""
     )
 
-ExternalProject_Add(json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG develop
-    INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0 -DJSON_MultipleHeaders=ON
-    UPDATE_COMMAND ""
-    )
+hunter_add_package(Boost COMPONENTS system program_options filesystem)
+find_package(Boost CONFIG REQUIRED system program_options filesystem)
 
-ExternalProject_Add(type_safe
-    GIT_REPOSITORY https://github.com/foonathan/type_safe
-    INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=0
-    UPDATE_COMMAND ""
-    )
+hunter_add_package(type_safe)
+find_package(type_safe CONFIG REQUIRED)
 
-ExternalProject_Add(fmt
-    GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG 4.x
-    INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DFMT_TEST=0 -DFMT_INSTALL=1
-    UPDATE_COMMAND ""
-    )
+hunter_add_package(nlohmann_json)
+find_package(nlohmann_json CONFIG REQUIRED)
 
-# ExternalProject_Add(range-v3
-    # GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-    # INSTALL_DIR ${PROJECT_BINARY_DIR}
-    # CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DRANGE_V3_NO_TESTING=0
-    # UPDATE_COMMAND ""
-    # )
-
-set(FMT_LIB fmt.a)
+hunter_add_package(fmt)
+find_package(fmt CONFIG REQUIRED)
 
 find_package(OpenMP)
 
@@ -122,9 +111,7 @@ if (OPENMP_FOUND)
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-find_package(Boost 1.62 COMPONENTS system program_options filesystem)
-find_library(GMP gmp libgmp)
-find_library(MPFR mpfr libmpfr)
+
 
 function(append value)
     foreach(variable ${ARGN})
@@ -162,6 +149,5 @@ include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
 link_directories(${PROJECT_BINARY_DIR}/lib64 ${PROJECT_BINARY_DIR}/lib)
 
 add_subdirectory(src)
-# add_subdirectory(tests)
 
 set_target_properties(sim PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
