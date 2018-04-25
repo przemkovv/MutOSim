@@ -24,6 +24,7 @@ struct CLI {
   Intensity A_start{};
   Intensity A_stop{};
   Intensity A_step{};
+  bool analytical = false;
   int count{};
 
   std::vector<std::string> append_scenario_files{};

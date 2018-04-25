@@ -25,7 +25,7 @@ ScenarioSettings erlang_model(const Intensity lambda, const Capacity V)
 
   sim_settings.do_before = [=]() {
     print("[Erlang] P_loss = P_block = E_V(A) = {}\n",
-          erlang_pk(A, ts::get(V), ts::get(V)));
+          erlang_pk_distribution(A, ts::get(V), ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 

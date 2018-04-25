@@ -8,6 +8,7 @@
 #include "traffic_class.h"
 #include "types.h"
 #include "world.h"
+#include "model/analytical.h"
 
 #include "scenarios/simple.h"
 #include "scenarios/single_overflow.h"
@@ -61,6 +62,7 @@ CLI parse_args(const boost::program_options::variables_map &vm)
   cli.A_stop = Intensity{vm["stop"].as<intensity_t>()};
   cli.A_step = Intensity{vm["step"].as<intensity_t>()};
   cli.count = vm["count"].as<int>();
+  cli.analytical = vm.count("analytical") > 0;
 
   cli.append_scenario_files = [&vm]() -> std::vector<std::string> {
     if (vm.count("append-scenario-files") > 0) {
@@ -108,6 +110,7 @@ boost::program_options::options_description prepare_options_description()
     ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group")
     ("count,c", po::value<int>()->default_value(1), "number of repeats of each scenario")
     ("quiet,q", po::value<bool>()->default_value(false), "do not print stats")
+    ("analytical", po::value<bool>()->default_value(false), "Run analytical model")
     ("random,r",  po::value<bool>()->default_value(false), "use random seed");
   /* clang-format on */
   return desc;
@@ -332,6 +335,12 @@ int main(int argc, char *argv[])
 
   if (cli.help) {
     print("{}", desc);
+    return 0;
+  }
+
+  if (cli.analytical) {
+    analytical_computations();
+
     return 0;
   }
 

@@ -71,7 +71,11 @@ struct Size : ts::strong_typedef<Size, count_t>,
 
 constexpr auto operator-(const Capacity &c, const Size &s)
 {
-  return Size{get(c) - get(s)};
+  return Capacity{get(c) - get(s)};
+}
+constexpr auto operator>=(const Capacity &c, const Size &s)
+{
+  return get(c) >= get(s);
 }
 
 struct Intensity : ts::strong_typedef<Intensity, intensity_t>,

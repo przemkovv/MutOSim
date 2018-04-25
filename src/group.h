@@ -75,7 +75,7 @@ struct Group {
 
   bool forward(Load load);
 
-  Size free_capacity() { return capacity_ - size_; }
+  Capacity free_capacity() { return capacity_ - size_; }
   std::pair<bool, CompressionRatio*> can_serve(const TrafficClass& tc);
   std::pair<bool, CompressionRatio*> can_serve(TrafficClassId tc_id);
   bool can_serve_recursive(const TrafficClass &tc, Path &path);
