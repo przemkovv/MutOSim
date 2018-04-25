@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
   }
 
   if (cli.analytical) {
-    analytical_computations();
+    Model::analytical_computations();
 
     return 0;
   }

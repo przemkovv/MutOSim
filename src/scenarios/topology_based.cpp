@@ -104,7 +104,8 @@ ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
     topology.add_source(create_stream(source.type, source, tc));
     topology.attach_source_to_group(source.name, source.attached);
 
-    traffic_intensity += Intensity{tc.source_intensity / tc.serve_intensity *
+    // TODO(PW): fix type safety
+    traffic_intensity += Intensity{get(tc.source_intensity) / get(tc.serve_intensity) *
                                    ts::get(tc.size) / ts::get(V)};
   }
   // traffic_intensity /= V;

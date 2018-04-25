@@ -25,7 +25,7 @@ ScenarioSettings erlang_model(const Intensity lambda, const Capacity V)
 
   sim_settings.do_before = [=]() {
     print("[Erlang] P_loss = P_block = E_V(A) = {}\n",
-          erlang_pk_distribution(A, ts::get(V), ts::get(V)));
+          erlang_pk_distribution(get(A), ts::get(V), ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 
@@ -58,9 +58,9 @@ ScenarioSettings engset_model(const Intensity lambda, const Capacity V, const Co
 
   sim_settings.do_before = [=]() {
     print("[Engset] P_block = E(alfa, V, N) = {}\n",
-          engset_pi(alpha, ts::get(V), ts::get(N), ts::get(V)));
+          engset_pi(get(alpha), ts::get(V), ts::get(N), ts::get(V)));
     print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          engset_pi(alpha, ts::get(V), ts::get(N) - 1, ts::get(V)));
+          engset_pi(get(alpha), ts::get(V), ts::get(N) - 1, ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 

@@ -52,6 +52,8 @@ struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,
                   ts::strong_typedef_op::relational_comparison<Capacity>,
                   ts::strong_typedef_op::addition<Capacity>,
+                  ts::strong_typedef_op::subtraction<Capacity>,
+                  ts::strong_typedef_op::increment<Capacity>,
                   ts::strong_typedef_op::output_operator<Capacity> {
   using strong_typedef::strong_typedef;
 };
@@ -73,6 +75,10 @@ constexpr auto operator-(const Capacity &c, const Size &s)
 {
   return Capacity{get(c) - get(s)};
 }
+constexpr auto operator+(const Capacity &c, const Size &s)
+{
+  return Capacity{get(c) + get(s)};
+}
 constexpr auto operator>=(const Capacity &c, const Size &s)
 {
   return get(c) >= get(s);
@@ -86,7 +92,7 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   using strong_typedef::strong_typedef;
   constexpr auto operator/(const Intensity &intensity) const
   {
-    return ts::get(*this) / ts::get(intensity);
+    return Intensity{ts::get(*this) / ts::get(intensity)};
   }
   constexpr auto operator/(const Size &size) const
   {

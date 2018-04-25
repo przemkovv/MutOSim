@@ -1,7 +1,10 @@
 #pragma once
 
 #include "types.h"
+#include <algorithm>
 #include <cmath>
+#include <type_traits>
+#include <numeric>
 
 namespace Math
 {
@@ -53,5 +56,15 @@ inline int64_t product(int64_t from, int64_t to)
 }
 
 int64_t n_over_k(const int64_t n, const int64_t k);
+
+template <typename T>
+auto normalize(T &container)
+{
+  using E = std::remove_reference_t<decltype(*begin(container))>;
+  auto sum =
+      std::accumulate(begin(container), end(container), E{});
+  std::for_each(begin(container), end(container), [sum](auto &v) { v /= sum; });
+  return sum;
+}
 
 } // namespace Math
