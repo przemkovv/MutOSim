@@ -22,6 +22,8 @@ let g:neomake_cpp_clangtidy_args = ['-p=build/',
 
 let g:clang_compilation_database = "build/"
 
+let $FZF_DEFAULT_COMMAND = 'ag --ignore data -g ""'
+
 
 " autocmd BufWritePost *.h,*.hpp,*.cpp,*.c :Start! make -C build/ ctags >/dev/null
 " autocmd BufWritePost *.h,*.hpp,*.cpp,*.c call jobstart("make -C build/ ctags", {'cwd': '.'})

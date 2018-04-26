@@ -14,6 +14,14 @@ struct RequestStream {
   double mean;                // R_{c,s}
   double mean_request_number; // Y_{c,s}
   double variance_sq;         // sigma^2_{c,s}
+  double peakness;            // Z_c
+};
+
+struct RequestStreamProperties {
+  double variance_sq = 0.0;
+  double mean = 0.0;
+  double peakness = 0.0;
+  TrafficClass tc{};
 };
 
 std::vector<double> KaufmanRobertsDistribution(
@@ -21,6 +29,14 @@ std::vector<double> KaufmanRobertsDistribution(
 
 std::vector<RequestStream>
 KaufmanRobertsBlockingProbability(std::vector<TrafficClass> &traffic_classes, Capacity V);
+std::vector<double>
+KaufmanRobertsDistribution(const std::vector<RequestStreamProperties> &streams_properties,
+                           Capacity V,
+                           double peakness);
+std::vector<RequestStream> KaufmanRobertsBlockingProbability(
+    std::vector<RequestStreamProperties> &request_streams_properties,
+    Capacity V,
+    double peakness);
 
 class OverflowFar
 {
@@ -36,6 +52,9 @@ void format_arg(fmt::BasicFormatter<char> &f,
                 const char *&format_str,
                 const RequestStream &request_stream);
 
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const RequestStreamProperties &rs);
 } // namespace Model
 
 namespace std
@@ -48,7 +67,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
   f.writer().write("[");
   for (const auto &x : vec) {
     auto s = fmt::format("{}, ", x);
-    if (s.size() > 12) {
+    if (s.size() > 16) {
       f.writer().write("\n");
     }
     f.writer().write(s);
