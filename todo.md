@@ -6,6 +6,9 @@
 - s. 142, tabela 3.8. Liczba mnoga -> liczba pojedyncza
 - s. 97, stopka: przyjęto -> przyjęte
 
+latex package changes
+
+
 # Publication experiments
 
  - Topologies:
@@ -48,7 +51,7 @@
   - metoda Sandersa porównanie z Haywarded -- znaleźć
 
   - model analityczny - podgrupy, LAG, s.212, prof 3.4.2.1, równe pojemność
-  - Hayward z Iversena Z*t
+  - Hayward z Iversena Z*t An approximation 
 
 
 - Verify Q
