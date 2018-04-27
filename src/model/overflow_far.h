@@ -10,44 +10,48 @@ namespace Model
 {
 struct RequestStream {
   TrafficClass tc;
-  double blocking_probability; // [E_c]_{V_s}
-  Intensity intensity;
-  double mean;                // R_{c,s}
-  double mean_request_number; // Y_{c,s}
-  double fictional_capacity;
-  double variance_sq; // sigma^2_{c,s}
-  double peakness;    // Z_c
+  Probability blocking_probability{0}; // [E_c]_{V_s}
+  Intensity intensity{0};
+  stat_t mean{0};                // R_{c,s}
+  stat_t mean_request_number{0}; // Y_{c,s}
+  stat_t fictional_capacity{0};
+  stat_t variance_sq{0}; // sigma^2_{c,s}
+  stat_t peakness{0};    // Z_c
 };
 
 struct OverflowingRequestStream {
-  double variance_sq = 0.0;
-  double mean = 0.0;
-  double peakness = 0.0;
+  stat_t variance_sq = 0.0L;
+  stat_t mean = 0.0L;
+  stat_t peakness = 0.0L;
   TrafficClass tc{};
 };
 
-std::vector<double>
+std::vector<Probability>
 KaufmanRobertsDistribution(const std::vector<TrafficClass> &traffic_classes, Capacity V);
 
 std::vector<RequestStream>
 KaufmanRobertsBlockingProbability(std::vector<TrafficClass> &traffic_classes, Capacity V);
-std::vector<double> KaufmanRobertsDistribution(
+
+std::vector<Probability> KaufmanRobertsDistribution(
     const std::vector<OverflowingRequestStream> &streams_properties,
     Capacity V,
-    double peakness);
+    stat_t peakness);
 std::vector<RequestStream> KaufmanRobertsBlockingProbability(
     std::vector<OverflowingRequestStream> &request_streams_properties,
     Capacity V,
-    double peakness);
+    stat_t peakness);
 
 std::vector<OverflowingRequestStream> convert_to_overflowing_streams(
     const std::vector<std::vector<RequestStream>> &request_streams_per_group);
 
-double compute_collective_peakness(
+stat_t compute_collective_peakness(
     const std::vector<OverflowingRequestStream> &overflowing_streams);
 //----------------------------------------------------------------------
 
-Count combinatorial_arrangement_number(Size x, Count resources_number, Capacity f);
+Count combinatorial_arrangement_number(count_t x, Count resources_number, Capacity f);
+
+probability_t transition_probability(
+    Capacity n, Capacity V, Count resources_number, Capacity f, Size t);
 
 //----------------------------------------------------------------------
 void format_arg(fmt::BasicFormatter<char> &f,
@@ -64,7 +68,7 @@ namespace std
 {
 template <typename T>
 void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
+                const char *& /* format_str */,
                 const std::vector<T> &vec)
 {
   f.writer().write("S({}) [", std::size(vec));

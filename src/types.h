@@ -16,6 +16,8 @@ using time_type = long double;
 using duration_t = long double;
 using count_t = int64_t;
 
+using stat_t = long double;
+using probability_t = long double;
 using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
@@ -82,6 +84,11 @@ constexpr auto operator>=(const Capacity &c, const Size &s)
 {
   return get(c) >= get(s);
 }
+struct IntensitySize : ts::strong_typedef<IntensitySize, intensity_t>,
+                       ts::strong_typedef_op::multiplication<IntensitySize>,
+                       ts::strong_typedef_op::output_operator<IntensitySize> {
+  using strong_typedef::strong_typedef;
+};
 
 struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
                    ts::strong_typedef_op::multiplication<Intensity>,
@@ -97,6 +104,10 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   {
     return Intensity(ts::get(*this) / ts::get(size));
   }
+  constexpr auto operator*(const Size &size) const
+  {
+    return IntensitySize(ts::get(*this) * ts::get(size));
+  }
   constexpr auto operator*(const Capacity &capacity) const
   {
     return Intensity(ts::get(*this) * ts::get(capacity));
@@ -106,6 +117,29 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
     return Intensity(ts::get(*this) * ts::get(ratio));
   }
 };
+struct Probability : ts::strong_typedef<Probability, probability_t>,
+                     ts::strong_typedef_op::multiplication<Probability>,
+                     ts::strong_typedef_op::division<Probability>,
+                     ts::strong_typedef_op::addition<Probability>,
+                     ts::strong_typedef_op::relational_comparison<Probability>,
+                     ts::strong_typedef_op::output_operator<Probability> {
+  using strong_typedef::strong_typedef;
+  constexpr Probability &operator/=(const Capacity &capacity)
+  {
+    ts::get(*this) /= ts::get(capacity);
+    return *this;
+  }
+};
+
+constexpr auto operator/(const Probability &probability, const Capacity &capacity)
+{
+  return Probability{get(probability) / get(capacity)};
+}
+
+constexpr auto operator*(const IntensitySize &intensity, const Probability &probability)
+{
+  return Probability{get(intensity) * get(probability)};
+}
 
 struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t>,
                          ts::strong_typedef_op::multiplication<IntensityFactor>,
@@ -118,8 +152,9 @@ struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t>,
   }
 };
 
-constexpr auto operator/(const Size& size, const IntensityFactor& intensity_factor) {
-  return Size{static_cast<count_t>(get(size)/get(intensity_factor))};
+constexpr auto operator/(const Size &size, const IntensityFactor &intensity_factor)
+{
+  return Size{static_cast<count_t>(get(size) / get(intensity_factor))};
 }
 
 struct Count : ts::strong_typedef<Count, count_t>,

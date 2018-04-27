@@ -30,31 +30,30 @@ std::vector<OverflowingRequestStream> convert_to_overflowing_streams(
 }
 
 //----------------------------------------------------------------------
-double compute_collective_peakness(
+stat_t compute_collective_peakness(
     const std::vector<OverflowingRequestStream> &overflowing_streams)
 {
   // Formula 3.20
-  double inv_sum =
-      1.0 / std::accumulate(
-                begin(overflowing_streams), end(overflowing_streams), 0.0,
-                [](auto x, const auto &rs) { return x + rs.mean * get(rs.tc.size); });
+  auto inv_sum =
+      1.0L / std::accumulate(
+                 begin(overflowing_streams), end(overflowing_streams), stat_t{},
+                 [](auto x, const auto &rs) { return x + rs.mean * get(rs.tc.size); });
 
   // Formula 3.19
-  double peakness =
-      std::accumulate(begin(overflowing_streams), end(overflowing_streams), 0.0,
-                      [inv_sum](auto x, const auto &rs) {
-                        return x + rs.variance_sq * get(rs.tc.size) * inv_sum;
-                      });
+  auto peakness = std::accumulate(begin(overflowing_streams), end(overflowing_streams),
+                                  stat_t{}, [inv_sum](auto x, const auto &rs) {
+                                    return x + rs.variance_sq * get(rs.tc.size) * inv_sum;
+                                  });
 
   return peakness;
 }
 
 //----------------------------------------------------------------------
-std::vector<double>
+std::vector<Probability>
 KaufmanRobertsDistribution(const std::vector<TrafficClass> &traffic_classes, Capacity V)
 {
-  std::vector<double> state(get(V) + 1);
-  state[0] = 1;
+  std::vector<Probability> state(size_t(get(V) + 1));
+  state[0] = Probability{1};
 
   println("[KR] V={}", V);
   for (auto n = Capacity{1}; n <= V; ++n) {
@@ -62,10 +61,10 @@ KaufmanRobertsDistribution(const std::vector<TrafficClass> &traffic_classes, Cap
       auto previous_state = n - tc.size;
       if (previous_state >= Capacity{0}) {
         auto intensity = tc.source_intensity / tc.serve_intensity;
-        state[get(n)] += get(intensity) * get(tc.size) * state[get(previous_state)];
+        state[size_t(get(n))] += intensity * tc.size * state[size_t(get(previous_state))];
       }
     }
-    state[get(n)] /= get(n);
+    state[size_t(get(n))] /= n;
   }
   Math::normalize(state);
 
@@ -74,25 +73,26 @@ KaufmanRobertsDistribution(const std::vector<TrafficClass> &traffic_classes, Cap
 }
 
 //----------------------------------------------------------------------
-std::vector<double> KaufmanRobertsDistribution(
+std::vector<Probability> KaufmanRobertsDistribution(
     const std::vector<OverflowingRequestStream> &streams_properties,
     Capacity V,
-    double peakness)
+    stat_t peakness)
 {
-  V = Capacity(get(V) / peakness);
-  std::vector<double> state(get(V) + 1);
-  state[0] = 1;
+  V = Capacity{static_cast<count_t>(std::floor(get(V) / peakness))};
+  std::vector<Probability> state(size_t(get(V)) + 1);
+  state[0] = Probability{1};
 
   println("[KR] V={}, Z={}", V, peakness);
-  for (auto v = Capacity{1}; v < V + Capacity(1); ++v) {
+  for (auto n = Capacity{1}; n <= V; ++n) {
     for (const auto &properties : streams_properties) {
-      auto previous_state = v - properties.tc.size;
+      auto previous_state = n - properties.tc.size;
       if (previous_state >= Capacity{0}) {
-        auto intensity = properties.mean / properties.peakness;
-        state[get(v)] += intensity * get(properties.tc.size) * state[get(previous_state)];
+        auto intensity = Intensity{properties.mean / properties.peakness};
+        state[size_t(get(n))] +=
+            intensity * properties.tc.size * state[size_t(get(previous_state))];
       }
     }
-    state[get(v)] /= get(v);
+    state[size_t(get(n))] /= n;
   }
   Math::normalize(state);
 
@@ -109,12 +109,12 @@ KaufmanRobertsBlockingProbability(std::vector<TrafficClass> &traffic_classes, Ca
   std::vector<RequestStream> request_streams;
   for (const auto &tc : traffic_classes) {
     auto n = V - tc.size + Size{1};
-    double blocking_probability =
-        std::accumulate(next(begin(distribution), get(n)), end(distribution), 0.0);
+    auto blocking_probability =
+        std::accumulate(next(begin(distribution), get(n)), end(distribution), Probability{});
 
     auto intensity = tc.source_intensity / tc.serve_intensity;
-    double mean = get(intensity) * blocking_probability;
-    double mean_request_number = get(intensity) * (1 - blocking_probability);
+    auto mean = get(intensity) * get(blocking_probability);
+    auto mean_request_number = get(intensity) * (probability_t{1} - get(blocking_probability));
 
     request_streams.emplace_back(
         RequestStream{tc, blocking_probability, intensity, mean, mean_request_number});
@@ -122,7 +122,7 @@ KaufmanRobertsBlockingProbability(std::vector<TrafficClass> &traffic_classes, Ca
 
   for (auto &rs : request_streams) {
     rs.fictional_capacity =
-        get(V) - std::accumulate(begin(request_streams), end(request_streams), 0.0,
+        get(V) - std::accumulate(begin(request_streams), end(request_streams), stat_t{},
                                  [&rs](auto acc, const auto &request_stream) {
                                    if (request_stream.tc.id == rs.tc.id) {
                                      return acc;
@@ -147,21 +147,21 @@ KaufmanRobertsBlockingProbability(std::vector<TrafficClass> &traffic_classes, Ca
 std::vector<RequestStream> KaufmanRobertsBlockingProbability(
     std::vector<OverflowingRequestStream> &overflowing_streams,
     Capacity V,
-    double peakness)
+    stat_t peakness)
 {
   auto distribution = KaufmanRobertsDistribution(overflowing_streams, V, peakness);
 
-  V = Capacity(get(V) / peakness);
+  V = Capacity{static_cast<count_t>(std::floor(get(V) / peakness))};
 
   std::vector<RequestStream> request_streams;
   for (const auto &overflowing_stream : overflowing_streams) {
     auto n = V - overflowing_stream.tc.size + Size{1};
-    double blocking_probability =
-        std::accumulate(next(begin(distribution), get(n)), end(distribution), 0.0);
+    auto blocking_probability = std::accumulate(next(begin(distribution), get(n)),
+                                                end(distribution), Probability{});
 
     auto intensity = Intensity{overflowing_stream.mean / overflowing_stream.peakness};
-    double mean = get(intensity) * blocking_probability;
-    double mean_request_number = get(intensity) * (1 - blocking_probability);
+    auto mean = get(intensity) * get(blocking_probability);
+    auto mean_request_number = get(intensity) * (probability_t{1} - get(blocking_probability));
 
     request_streams.emplace_back(RequestStream{overflowing_stream.tc,
                                                blocking_probability, intensity, mean,
@@ -169,8 +169,8 @@ std::vector<RequestStream> KaufmanRobertsBlockingProbability(
   }
 
   for (auto &rs : request_streams) {
-    auto fictional_capacity =
-        get(V) - std::accumulate(begin(request_streams), end(request_streams), 0.0,
+    stat_t fictional_capacity =
+        get(V) - std::accumulate(begin(request_streams), end(request_streams), stat_t{},
                                  [&rs](auto v, const auto &request_stream) {
                                    if (request_stream.tc.id == rs.tc.id) {
                                      return v;
@@ -205,14 +205,14 @@ Count combinatorial_arrangement_number(count_t x, Count resources_number, Capaci
 }
 //----------------------------------------------------------------------
 
-double
+probability_t
 transition_probability(Capacity n, Capacity V, Count resources_number, Capacity f, Size t)
 {
-  double probability =
-      1.0 -
-      double(get(combinatorial_arrangement_number(get(V - n), resources_number,
-                                                  Capacity{get(t) - 1}))) /
-          double(get(combinatorial_arrangement_number(get(V - n), resources_number, f)));
+  probability_t probability =
+      probability_t{1} -
+      (get(combinatorial_arrangement_number(get(V - n), resources_number,
+                                            Capacity{get(t) - 1}))) /
+          (get(combinatorial_arrangement_number(get(V - n), resources_number, f)));
 
   return probability;
 }
@@ -220,7 +220,7 @@ transition_probability(Capacity n, Capacity V, Count resources_number, Capacity 
 //----------------------------------------------------------------------
 
 void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
+                const char *& /* format_str */,
                 const RequestStream &rs)
 {
   f.writer().write(
@@ -231,7 +231,7 @@ void format_arg(fmt::BasicFormatter<char> &f,
 
 //----------------------------------------------------------------------
 void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
+                const char *& /* format_str */,
                 const OverflowingRequestStream &rs)
 {
   f.writer().write("[OverflowingRequestStream] {} R={}, sigma^2={}, Z={}", rs.tc, rs.mean,

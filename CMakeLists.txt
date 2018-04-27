@@ -93,6 +93,16 @@ ExternalProject_Add(gsl
     UPDATE_COMMAND ""
     )
 
+ExternalProject_Add(range-v3
+    GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+    INSTALL_DIR ${PROJECT_BINARY_DIR}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DRANGE_V3_NO_TESTING=1 -DRANGE_V3_NO_PERF=1
+    UPDATE_COMMAND ""
+)
+# Package ranges-v3 is a bit outdated in hunter repository
+# hunter_add_package(range-v3)
+# find_package(range-v3 CONFIG REQUIRED)
+
 hunter_add_package(Boost COMPONENTS system program_options filesystem)
 find_package(Boost CONFIG REQUIRED system program_options filesystem)
 
@@ -104,6 +114,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 
 hunter_add_package(fmt)
 find_package(fmt CONFIG REQUIRED)
+
 
 find_package(OpenMP)
 
