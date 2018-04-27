@@ -2,96 +2,67 @@
 #include "analytical.h"
 
 #include "logger.h"
-#include "overflow_far.h"
 #include "traffic_class.h"
-#include "types.h"
+
+#include "overflow_far.h"
 
 #include <algorithm>
 #include <numeric>
 
 namespace Model
 {
-void analytical_computations()
+void analytical_computations(const ScenarioSettings &scenario_settings)
 {
-  std::vector<TrafficClass> traffic_classes;
+  std::vector<TrafficClass> traffic_classes1;
+  traffic_classes1.emplace_back(
+      TrafficClass{TrafficClassId{1}, Intensity{20.0}, Intensity{1.0}, Size{1}});
+  traffic_classes1.emplace_back(
+      TrafficClass{TrafficClassId{2}, Intensity{10.0}, Intensity{1.0}, Size{2}});
+  traffic_classes1.emplace_back(
+      TrafficClass{TrafficClassId{3}, Intensity{3.333}, Intensity{1.0}, Size{6}});
 
-  traffic_classes.emplace_back(
-      TrafficClass{TrafficClassId{1}, Intensity{10.0}, Intensity{1.0}, Size{1}});
-  traffic_classes.emplace_back(
-      TrafficClass{TrafficClassId{2}, Intensity{10.0}, Intensity{1.0}, Size{4}});
-  traffic_classes.emplace_back(
-      TrafficClass{TrafficClassId{3}, Intensity{10.0}, Intensity{1.0}, Size{9}});
+  std::vector<TrafficClass> traffic_classes2;
+  traffic_classes2.emplace_back(
+      TrafficClass{TrafficClassId{4}, Intensity{20.0}, Intensity{1.0}, Size{1}});
+  traffic_classes2.emplace_back(
+      TrafficClass{TrafficClassId{5}, Intensity{10.0}, Intensity{1.0}, Size{2}});
+  traffic_classes2.emplace_back(
+      TrafficClass{TrafficClassId{6}, Intensity{3.333}, Intensity{1.0}, Size{6}});
 
-  for (const auto &traffic_class : traffic_classes) {
-    println("{}", traffic_class);
-  }
+  std::vector<TrafficClass> traffic_classes3;
+  traffic_classes3.emplace_back(
+      TrafficClass{TrafficClassId{7}, Intensity{20.0}, Intensity{1.0}, Size{1}});
+  traffic_classes3.emplace_back(
+      TrafficClass{TrafficClassId{8}, Intensity{10.0}, Intensity{1.0}, Size{2}});
+  traffic_classes3.emplace_back(
+      TrafficClass{TrafficClassId{9}, Intensity{3.333}, Intensity{1.0}, Size{6}});
 
-  std::vector<std::vector<RequestStream>> request_streams_groups;
-  request_streams_groups.emplace_back(
-      KaufmanRobertsBlockingProbability(traffic_classes, Capacity{60}));
-  request_streams_groups.emplace_back(
-      KaufmanRobertsBlockingProbability(traffic_classes, Capacity{50}));
-  request_streams_groups.emplace_back(
-      KaufmanRobertsBlockingProbability(traffic_classes, Capacity{40}));
+  std::vector<std::vector<RequestStream>> request_streams_per_group;
+  request_streams_per_group.emplace_back(
+      KaufmanRobertsBlockingProbability(traffic_classes1, Capacity{60}));
+  request_streams_per_group.emplace_back(
+      KaufmanRobertsBlockingProbability(traffic_classes2, Capacity{60}));
+  request_streams_per_group.emplace_back(
+      KaufmanRobertsBlockingProbability(traffic_classes3, Capacity{60}));
 
   println("Blocking probability for primary groups from Kaufman-Roberts:\n{}",
-          request_streams_groups);
-
-  // TODO(PW): aggregate over size and groups mean and variance
+          request_streams_per_group);
 
   // Formulas 3.17 and 3.18
-  std::unordered_map<TrafficClassId, RequestStreamProperties> request_streams_properties;
-  for (const auto &request_streams : request_streams_groups) {
-    for (const auto &request_stream : request_streams) {
-      auto &properties = request_streams_properties[request_stream.tc.id];
-      properties.mean += request_stream.mean;
-      properties.variance_sq += request_stream.variance_sq;
-      properties.tc = request_stream.tc;
-    }
-  }
-  std::for_each(begin(request_streams_properties), end(request_streams_properties),
-                [](auto &properties) {
-                  properties.second.peakness =
-                      properties.second.variance_sq / properties.second.mean;
-                });
-
-  println("Accumulated by class");
-  for (const auto &[tc_id, properties] : request_streams_properties) {
-    std::ignore = tc_id;
-    println("{}", properties);
-  }
-
-  // Formula 3.20
-  double inv_sum =
-      1.0 / std::accumulate(begin(request_streams_properties),
-                            end(request_streams_properties), 0.0,
-                            [](auto x, const auto &rs) {
-                              return x + rs.second.mean * get(rs.second.tc.size);
-                            });
+  auto overflowing_request_streams =
+      convert_to_overflowing_streams(request_streams_per_group);
 
   // Formula 3.19
-  double peakness = std::accumulate(
-      begin(request_streams_properties), end(request_streams_properties), 0.0,
-      [inv_sum](auto x, const auto &rs) {
-        return x + rs.second.variance_sq * get(rs.second.tc.size) * inv_sum;
-      });
+  double peakness = compute_collective_peakness(overflowing_request_streams);
 
   println("Peakness: {}", peakness);
+  println("Properties:\n{}", overflowing_request_streams);
 
-  std::vector<RequestStreamProperties> request_streams_properties_vec;
-
-  std::transform(begin(request_streams_properties), end(request_streams_properties),
-                 std::back_inserter(request_streams_properties_vec),
-                 [](const auto &p) { return p.second; });
-
-
-  println("Properties:\n{}", request_streams_properties_vec);
-
-  auto alternativeGroup = KaufmanRobertsBlockingProbability(
-      request_streams_properties_vec, Capacity{80}, peakness);
+  auto alternativeGroupStreams = KaufmanRobertsBlockingProbability(
+      overflowing_request_streams, Capacity{42}, peakness);
 
   println("Alternative group:");
-  println("{}", alternativeGroup);
+  println("{}", alternativeGroupStreams);
 }
 
 } // namespace Model

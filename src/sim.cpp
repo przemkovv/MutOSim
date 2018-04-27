@@ -8,6 +8,7 @@
 #include "traffic_class.h"
 #include "types.h"
 #include "world.h"
+
 #include "model/analytical.h"
 
 #include "scenarios/simple.h"
@@ -62,7 +63,7 @@ CLI parse_args(const boost::program_options::variables_map &vm)
   cli.A_stop = Intensity{vm["stop"].as<intensity_t>()};
   cli.A_step = Intensity{vm["step"].as<intensity_t>()};
   cli.count = vm["count"].as<int>();
-  cli.analytical = vm.count("analytical") > 0;
+  cli.analytical = vm["analytical"].as<bool>();
 
   cli.append_scenario_files = [&vm]() -> std::vector<std::string> {
     if (vm.count("append-scenario-files") > 0) {
@@ -129,6 +130,9 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
 
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
+    if (cli.analytical) {
+      Model::analytical_computations(scenarios[i]);
+    }
     run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
 
     auto A_str = std::to_string(ts::get(scenarios[i].A));
@@ -337,11 +341,9 @@ int main(int argc, char *argv[])
     print("{}", desc);
     return 0;
   }
-
   if (cli.analytical) {
-    Model::analytical_computations();
-
-    return 0;
+    ScenarioSettings ss{};
+    Model::analytical_computations(ss);
   }
 
   if (!std::all_of(begin(cli.scenario_files), end(cli.scenario_files),

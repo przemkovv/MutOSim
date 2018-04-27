@@ -5,7 +5,6 @@
 #include <string_view>
 #include <type_safe/strong_typedef.hpp>
 
-#include <fmt/ostream.h>
 #include <string>
 
 namespace ts = type_safe;

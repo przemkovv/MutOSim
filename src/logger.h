@@ -2,6 +2,7 @@
 #pragma once
 #include "config.h"
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 template <typename... Args>
 void debug_println(Args &&... args)
