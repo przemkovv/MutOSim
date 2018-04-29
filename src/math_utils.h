@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <numeric>
 
+
 namespace Math
 {
 constexpr double epsilon = 0.000001;

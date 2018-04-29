@@ -22,6 +22,10 @@ template <>
 struct difference_type<::Count> {
   using type = count_t;
 };
+template <>
+struct difference_type<::Capacity> {
+  using type = count_t;
+};
 } // namespace v3
 } // namespace ranges
 
@@ -31,28 +35,28 @@ namespace Model
 
 //----------------------------------------------------------------------
 std::vector<IncomingRequestStream>
-convert_to_overflowing_streams(
-    const std::vector<std::vector<OutgoingRequestStream>> &request_streams_per_group)
+convert_to_incoming_streams(
+    const std::vector<std::vector<OutgoingRequestStream>> &out_request_streams_per_group)
 {
   // Formulas 3.17 and 3.18
-  std::map<TrafficClassId, IncomingRequestStream> overflowing_request_streams;
-  for (const auto &request_streams : request_streams_per_group) {
-    rng::for_each(request_streams, [&](const OutgoingRequestStream &rs) {
+  std::map<TrafficClassId, IncomingRequestStream> incoming_request_streams;
+  for (const auto &out_request_streams : out_request_streams_per_group) {
+    rng::for_each(out_request_streams, [&](const OutgoingRequestStream &out_rs) {
       auto [stream_it, inserted] =
-          overflowing_request_streams.emplace(rs.tc.id, IncomingRequestStream{});
-      stream_it->second += rs;
+          incoming_request_streams.emplace(out_rs.tc.id, IncomingRequestStream{});
+      stream_it->second += out_rs;
     });
   }
-  return overflowing_request_streams | rng::view::values;
+  return incoming_request_streams | rng::view::values;
 }
 
 //----------------------------------------------------------------------
 Peakness
-compute_collective_peakness(const std::vector<IncomingRequestStream> &streams)
+compute_collective_peakness(const std::vector<IncomingRequestStream> &in_request_streams)
 {
   // Formula 3.20
   auto inv_sum = rng::accumulate(
-                     streams | rng::view::transform([](const auto &rs) {
+                     in_request_streams | rng::view::transform([](const auto &rs) {
                        return rs.mean * rs.tc.size;
                      }),
                      WeightF{0})
@@ -60,7 +64,7 @@ compute_collective_peakness(const std::vector<IncomingRequestStream> &streams)
 
   // Formula 3.19
   auto peakness = rng::accumulate(
-      streams | rng::view::transform([inv_sum](const auto &rs) {
+      in_request_streams | rng::view::transform([inv_sum](const auto &rs) {
         return rs.variance * (rs.tc.size * inv_sum);
       }),
       Peakness{0});
@@ -83,12 +87,12 @@ compute_riordan_variance(
 // TODO(PW): implement criterion based on blocking probability fit (Formula 3.10)
 CapacityF
 compute_fictional_capacity(
-    const std::vector<OutgoingRequestStream> &request_streams,
+    const std::vector<OutgoingRequestStream> &out_request_streams,
     Capacity V,
     TrafficClassId tc_id)
 {
   return V - rng::accumulate(
-                 request_streams | rng::view::filter([tc_id](const auto &rs) {
+                 out_request_streams | rng::view::filter([tc_id](const auto &rs) {
                    return rs.tc.id != tc_id;
                  }) | rng::view::transform([](const auto &rs) {
                    return rs.mean_request_number * rs.tc.size;
@@ -98,23 +102,24 @@ compute_fictional_capacity(
 
 //----------------------------------------------------------------------
 Probabilities
-KaufmanRobertsDistribution(const std::vector<IncomingRequestStream> &streams, Capacity V)
+KaufmanRobertsDistribution(
+    const std::vector<IncomingRequestStream> &in_request_streams, Capacity V)
 {
   std::vector<Probability> state(size_t(V) + 1);
   state[0] = Probability{1};
 
   println("[KR] V={}", V);
-  for (auto n = Capacity{1}; n <= V; ++n) {
-    for (const auto &stream : streams) {
-      auto tc_size = stream.tc.size;
+  rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
+    for (const auto &in_stream : in_request_streams) {
+      auto tc_size = in_stream.tc.size;
       auto previous_state = n - tc_size;
       if (previous_state >= Capacity{0}) {
-        auto intensity = stream.intensity;
+        auto intensity = in_stream.intensity;
         state[size_t(n)] += intensity * tc_size * state[size_t(previous_state)];
       }
     }
     state[size_t(n)] /= n;
-  }
+  });
   Math::normalize(state);
 
   print("{}", state);
@@ -123,28 +128,29 @@ KaufmanRobertsDistribution(const std::vector<IncomingRequestStream> &streams, Ca
 
 //----------------------------------------------------------------------
 std::vector<OutgoingRequestStream>
-KaufmanRobertsBlockingProbability(std::vector<IncomingRequestStream> &streams, Capacity V)
+KaufmanRobertsBlockingProbability(
+    std::vector<IncomingRequestStream> &in_request_streams, Capacity V)
 {
-  auto distribution = KaufmanRobertsDistribution(streams, V);
+  auto distribution = KaufmanRobertsDistribution(in_request_streams, V);
 
-  std::vector<OutgoingRequestStream> request_streams;
-  for (const auto &stream : streams) {
-    OutgoingRequestStream rs;
-    rs.tc = stream.tc;
-    auto n = V - rs.tc.size + Size{1};
-    rs.blocking_probability =
+  std::vector<OutgoingRequestStream> out_request_streams;
+  for (const auto &in_rs : in_request_streams) {
+    OutgoingRequestStream out_rs;
+    out_rs.tc = in_rs.tc;
+    auto n = V - out_rs.tc.size + Size{1};
+    out_rs.blocking_probability =
         rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
 
-    rs.intensity = stream.intensity;
-    rs.mean = rs.intensity * rs.blocking_probability;
-    rs.mean_request_number =
-        MeanRequestNumber{rs.intensity * rs.blocking_probability.opposite()};
+    out_rs.intensity = in_rs.intensity;
+    out_rs.mean = out_rs.intensity * out_rs.blocking_probability;
+    out_rs.mean_request_number =
+        MeanRequestNumber{out_rs.intensity * out_rs.blocking_probability.opposite()};
 
-    request_streams.emplace_back(rs);
+    out_request_streams.emplace_back(out_rs);
   }
 
-  for (auto &rs : request_streams) {
-    rs.fictional_capacity = compute_fictional_capacity(request_streams, V, rs.tc.id);
+  for (auto &rs : out_request_streams) {
+    rs.fictional_capacity = compute_fictional_capacity(out_request_streams, V, rs.tc.id);
 
     rs.variance = compute_riordan_variance(
         rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size);
@@ -152,7 +158,7 @@ KaufmanRobertsBlockingProbability(std::vector<IncomingRequestStream> &streams, C
     rs.peakness = rs.variance / rs.mean;
   }
 
-  return request_streams;
+  return out_request_streams;
 }
 
 //----------------------------------------------------------------------

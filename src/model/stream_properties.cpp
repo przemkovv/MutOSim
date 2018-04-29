@@ -71,12 +71,6 @@ IncomingRequestStream::IncomingRequestStream(const TrafficClass &source_tc)
 {
 }
 
-IncomingRequestStream
-operator+(IncomingRequestStream overflowing_rs, const OutgoingRequestStream &rs)
-{
-  overflowing_rs += rs;
-  return overflowing_rs;
-}
 //----------------------------------------------------------------------
 
 void
@@ -105,7 +99,7 @@ format_arg(
     const IncomingRequestStream &rs)
 {
   f.writer().write(
-      "[OverflowingRequestStream] {} R={}, sigma^2={}, Z={}",
+      "[IncomingRequestStream] {} R={}, sigma^2={}, Z={}",
       rs.tc,
       rs.mean,
       rs.variance,

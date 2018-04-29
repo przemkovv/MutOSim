@@ -35,8 +35,6 @@ struct IncomingRequestStream {
   IncomingRequestStream() = default;
 };
 
-IncomingRequestStream
-operator+(IncomingRequestStream overflowing_rs, const OutgoingRequestStream &rs);
 
 
 //----------------------------------------------------------------------

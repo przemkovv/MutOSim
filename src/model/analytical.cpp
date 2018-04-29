@@ -38,35 +38,35 @@ analytical_computations(const ScenarioSettings & /* scenario_settings */)
   traffic_classes3.emplace_back(
       TrafficClass{TrafficClassId{3}, Intensity{3.333L}, Intensity{1.0L}, Size{6}, {}});
 
-  std::vector<std::vector<OutgoingRequestStream>> request_streams_per_group;
-  request_streams_per_group.emplace_back(
+  std::vector<std::vector<OutgoingRequestStream>> out_request_streams_per_group;
+  out_request_streams_per_group.emplace_back(
       KaufmanRobertsBlockingProbability(traffic_classes1, Capacity{60}));
-  request_streams_per_group.emplace_back(
+  out_request_streams_per_group.emplace_back(
       KaufmanRobertsBlockingProbability(traffic_classes2, Capacity{60}));
-  request_streams_per_group.emplace_back(
+  out_request_streams_per_group.emplace_back(
       KaufmanRobertsBlockingProbability(traffic_classes3, Capacity{60}));
 
   println(
       "Blocking probability for primary groups from Kaufman-Roberts:\n{}",
-      request_streams_per_group);
+      out_request_streams_per_group);
 
   // Formulas 3.17 and 3.18
-  auto overflowing_request_streams =
-      convert_to_overflowing_streams(request_streams_per_group);
-  overflowing_request_streams.emplace_back(
+  auto incoming_request_streams =
+      convert_to_incoming_streams(out_request_streams_per_group);
+  incoming_request_streams.emplace_back(
       TrafficClass{TrafficClassId{4}, Intensity{20.0L}, Intensity{1.0L}, Size{1}, {}});
 
   // Formula 3.19
-  auto peakness = compute_collective_peakness(overflowing_request_streams);
+  auto peakness = compute_collective_peakness(incoming_request_streams);
 
   println("Peakness: {}", peakness);
-  println("Properties:\n{}", overflowing_request_streams);
+  println("Incoming request streams:\n{}", incoming_request_streams);
 
-  auto alternativeGroupStreams = KaufmanRobertsBlockingProbability(
-      overflowing_request_streams, Capacity{Capacity{42} / peakness});
+  auto out_streams_alternative_group = KaufmanRobertsBlockingProbability(
+      incoming_request_streams, Capacity{Capacity{42} / peakness});
 
   println("Alternative group:");
-  println("{}", alternativeGroupStreams);
+  println("{}", out_streams_alternative_group);
 }
 
 } // namespace Model
