@@ -3,12 +3,11 @@
 #include "traffic_class.h"
 #include "types.h"
 
-#include <boost/variant/variant_fwd.hpp>
 #include <fmt/ostream.h>
 
 namespace Model
 {
-struct RequestStream {
+struct OutgoingRequestStream {
   TrafficClass tc;
   Probability blocking_probability{0}; // [E_c]_{V_s}
   Intensity intensity{0};
@@ -19,46 +18,39 @@ struct RequestStream {
   Peakness peakness{0}; // Z_c
 };
 
-struct OverflowingRequestStream {
+struct IncomingRequestStream {
   TrafficClass tc{};
   MeanIntensity mean{0};
   Variance variance{0};
   Peakness peakness{0};
+  Intensity intensity{0};
 
-  OverflowingRequestStream &operator+=(const RequestStream &rs);
-  OverflowingRequestStream(const RequestStream &rs);
-  OverflowingRequestStream() = default;
-  // OverflowingRequestStream(const OverflowingRequestStream &rs);
+  IncomingRequestStream &operator+=(const OutgoingRequestStream &rs);
+  IncomingRequestStream &operator+=(const TrafficClass &source_tc);
+  IncomingRequestStream &operator+=(const IncomingRequestStream &rs);
+  IncomingRequestStream &operator=(const IncomingRequestStream &rs) = default;
+  IncomingRequestStream(const OutgoingRequestStream &rs);
+  IncomingRequestStream(const TrafficClass &source_tc);
+  IncomingRequestStream(const IncomingRequestStream &rs);
+  IncomingRequestStream() = default;
 };
 
-OverflowingRequestStream
-operator+(OverflowingRequestStream overflowing_rs, const RequestStream &rs);
+IncomingRequestStream
+operator+(IncomingRequestStream overflowing_rs, const OutgoingRequestStream &rs);
 
-using StreamProperties = boost::variant<TrafficClass, OverflowingRequestStream>;
-
-const TrafficClass &get_tc(const StreamProperties &v);
-Intensity get_intensity(const StreamProperties &v);
-Variance get_variance(const StreamProperties &v);
-MeanIntensity get_mean(const StreamProperties &v);
 
 //----------------------------------------------------------------------
 void format_arg(
-    fmt::BasicFormatter<char> &f, const char *&format_str, const RequestStream &rs);
+    fmt::BasicFormatter<char> &f,
+    const char *&format_str,
+    const OutgoingRequestStream &rs);
 
 void format_arg(
     fmt::BasicFormatter<char> &f,
     const char *&format_str,
-    const OverflowingRequestStream &rs);
+    const IncomingRequestStream &rs);
 
 } // namespace Model
-
-namespace boost
-{
-void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *&format_str,
-    const Model::StreamProperties &stream_properties);
-} // namespace boost
 
 namespace std
 {

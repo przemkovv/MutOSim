@@ -5,8 +5,6 @@
 #include "logger.h"
 #include "math_utils.h"
 
-#include <boost/variant/get.hpp>
-#include <boost/variant/variant.hpp>
 #include <iterator>
 #include <range/v3/action/transform.hpp>
 #include <range/v3/algorithm/transform.hpp>
@@ -32,17 +30,17 @@ namespace Model
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-std::vector<StreamProperties>
+std::vector<IncomingRequestStream>
 convert_to_overflowing_streams(
-    const std::vector<std::vector<RequestStream>> &request_streams_per_group)
+    const std::vector<std::vector<OutgoingRequestStream>> &request_streams_per_group)
 {
   // Formulas 3.17 and 3.18
-  std::map<TrafficClassId, StreamProperties> overflowing_request_streams;
+  std::map<TrafficClassId, IncomingRequestStream> overflowing_request_streams;
   for (const auto &request_streams : request_streams_per_group) {
-    rng::for_each(request_streams, [&](const RequestStream &rs) {
+    rng::for_each(request_streams, [&](const OutgoingRequestStream &rs) {
       auto [stream_it, inserted] =
-          overflowing_request_streams.emplace(rs.tc.id, OverflowingRequestStream{});
-      boost::get<OverflowingRequestStream>(stream_it->second) += rs;
+          overflowing_request_streams.emplace(rs.tc.id, IncomingRequestStream{});
+      stream_it->second += rs;
     });
   }
   return overflowing_request_streams | rng::view::values;
@@ -50,12 +48,12 @@ convert_to_overflowing_streams(
 
 //----------------------------------------------------------------------
 Peakness
-compute_collective_peakness(const std::vector<StreamProperties> &streams)
+compute_collective_peakness(const std::vector<IncomingRequestStream> &streams)
 {
   // Formula 3.20
   auto inv_sum = rng::accumulate(
                      streams | rng::view::transform([](const auto &rs) {
-                       return get_mean(rs) * get_tc(rs).size;
+                       return rs.mean * rs.tc.size;
                      }),
                      WeightF{0})
                      .invert();
@@ -63,7 +61,7 @@ compute_collective_peakness(const std::vector<StreamProperties> &streams)
   // Formula 3.19
   auto peakness = rng::accumulate(
       streams | rng::view::transform([inv_sum](const auto &rs) {
-        return get_variance(rs) * (get_tc(rs).size * inv_sum);
+        return rs.variance * (rs.tc.size * inv_sum);
       }),
       Peakness{0});
 
@@ -85,7 +83,9 @@ compute_riordan_variance(
 // TODO(PW): implement criterion based on blocking probability fit (Formula 3.10)
 CapacityF
 compute_fictional_capacity(
-    const std::vector<RequestStream> &request_streams, Capacity V, TrafficClassId tc_id)
+    const std::vector<OutgoingRequestStream> &request_streams,
+    Capacity V,
+    TrafficClassId tc_id)
 {
   return V - rng::accumulate(
                  request_streams | rng::view::filter([tc_id](const auto &rs) {
@@ -98,7 +98,7 @@ compute_fictional_capacity(
 
 //----------------------------------------------------------------------
 Probabilities
-KaufmanRobertsDistribution(const std::vector<StreamProperties> &streams, Capacity V)
+KaufmanRobertsDistribution(const std::vector<IncomingRequestStream> &streams, Capacity V)
 {
   std::vector<Probability> state(size_t(V) + 1);
   state[0] = Probability{1};
@@ -106,10 +106,10 @@ KaufmanRobertsDistribution(const std::vector<StreamProperties> &streams, Capacit
   println("[KR] V={}", V);
   for (auto n = Capacity{1}; n <= V; ++n) {
     for (const auto &stream : streams) {
-      auto tc_size = get_tc(stream).size;
+      auto tc_size = stream.tc.size;
       auto previous_state = n - tc_size;
       if (previous_state >= Capacity{0}) {
-        auto intensity = get_intensity(stream);
+        auto intensity = stream.intensity;
         state[size_t(n)] += intensity * tc_size * state[size_t(previous_state)];
       }
     }
@@ -122,20 +122,20 @@ KaufmanRobertsDistribution(const std::vector<StreamProperties> &streams, Capacit
 }
 
 //----------------------------------------------------------------------
-std::vector<RequestStream>
-KaufmanRobertsBlockingProbability(std::vector<StreamProperties> &streams, Capacity V)
+std::vector<OutgoingRequestStream>
+KaufmanRobertsBlockingProbability(std::vector<IncomingRequestStream> &streams, Capacity V)
 {
   auto distribution = KaufmanRobertsDistribution(streams, V);
 
-  std::vector<RequestStream> request_streams;
+  std::vector<OutgoingRequestStream> request_streams;
   for (const auto &stream : streams) {
-    RequestStream rs;
-    rs.tc = get_tc(stream);
+    OutgoingRequestStream rs;
+    rs.tc = stream.tc;
     auto n = V - rs.tc.size + Size{1};
     rs.blocking_probability =
         rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
 
-    rs.intensity = get_intensity(stream);
+    rs.intensity = stream.intensity;
     rs.mean = rs.intensity * rs.blocking_probability;
     rs.mean_request_number =
         MeanRequestNumber{rs.intensity * rs.blocking_probability.opposite()};
