@@ -27,7 +27,8 @@ struct OverflowingRequestStream {
 
   OverflowingRequestStream &operator+=(const RequestStream &rs);
   OverflowingRequestStream(const RequestStream &rs);
-  OverflowingRequestStream(const OverflowingRequestStream &rs) = default;
+  OverflowingRequestStream() = default;
+  // OverflowingRequestStream(const OverflowingRequestStream &rs);
 };
 
 OverflowingRequestStream

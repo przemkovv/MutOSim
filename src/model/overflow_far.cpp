@@ -5,6 +5,7 @@
 #include "logger.h"
 #include "math_utils.h"
 
+#include <boost/variant/get.hpp>
 #include <boost/variant/variant.hpp>
 #include <iterator>
 #include <range/v3/action/transform.hpp>
@@ -36,16 +37,15 @@ convert_to_overflowing_streams(
     const std::vector<std::vector<RequestStream>> &request_streams_per_group)
 {
   // Formulas 3.17 and 3.18
-  // NOTE(PW) Does not aggregates over traffic class id
-  std::vector<StreamProperties> overflowing_request_streams;
+  std::map<TrafficClassId, StreamProperties> overflowing_request_streams;
   for (const auto &request_streams : request_streams_per_group) {
-    std::transform(
-        begin(request_streams),
-        end(request_streams),
-        std::back_inserter(overflowing_request_streams),
-        [](const auto &rs) -> OverflowingRequestStream { return {rs}; });
+    rng::for_each(request_streams, [&](const RequestStream &rs) {
+      auto [stream_it, inserted] =
+          overflowing_request_streams.emplace(rs.tc.id, OverflowingRequestStream{});
+      boost::get<OverflowingRequestStream>(stream_it->second) += rs;
+    });
   }
-  return overflowing_request_streams;
+  return overflowing_request_streams | rng::view::values;
 }
 
 //----------------------------------------------------------------------
@@ -81,6 +81,8 @@ compute_riordan_variance(
 }
 
 //----------------------------------------------------------------------
+// Serviced traffic fit criterion (Formulas 3.8 and 3.9)
+// TODO(PW): implement criterion based on blocking probability fit (Formula 3.10)
 CapacityF
 compute_fictional_capacity(
     const std::vector<RequestStream> &request_streams, Capacity V, TrafficClassId tc_id)
