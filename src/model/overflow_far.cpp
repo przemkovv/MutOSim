@@ -53,7 +53,7 @@ compute_collective_peakness(const std::vector<StreamProperties> &streams)
   // Formula 3.19
   auto peakness = accumulate(
       streams | view::transform([inv_sum](const auto &rs) {
-        return get_variance_sq(rs) * (get_tc(rs).size * inv_sum);
+        return get_variance(rs) * (get_tc(rs).size * inv_sum);
       }),
       Peakness{0});
 
@@ -61,14 +61,13 @@ compute_collective_peakness(const std::vector<StreamProperties> &streams)
 }
 
 //----------------------------------------------------------------------
-VarianceSq
+Variance
 compute_riordan_variance(
     MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, Size tc_size)
 {
-  return VarianceSq{get(mean) *
-                    (get(intensity) / (get(fictional_capacity) / get(tc_size) + 1 -
-                                       get(intensity) + get(mean)) +
-                     1 - get(mean))};
+  return Variance{get(mean) * (get(intensity) / (get(fictional_capacity) / get(tc_size) +
+                                                 1 - get(intensity) + get(mean)) +
+                               1 - get(mean))};
 }
 
 //----------------------------------------------------------------------
@@ -135,10 +134,10 @@ KaufmanRobertsBlockingProbability(std::vector<StreamProperties> &streams, Capaci
   for (auto &rs : request_streams) {
     rs.fictional_capacity = compute_fictional_capacity(request_streams, V, rs.tc.id);
 
-    rs.variance_sq = compute_riordan_variance(
+    rs.variance = compute_riordan_variance(
         rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size);
 
-    rs.peakness = rs.variance_sq / rs.mean;
+    rs.peakness = rs.variance / rs.mean;
   }
 
   return request_streams;

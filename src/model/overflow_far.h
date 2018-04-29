@@ -25,7 +25,7 @@ std::vector<StreamProperties> convert_to_overflowing_streams(
 //----------------------------------------------------------------------
 Peakness compute_collective_peakness(const std::vector<StreamProperties> &streams);
 
-VarianceSq compute_riordan_variance(
+Variance compute_riordan_variance(
     MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, Size tc_size);
 CapacityF compute_fictional_capacity(
     const std::vector<RequestStream> &request_streams, Capacity V, TrafficClassId tc_id);

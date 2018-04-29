@@ -33,12 +33,12 @@ struct get_mean_visitor : boost::static_visitor<MeanIntensity> {
   auto operator()(const OverflowingRequestStream &rs) const { return rs.mean; }
 };
 
-struct get_variance_sq_visitor : boost::static_visitor<VarianceSq> {
+struct get_variance_visitor : boost::static_visitor<Variance> {
   auto operator()(const TrafficClass &tc) const
   {
-    return VarianceSq{get_intensity_visitor()(tc)};
+    return Variance{get_intensity_visitor()(tc)};
   }
-  auto operator()(const OverflowingRequestStream &rs) const { return rs.variance_sq; }
+  auto operator()(const OverflowingRequestStream &rs) const { return rs.variance; }
 };
 } // namespace
 
@@ -56,10 +56,10 @@ get_intensity(const StreamProperties &v)
   return boost::apply_visitor(get_intensity_visitor(), v);
 }
 
-VarianceSq
-get_variance_sq(const StreamProperties &v)
+Variance
+get_variance(const StreamProperties &v)
 {
-  return boost::apply_visitor(get_variance_sq_visitor(), v);
+  return boost::apply_visitor(get_variance_visitor(), v);
 }
 
 MeanIntensity
@@ -78,15 +78,15 @@ OverflowingRequestStream::operator+=(const RequestStream &rs)
       tc.id,
       rs.tc.id);
   mean += rs.mean;
-  variance_sq += rs.variance_sq;
-  peakness = variance_sq / mean;
+  variance += rs.variance;
+  peakness = variance / mean;
   tc = rs.tc;
 
   return *this;
 }
 
 OverflowingRequestStream::OverflowingRequestStream(const RequestStream &rs)
-  : tc(rs.tc), mean(rs.mean), variance_sq(rs.variance_sq), peakness(variance_sq / mean)
+  : tc(rs.tc), mean(rs.mean), variance(rs.variance), peakness(variance / mean)
 {
 }
 
@@ -108,7 +108,7 @@ format_arg(
       rs.blocking_probability,
       rs.fictional_capacity,
       rs.mean,
-      rs.variance_sq,
+      rs.variance,
       rs.peakness,
       rs.mean_request_number);
 }
@@ -124,7 +124,7 @@ format_arg(
       "[OverflowingRequestStream] {} R={}, sigma^2={}, Z={}",
       rs.tc,
       rs.mean,
-      rs.variance_sq,
+      rs.variance,
       rs.peakness);
 }
 

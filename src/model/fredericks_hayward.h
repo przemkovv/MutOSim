@@ -26,10 +26,10 @@ class FredericksHayward
   loss_probability(float primary_resources_number /* r */, float peakness, float capacity)
   {
     struct PrimaryResource {
-      float intensity;   // A
-      float capacity;    // V
-      float variance_sq; // ro^2
-      float peakness;    // Z
+      float intensity; // A
+      float capacity;  // V
+      float variance;  // ro^2
+      float peakness;  // Z
     };
 
     std::vector<PrimaryResource> primary_resources(primary_resources_number);
@@ -38,21 +38,25 @@ class FredericksHayward
     // spływającego na zasób alternatywny (2.15), (2.16)
     for (auto &pr : primary_resources) {
       float mean = pr.intensity * erlang_block_probability(pr.intensity, pr.capacity);
-      pr.variance_sq =
+      pr.variance =
           mean * (pr.intensity / (pr.capacity + 1 - pr.intensity + mean) + 1 - mean);
-      pr.peakness = pr.variance_sq / mean;
+      pr.peakness = pr.variance / mean;
     }
     // 2. Określenie parametrów całkowitego strumienia spływającego na rozważany zasób
     // alternatywny przy założeniu statystycznej niezależności spływających strumienie, tj
     // . warości średniej R i wariancji Ro^2 - wzór (2.46) oraz współczynnika degeneracji
     // Z - wzór (2.20)
 
-    float mean =
-        std::accumulate(begin(primary_resources), end(primary_resources), 0f,
-                        [](float mean, const auto &pr) { return mean + pr.mean); });
-    float variance_sq = std::accumulate(
-        begin(primary_resources), end(primary_resources), 0f,
-        [](float variance_sq, const auto &pr) { return variance_sq + pr.variance_sq); });
+    float mean = std::accumulate(
+        begin(primary_resources),
+        end(primary_resources),
+        0f,
+        [](float mean, const auto &pr) { return mean + pr.mean); });
+    float variance = std::accumulate(
+        begin(primary_resources),
+        end(primary_resources),
+        0f,
+        [](float variance, const auto &pr) { return variance + pr.variance); });
 
     float = // Z_v
         1 - intensity * (erlang_block_probability(intensity, capacity - 1) -

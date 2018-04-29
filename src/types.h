@@ -236,11 +236,11 @@ struct Duration : ts::strong_typedef<Duration, duration_t>,
     return Duration{ts::get(*this) / ts::get(size)};
   }
 };
-struct VarianceSq : ts::strong_typedef<VarianceSq, stat_t>,
-                    ts::strong_typedef_op::addition<VarianceSq>,
-                    ts::strong_typedef_op::output_operator<VarianceSq> {
+struct Variance : ts::strong_typedef<Variance, stat_t>,
+                  ts::strong_typedef_op::addition<Variance>,
+                  ts::strong_typedef_op::output_operator<Variance> {
   using strong_typedef::strong_typedef;
-  explicit VarianceSq(const Intensity &intensity) : VarianceSq(get(intensity)) {}
+  explicit Variance(const Intensity &intensity) : Variance(get(intensity)) {}
 };
 struct MeanRequestNumber : ts::strong_typedef<MeanRequestNumber, intensity_t>,
                            ts::strong_typedef_op::addition<MeanRequestNumber>,
@@ -261,14 +261,14 @@ struct Peakness : ts::strong_typedef<Peakness, stat_t>,
   using strong_typedef::strong_typedef;
 };
 
-constexpr auto operator*(const VarianceSq &variance_sq, const WeightF &weight)
+constexpr auto operator*(const Variance &variance, const WeightF &weight)
 {
-  return Peakness{get(variance_sq) * get(weight)};
+  return Peakness{get(variance) * get(weight)};
 }
 constexpr auto
-operator/(const VarianceSq &variance_sq, const MeanIntensity &mean)
+operator/(const Variance &variance, const MeanIntensity &mean)
 {
-  return Peakness{get(variance_sq) / get(mean)};
+  return Peakness{get(variance) / get(mean)};
 }
 constexpr auto
 operator/(const MeanIntensity &mean, const Peakness &peakness)

@@ -15,14 +15,14 @@ struct RequestStream {
   MeanIntensity mean{0};                    // R_{c,s}
   MeanRequestNumber mean_request_number{0}; // Y_{c,s}
   CapacityF fictional_capacity{0};
-  VarianceSq variance_sq{0}; // sigma^2_{c,s}
-  Peakness peakness{0};      // Z_c
+  Variance variance{0}; // sigma^2_{c,s}
+  Peakness peakness{0}; // Z_c
 };
 
 struct OverflowingRequestStream {
   TrafficClass tc{};
   MeanIntensity mean{0};
-  VarianceSq variance_sq{0};
+  Variance variance{0};
   Peakness peakness{0};
 
   OverflowingRequestStream &operator+=(const RequestStream &rs);
@@ -38,7 +38,7 @@ using StreamProperties = boost::variant<TrafficClass, OverflowingRequestStream>;
 
 const TrafficClass &get_tc(const StreamProperties &v);
 Intensity get_intensity(const StreamProperties &v);
-VarianceSq get_variance_sq(const StreamProperties &v);
+Variance get_variance(const StreamProperties &v);
 MeanIntensity get_mean(const StreamProperties &v);
 
 //----------------------------------------------------------------------
@@ -83,4 +83,3 @@ format_arg(
 }
 
 } // namespace std
-
