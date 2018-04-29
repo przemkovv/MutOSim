@@ -240,6 +240,7 @@ struct VarianceSq : ts::strong_typedef<VarianceSq, stat_t>,
                     ts::strong_typedef_op::addition<VarianceSq>,
                     ts::strong_typedef_op::output_operator<VarianceSq> {
   using strong_typedef::strong_typedef;
+  explicit VarianceSq(const Intensity &intensity) : VarianceSq(get(intensity)) {}
 };
 struct MeanRequestNumber : ts::strong_typedef<MeanRequestNumber, intensity_t>,
                            ts::strong_typedef_op::addition<MeanRequestNumber>,
@@ -251,6 +252,7 @@ struct MeanIntensity : ts::strong_typedef<MeanIntensity, intensity_t>,
                        ts::strong_typedef_op::output_operator<MeanIntensity> {
   using strong_typedef::strong_typedef;
   explicit operator MeanRequestNumber() { return MeanRequestNumber{get(*this)}; }
+  explicit MeanIntensity(const Intensity &intensity) : MeanIntensity(get(intensity)) {}
 };
 
 struct Peakness : ts::strong_typedef<Peakness, stat_t>,
