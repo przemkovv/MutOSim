@@ -30,9 +30,8 @@ struct OverflowingRequestStream {
   OverflowingRequestStream(const OverflowingRequestStream &rs) = default;
 };
 
-OverflowingRequestStream operator+(
-    OverflowingRequestStream overflowing_request_stream,
-    const RequestStream &request_stream);
+OverflowingRequestStream
+operator+(OverflowingRequestStream overflowing_rs, const RequestStream &rs);
 
 using StreamProperties = boost::variant<TrafficClass, OverflowingRequestStream>;
 
@@ -43,9 +42,7 @@ MeanIntensity get_mean(const StreamProperties &v);
 
 //----------------------------------------------------------------------
 void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *&format_str,
-    const RequestStream &request_stream);
+    fmt::BasicFormatter<char> &f, const char *&format_str, const RequestStream &rs);
 
 void format_arg(
     fmt::BasicFormatter<char> &f,

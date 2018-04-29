@@ -14,6 +14,18 @@
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/transform.hpp>
 
+namespace rng = ranges;
+namespace ranges
+{
+inline namespace v3
+{
+template <>
+struct difference_type<::Count> {
+  using type = count_t;
+};
+} // namespace v3
+} // namespace ranges
+
 namespace Model
 {
 //----------------------------------------------------------------------
@@ -23,7 +35,6 @@ std::vector<StreamProperties>
 convert_to_overflowing_streams(
     const std::vector<std::vector<RequestStream>> &request_streams_per_group)
 {
-  using namespace ranges;
   // Formulas 3.17 and 3.18
   // NOTE(PW) Does not aggregates over traffic class id
   std::vector<StreamProperties> overflowing_request_streams;
@@ -42,17 +53,16 @@ Peakness
 compute_collective_peakness(const std::vector<StreamProperties> &streams)
 {
   // Formula 3.20
-  using namespace ranges;
-  auto inv_sum = accumulate(
-                     streams | view::transform([](const auto &rs) {
+  auto inv_sum = rng::accumulate(
+                     streams | rng::view::transform([](const auto &rs) {
                        return get_mean(rs) * get_tc(rs).size;
                      }),
                      WeightF{0})
                      .invert();
 
   // Formula 3.19
-  auto peakness = accumulate(
-      streams | view::transform([inv_sum](const auto &rs) {
+  auto peakness = rng::accumulate(
+      streams | rng::view::transform([inv_sum](const auto &rs) {
         return get_variance(rs) * (get_tc(rs).size * inv_sum);
       }),
       Peakness{0});
@@ -75,11 +85,10 @@ CapacityF
 compute_fictional_capacity(
     const std::vector<RequestStream> &request_streams, Capacity V, TrafficClassId tc_id)
 {
-  using namespace ranges;
-  return V - accumulate(
-                 request_streams | view::filter([tc_id](const auto &rs) {
+  return V - rng::accumulate(
+                 request_streams | rng::view::filter([tc_id](const auto &rs) {
                    return rs.tc.id != tc_id;
-                 }) | view::transform([](const auto &rs) {
+                 }) | rng::view::transform([](const auto &rs) {
                    return rs.mean_request_number * rs.tc.size;
                  }),
                  CapacityF{0});
@@ -118,17 +127,18 @@ KaufmanRobertsBlockingProbability(std::vector<StreamProperties> &streams, Capaci
 
   std::vector<RequestStream> request_streams;
   for (const auto &stream : streams) {
-    auto n = V - get_tc(stream).size + Size{1};
-    auto blocking_probability = std::accumulate(
-        next(begin(distribution), ptrdiff_t(n)), end(distribution), Probability{});
+    RequestStream rs;
+    rs.tc = get_tc(stream);
+    auto n = V - rs.tc.size + Size{1};
+    rs.blocking_probability =
+        rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
 
-    auto intensity = get_intensity(stream);
-    auto mean = intensity * blocking_probability;
-    auto mean_request_number =
-        MeanRequestNumber{intensity * blocking_probability.opposite()};
+    rs.intensity = get_intensity(stream);
+    rs.mean = rs.intensity * rs.blocking_probability;
+    rs.mean_request_number =
+        MeanRequestNumber{rs.intensity * rs.blocking_probability.opposite()};
 
-    request_streams.emplace_back(RequestStream{
-        get_tc(stream), blocking_probability, intensity, mean, mean_request_number});
+    request_streams.emplace_back(rs);
   }
 
   for (auto &rs : request_streams) {
@@ -147,15 +157,19 @@ KaufmanRobertsBlockingProbability(std::vector<StreamProperties> &streams, Capaci
 Count
 combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
 {
-  count_t upper_limit{get(x) / (get(f) + 1)};
-  count_t sum = 0;
-  for (count_t iota = 0; iota <= upper_limit; ++iota) {
-    auto partial_sum = Math::n_over_k(get(resources_number), iota) *
-                       Math::n_over_k(
-                           get(x) + get(resources_number) - iota * (get(f) + 1) - 1,
-                           get(resources_number) - 1);
-    sum += (1 - 2 * (0x01 & iota)) * partial_sum;
-  }
+  Count upper_limit{get(x) / (get(f) + 1)};
+  auto sum = rng::accumulate(
+      rng::view::closed_iota(Count{0}, upper_limit) |
+          rng::view::transform([&](Count iota) {
+            return Count{
+                (1 - 2 * (get(iota) % 2)) *
+                Math::n_over_k(get(resources_number), get(iota)) *
+                Math::n_over_k(
+                    get(x) + get(resources_number) - get(iota) * (get(f) + 1) - 1,
+                    get(resources_number) - 1)};
+          }),
+      Count{0});
+
   return Count{sum};
 }
 //----------------------------------------------------------------------

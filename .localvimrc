@@ -11,14 +11,17 @@ set fixendofline
 
 
 let g:neomake_cpp_clangcheck_args = ['-p=build/ -analyze']
-let g:neomake_cpp_clang_args = [
-            \ '-std=c++17','-DSIM_DEBUG=1','-DSPDLOG_FMT_EXTERNAL','-isystem build/include',
-            \ '-I./src','-fopenmp=libomp','-O2','-DNDEBUG', '-fsyntax-only', '-fsanitize=undefined',
-            \ '-Werror','-Weffc++','-Weverything','-Wno-c++98-compat','-Wno-padded']
+" let g:neomake_cpp_clang_args = [
+            " \ '-std=c++17','-DSIM_DEBUG=1','-DSPDLOG_FMT_EXTERNAL','-isystem build/include',
+            " \ '-isystem /home/przemkovv/dev/hunter/_Base/4919c28/55903e5/454530f/Install/include',
+            " \ '-I./src','-fopenmp=libomp','-O2','-DNDEBUG', '-fsyntax-only', '-fsanitize=undefined',
+            " \ '-Werror','-Weffc++','-Weverything','-Wno-c++98-compat','-Wno-padded']
 let g:neomake_cpp_clangtidy_args = ['-p=build/',
-            \ '--checks=*,-fuchsia-default-arguments',
+            \ '--checks=*,-fuchsia-default-arguments,-fuchsia-overloaded-operator',
             \ '--header-filter="(?!pprint.hpp|?!json.hpp).*"',
             \ '--export-fixes=.clang-tidy-fixes']
+
+let g:neomake_cpp_enabled_makers =['clangtidy', 'clangcheck']
 
 let g:clang_compilation_database = "build/"
 
