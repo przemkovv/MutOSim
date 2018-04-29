@@ -2,9 +2,8 @@
 #include "analytical.h"
 
 #include "logger.h"
-#include "traffic_class.h"
-
 #include "overflow_far.h"
+#include "traffic_class.h"
 
 #include <algorithm>
 #include <numeric>

@@ -3,17 +3,15 @@
 
 #include "group.h"
 #include "logger.h"
+#include "model/analytical.h"
+#include "scenarios/simple.h"
+#include "scenarios/single_overflow.h"
+#include "scenarios/topology_based.h"
 #include "source_stream/source_stream.h"
 #include "topology_parser.h"
 #include "traffic_class.h"
 #include "types.h"
 #include "world.h"
-
-#include "model/analytical.h"
-
-#include "scenarios/simple.h"
-#include "scenarios/single_overflow.h"
-#include "scenarios/topology_based.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -24,7 +22,8 @@
 #include <nlohmann/json.hpp>
 #include <optional>
 
-void print_state(const std::vector<bool> &states)
+void
+print_state(const std::vector<bool> &states)
 {
   constexpr auto width = 120;
   const auto rows = states.size() / width + 2;
@@ -49,7 +48,8 @@ void print_state(const std::vector<bool> &states)
 
 //----------------------------------------------------------------------
 
-CLI parse_args(const boost::program_options::variables_map &vm)
+CLI
+parse_args(const boost::program_options::variables_map &vm)
 {
   CLI cli;
   cli.help = vm.count("help") > 0;
@@ -87,7 +87,8 @@ CLI parse_args(const boost::program_options::variables_map &vm)
 }
 
 //----------------------------------------------------------------------
-boost::program_options::options_description prepare_options_description()
+boost::program_options::options_description
+prepare_options_description()
 {
   namespace po = boost::program_options;
   /* clang-format off */
@@ -118,15 +119,17 @@ boost::program_options::options_description prepare_options_description()
 }
 
 //----------------------------------------------------------------------
-nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
+nlohmann::json
+run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
 {
   nlohmann::json global_stats = {};
   std::vector<bool> scenarios_state(scenarios.size());
 
   print_state(scenarios_state);
 
-  sort(begin(scenarios), end(scenarios),
-       [](const auto &s1, const auto &s2) { return s1.a > s2.a; });
+  sort(begin(scenarios), end(scenarios), [](const auto &s1, const auto &s2) {
+    return s1.a > s2.a;
+  });
 
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
@@ -154,7 +157,8 @@ nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI
   return global_stats;
 }
 //----------------------------------------------------------------------
-std::vector<std::string> find_all_scenario_files(const std::string &path)
+std::vector<std::string>
+find_all_scenario_files(const std::string &path)
 {
   std::vector<std::string> list_of_scenario_files;
   if (fs::exists(path) && fs::is_directory(path)) {
@@ -178,9 +182,11 @@ std::vector<std::string> find_all_scenario_files(const std::string &path)
 }
 //----------------------------------------------------------------------
 
-void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
-                               const std::vector<std::string> &scenario_files,
-                               const CLI &cli)
+void
+load_scenarios_from_files(
+    std::vector<ScenarioSettings> &scenarios,
+    const std::vector<std::string> &scenario_files,
+    const CLI &cli)
 {
   for (const auto &config_file : scenario_files) {
     const auto [t, j] =
@@ -196,7 +202,8 @@ void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
         auto &appended_filenames = cli.append_scenario_files;
         if (!appended_filenames.empty()) {
           filename = fmt::format(
-              "{};{}", config_file,
+              "{};{}",
+              config_file,
               fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
         }
         scenario.filename = filename;
@@ -207,7 +214,8 @@ void load_scenarios_from_files(std::vector<ScenarioSettings> &scenarios,
 }
 //----------------------------------------------------------------------
 
-void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
+void
+prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
 {
   if ((false)) {
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
@@ -215,8 +223,8 @@ void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CL
       std::vector<int64_t> ratios{1, 1, 1, 1};
       auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0ll);
       std::vector<long double> ratios_d(begin(ratios), end(ratios));
-      for_each(begin(ratios_d), end(ratios_d),
-               [ratios_sum](auto &x) { x /= ratios_sum; });
+      for_each(
+          begin(ratios_d), end(ratios_d), [ratios_sum](auto &x) { x /= ratios_sum; });
 
       auto V = Capacity{30};
 
@@ -232,7 +240,8 @@ void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CL
 
   if ((false)) {
     scenarios.emplace_back(single_overflow_poisson(
-        Intensity(24.0L), {Capacity{60}, Capacity{60}, Capacity{60}},
+        Intensity(24.0L),
+        {Capacity{60}, Capacity{60}, Capacity{60}},
         {{Size{1}, Size{2}, Size{6}},
          {Size{1}, Size{2}, Size{6}},
          {Size{1}, Size{2}, Size{6}}},
@@ -281,29 +290,29 @@ void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CL
 }
 
 //----------------------------------------------------------------------
-void save_json(const nlohmann::json &j,
-               const fs::path &output_dir,
-               const fs::path &filename)
+void
+save_json(const nlohmann::json &j, const fs::path &output_dir, const fs::path &filename)
 {
   boost::filesystem::path output_file{output_dir};
   output_file /= filename;
   create_directories(output_file.parent_path());
-  std::ofstream stats_file(output_file.string(),
-                           std::ios_base::out | std::ios_base::binary);
+  std::ofstream stats_file(
+      output_file.string(), std::ios_base::out | std::ios_base::binary);
   if (output_file.extension() == ".ubjson") {
     auto data = nlohmann::json::to_ubjson(j, true, true);
-    stats_file.write(reinterpret_cast<const char *>(data.data()),
-                     static_cast<long>(data.size()));
+    stats_file.write(
+        reinterpret_cast<const char *>(data.data()), static_cast<long>(data.size()));
   } else if (output_file.extension() == ".cbor") {
     auto data = nlohmann::json::to_cbor(j);
-    stats_file.write(reinterpret_cast<const char *>(data.data()),
-                     static_cast<long>(data.size()));
+    stats_file.write(
+        reinterpret_cast<const char *>(data.data()), static_cast<long>(data.size()));
   } else {
     stats_file << j.dump(0);
   }
 }
 //----------------------------------------------------------------------
-void print_stats(const std::vector<ScenarioSettings> &scenarios)
+void
+print_stats(const std::vector<ScenarioSettings> &scenarios)
 {
   for (auto &scenario : scenarios) {
     print("\n[Main] {:-^100}\n", scenario.name);
@@ -316,7 +325,8 @@ void print_stats(const std::vector<ScenarioSettings> &scenarios)
   }
 }
 //----------------------------------------------------------------------
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
   setlocale(LC_NUMERIC, "en_US.UTF-8");
 
@@ -346,16 +356,18 @@ int main(int argc, char *argv[])
     Model::analytical_computations(ss);
   }
 
-  if (!std::all_of(begin(cli.scenario_files), end(cli.scenario_files),
-                   [](const std::string &file) {
-                     namespace fs = boost::filesystem;
-                     if (auto path = fs::path{file}; exists(path)) {
-                       return true;
-                     } else {
-                       println("[Main] Scenario file {} doesn't exists.", path);
-                       return false;
-                     }
-                   })) {
+  if (!std::all_of(
+          begin(cli.scenario_files),
+          end(cli.scenario_files),
+          [](const std::string &file) {
+            namespace fs = boost::filesystem;
+            if (auto path = fs::path{file}; exists(path)) {
+              return true;
+            } else {
+              println("[Main] Scenario file {} doesn't exists.", path);
+              return false;
+            }
+          })) {
     return ENOENT;
   }
 

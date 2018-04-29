@@ -8,10 +8,9 @@
 #include "types.h"
 
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <queue>
 #include <random>
-
-#include <nlohmann/json_fwd.hpp>
 
 struct Group;
 class SourceStream;
@@ -41,8 +40,8 @@ class World
 
 public:
   World(uint64_t seed, Duration duration);
-  World(const World&) = delete;
-  World& operator=(const World&) = delete;
+  World(const World &) = delete;
+  World &operator=(const World &) = delete;
 
   Uuid get_uuid();
   RandomEngine &get_random_engine();
@@ -66,6 +65,5 @@ public:
   void update_unblock_stat(const Load &load);
 };
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const World &world);
+void
+format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const World &world);

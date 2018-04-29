@@ -2,10 +2,9 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <string_view>
 #include <type_safe/strong_typedef.hpp>
-
-#include <string>
 
 namespace ts = type_safe;
 
@@ -73,6 +72,7 @@ struct Capacity : ts::strong_typedef<Capacity, count_t>,
                   ts::strong_typedef_op::increment<Capacity>,
                   ts::strong_typedef_op::output_operator<Capacity> {
   using strong_typedef::strong_typedef;
+  explicit operator size_t() const { return static_cast<size_t>(get(*this)); }
 };
 struct CapacityF : ts::strong_typedef<CapacityF, count_float_t>,
                    ts::strong_typedef_op::equality_comparison<CapacityF>,
@@ -100,15 +100,18 @@ struct Size : ts::strong_typedef<Size, count_t>,
   constexpr bool operator>(const Capacity &c) { return ts::get(*this) > ts::get(c); }
 };
 
-constexpr auto operator-(const Capacity &c, const Size &s)
+constexpr auto
+operator-(const Capacity &c, const Size &s)
 {
   return Capacity{get(c) - get(s)};
 }
-constexpr auto operator+(const Capacity &c, const Size &s)
+constexpr auto
+operator+(const Capacity &c, const Size &s)
 {
   return Capacity{get(c) + get(s)};
 }
-constexpr auto operator>=(const Capacity &c, const Size &s)
+constexpr auto
+operator>=(const Capacity &c, const Size &s)
 {
   return get(c) >= get(s);
 }
@@ -163,7 +166,8 @@ struct Probability : ts::strong_typedef<Probability, probability_t>,
   explicit constexpr Probability(const Ratio &ratio) { get(*this) = get(ratio); }
 };
 
-constexpr auto operator/(const Probability &probability, const Capacity &capacity)
+constexpr auto
+operator/(const Probability &probability, const Capacity &capacity)
 {
   return Probability{get(probability) / get(capacity)};
 }
@@ -184,7 +188,8 @@ struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t>,
   }
 };
 
-constexpr auto operator/(const Size &size, const IntensityFactor &intensity_factor)
+constexpr auto
+operator/(const Size &size, const IntensityFactor &intensity_factor)
 {
   return Size{static_cast<count_t>(get(size) / get(intensity_factor))};
 }
@@ -204,11 +209,13 @@ constexpr auto operator*(const Count &count, const Intensity &intensity)
 {
   return ts::get(count) * ts::get(intensity);
 }
-constexpr auto operator/(const Intensity &intensity, const Count &count)
+constexpr auto
+operator/(const Intensity &intensity, const Count &count)
 {
   return Intensity{ts::get(intensity) / ts::get(count)};
 }
-constexpr auto operator/(const Count &c1, const Count &c2)
+constexpr auto
+operator/(const Count &c1, const Count &c2)
 {
   return Ratio{static_cast<ratio_t>(ts::get(c1)) / static_cast<ratio_t>(ts::get(c2))};
 }
@@ -223,6 +230,7 @@ struct Duration : ts::strong_typedef<Duration, duration_t>,
   {
     return ts::get(*this) / ts::get(duration);
   }
+
   constexpr auto operator*(const Size &size) const
   {
     return Duration{ts::get(*this) / ts::get(size)};
@@ -255,11 +263,13 @@ constexpr auto operator*(const VarianceSq &variance_sq, const WeightF &weight)
 {
   return Peakness{get(variance_sq) * get(weight)};
 }
-constexpr auto operator/(const VarianceSq &variance_sq, const MeanIntensity &mean)
+constexpr auto
+operator/(const VarianceSq &variance_sq, const MeanIntensity &mean)
 {
   return Peakness{get(variance_sq) / get(mean)};
 }
-constexpr auto operator/(const MeanIntensity &mean, const Peakness &peakness)
+constexpr auto
+operator/(const MeanIntensity &mean, const Peakness &peakness)
 {
   return Intensity{get(mean) / get(peakness)};
 }
@@ -269,7 +279,8 @@ constexpr auto operator*(const Intensity &intensity, const Probability &probabil
   return MeanIntensity{get(intensity) * get(probability)};
 }
 
-constexpr auto operator/(const Capacity &capacity, const Peakness &peakness)
+constexpr auto
+operator/(const Capacity &capacity, const Peakness &peakness)
 {
   return CapacityF{static_cast<stat_t>(get(capacity)) / get(peakness)};
 }

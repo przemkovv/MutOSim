@@ -2,7 +2,7 @@
 set tags=tags,./tags
 
 set makeprg=make\ -j3\ -C\ build/
-setlocal path=.,build/include,/usr/include,/usr/include/c++/7.2.1,src/,
+setlocal path=.,build/include,/usr/include,/usr/include/c++/7.3.1,src/,
 
 " set omnifunc=lsp#complete
 set colorcolumn=91

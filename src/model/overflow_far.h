@@ -11,11 +11,7 @@ namespace Model
 struct Moments {
   MeanIntensity mean{};
   VarianceSq variance_sq{};
-  Peakness
-  peakness() const
-  {
-    return variance_sq / mean;
-  }
+  Peakness peakness() const { return variance_sq / mean; }
 };
 struct RequestStream {
   TrafficClass tc;
@@ -46,48 +42,39 @@ KaufmanRobertsDistribution(const std::vector<OverflowingRequestStream> &request_
 std::vector<RequestStream>
 KaufmanRobertsBlockingProbability(std::vector<TrafficClass> &traffic_classes, Capacity V);
 
-std::vector<RequestStream>
-KaufmanRobertsBlockingProbability(
+std::vector<RequestStream> KaufmanRobertsBlockingProbability(
     std::vector<OverflowingRequestStream> &request_streams_properties,
     Capacity V,
     Peakness peakness);
 
 //----------------------------------------------------------------------
-std::vector<OverflowingRequestStream>
-convert_to_overflowing_streams(
+std::vector<OverflowingRequestStream> convert_to_overflowing_streams(
     const std::vector<std::vector<RequestStream>> &request_streams_per_group);
 
 //----------------------------------------------------------------------
-Peakness
-compute_collective_peakness(
+Peakness compute_collective_peakness(
     const std::vector<OverflowingRequestStream> &overflowing_streams);
 
-VarianceSq
-compute_riordan_variance(MeanIntensity mean,
-                         Intensity intensity,
-                         CapacityF fictional_capacity,
-                         Size tc_size);
-CapacityF
-compute_fictional_capacity(const std::vector<RequestStream> &request_streams,
-                           Capacity V,
-                           TrafficClassId tc_id);
-Count
-combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
+VarianceSq compute_riordan_variance(MeanIntensity mean,
+                                    Intensity intensity,
+                                    CapacityF fictional_capacity,
+                                    Size tc_size);
+CapacityF compute_fictional_capacity(const std::vector<RequestStream> &request_streams,
+                                     Capacity V,
+                                     TrafficClassId tc_id);
+Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 
-Probability
-transition_probability(
+Probability transition_probability(
     Capacity n, Capacity V, Count resources_number, Capacity f, Size t);
 
 //----------------------------------------------------------------------
-void
-format_arg(fmt::BasicFormatter<char> &f,
-           const char *&format_str,
-           const RequestStream &request_stream);
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const RequestStream &request_stream);
 
-void
-format_arg(fmt::BasicFormatter<char> &f,
-           const char *&format_str,
-           const OverflowingRequestStream &rs);
+void format_arg(fmt::BasicFormatter<char> &f,
+                const char *&format_str,
+                const OverflowingRequestStream &rs);
 
 } // namespace Model
 

@@ -13,7 +13,8 @@ World::World(uint64_t seed, Duration duration) : seed_(seed), duration_(duration
   // print("[World] {:=^100}\n", " New world ");
 }
 
-void World::init()
+void
+World::init()
 {
   for (auto &[name, source] : topology_->sources) {
     std::ignore = name;
@@ -25,7 +26,8 @@ void World::init()
   }
 }
 
-bool World::next_iteration()
+bool
+World::next_iteration()
 {
   debug_print("{} Time = {:-<80}\n", *this, time_);
 
@@ -49,7 +51,8 @@ bool World::next_iteration()
   return time_ <= finish_time_ || !events_.empty();
 }
 
-void World::process_event()
+void
+World::process_event()
 {
   while (!events_.empty() && events_.top()->time <= time_) {
     auto &event = events_.top();
@@ -65,17 +68,20 @@ void World::process_event()
   }
 }
 
-Uuid World::get_uuid()
+Uuid
+World::get_uuid()
 {
   return ++last_id;
 }
 
-std::mt19937_64 &World::get_random_engine()
+std::mt19937_64 &
+World::get_random_engine()
 {
   return random_engine_;
 }
 
-nlohmann::json &World::append_stats(nlohmann::json &j)
+nlohmann::json &
+World::append_stats(nlohmann::json &j)
 {
   for (auto &[name, group] : topology_->groups) {
     auto &j_group = j[ts::get(name)];
@@ -101,13 +107,15 @@ nlohmann::json &World::append_stats(nlohmann::json &j)
   }
   return j;
 }
-nlohmann::json World::get_stats()
+nlohmann::json
+World::get_stats()
 {
   nlohmann::json j;
   return append_stats(j);
 }
 
-void World::print_stats()
+void
+World::print_stats()
 {
   print("{} Time = {}\n", *this, time_);
   print("{} In queue left {} events\n", *this, events_.size());
@@ -116,9 +124,13 @@ void World::print_stats()
     const auto &group_stats = group->get_stats(Duration{get_time()});
     print("{} {}: {}\n", *this, *group, group_stats);
     for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
-      print("{} {} {}: {}: {}\n", *this, *group,
-            *topology_->find_source_by_tc_id(tc_id).value(),
-            topology_->get_traffic_class(tc_id), stats);
+      print(
+          "{} {} {}: {}: {}\n",
+          *this,
+          *group,
+          *topology_->find_source_by_tc_id(tc_id).value(),
+          topology_->get_traffic_class(tc_id),
+          stats);
     }
   }
   /* for (auto &[tc_id, tc] : topology_->traffic_classes) {
@@ -138,7 +150,8 @@ void World::print_stats()
   }
 }
 
-void World::run(bool quiet)
+void
+World::run(bool quiet)
 {
   long double stats_freq = 0.25L;
   int i = 1;
@@ -152,19 +165,22 @@ void World::run(bool quiet)
     print_stats();
   }
 }
-void World::set_topology(Topology &topology)
+void
+World::set_topology(Topology &topology)
 {
   topology_ = &topology;
   topology_->set_world(*this); // TODO(PW): rethink this relation
 }
 
-void World::schedule(std::unique_ptr<Event> event)
+void
+World::schedule(std::unique_ptr<Event> event)
 {
   debug_print("{} Scheduled: {}\n", *this, *event);
   events_.emplace(std::move(event));
 }
 
-void World::update_block_stat(const Load &/* load */)
+void
+World::update_block_stat(const Load & /* load */)
 {
   /* auto can_serve = [](const TrafficClass& tc) {
     return [&tc](const auto &group) { return group.second->can_serve(tc)->first; };
@@ -177,12 +193,13 @@ void World::update_block_stat(const Load &/* load */)
     }
   } */
   // for (auto &[size, stats] : blocked_by_size) {
-    // if (std::none_of(begin(topology_->groups), end(topology_->groups), can_serve(size))) {
-      // stats.try_block(load.send_time);
-    // }
+  // if (std::none_of(begin(topology_->groups), end(topology_->groups), can_serve(size)))
+  // { stats.try_block(load.send_time);
+  // }
   // }
 }
-void World::update_unblock_stat(const Load &/* load */)
+void
+World::update_unblock_stat(const Load & /* load */)
 {
   /* auto can_serve = [](const TrafficClass &tc) {
     return [&tc](const auto &group) { return group.second->can_serve(tc)->first; };
@@ -195,15 +212,15 @@ void World::update_unblock_stat(const Load &/* load */)
     }
   } */
   // for (auto &[size, stats] : blocked_by_size) {
-    // if (std::any_of(begin(topology_->groups), end(topology_->groups), can_serve(size))) {
-      // stats.try_unblock(load.end_time);
-    // }
+  // if (std::any_of(begin(topology_->groups), end(topology_->groups), can_serve(size))) {
+  // stats.try_unblock(load.end_time);
+  // }
   // }
 }
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const World &world)
+void
+format_arg(
+    fmt::BasicFormatter<char> &f, const char *& /* format_str */, const World &world)
 {
   f.writer().write("t={} [World]", world.get_current_time());
 }
