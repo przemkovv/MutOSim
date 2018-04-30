@@ -4,7 +4,6 @@
 #include "load.h"
 #include "types.h"
 
-#include <fmt/format.h>
 #include <memory>
 
 struct Event;
@@ -88,22 +87,3 @@ public:
 
 //----------------------------------------------------------------------
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const LoadServiceRequestEvent &event);
-
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const LoadServiceEndEvent &event);
-
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const ProduceServiceRequestEvent &event);
-
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const Event &event);
-
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const EventType &type);

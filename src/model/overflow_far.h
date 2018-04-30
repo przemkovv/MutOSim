@@ -27,10 +27,12 @@ compute_collective_peakness(const std::vector<IncomingRequestStream> &in_request
 
 Variance compute_riordan_variance(
     MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, Size tc_size);
+
 CapacityF compute_fictional_capacity(
     const std::vector<OutgoingRequestStream> &request_streams,
     Capacity V,
     TrafficClassId tc_id);
+
 Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 
 Probability transition_probability(

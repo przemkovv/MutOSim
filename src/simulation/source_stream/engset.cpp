@@ -1,6 +1,6 @@
 #include "engset.h"
 
-#include "group.h"
+#include "simulation/group.h"
 #include <fmt/ostream.h>
 
 EngsetSourceStream::EngsetSourceStream(const SourceName &name,

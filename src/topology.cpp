@@ -1,8 +1,8 @@
 
-#include "source_stream/source_stream.h"
+#include "simulation/source_stream/source_stream.h"
 #include "topology.h"
 
-#include "group.h"
+#include "simulation/group.h"
 
 Group &Topology::add_group(std::unique_ptr<Group> group)
 {

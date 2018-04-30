@@ -1,17 +1,17 @@
 
-#include "sim.h"
+#include "mutosim.h"
 
-#include "group.h"
 #include "logger.h"
 #include "model/analytical.h"
 #include "scenarios/simple.h"
 #include "scenarios/single_overflow.h"
 #include "scenarios/topology_based.h"
-#include "source_stream/source_stream.h"
+#include "simulation/group.h"
+#include "simulation/source_stream/source_stream.h"
+#include "simulation/world.h"
 #include "topology_parser.h"
 #include "traffic_class.h"
 #include "types.h"
-#include "world.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -388,7 +388,6 @@ main(int argc, char *argv[])
     }
     load_scenarios_from_files(scenarios, scenario_files, cli);
   }
-
   auto global_stats = run_scenarios(scenarios, cli);
 
   if (!cli.quiet) {

@@ -2,12 +2,12 @@
 #include "single_overflow.h"
 
 #include "calculation.h"
-#include "group.h"
+#include "simulation/group.h"
 #include "logger.h"
 #include "topology.h"
 
-#include "source_stream/engset.h"
-#include "source_stream/poisson.h"
+#include "simulation/source_stream/engset.h"
+#include "simulation/source_stream/poisson.h"
 
 
 //----------------------------------------------------------------------

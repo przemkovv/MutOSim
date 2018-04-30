@@ -5,6 +5,8 @@
 #include "load.h"
 #include "logger.h"
 #include "source_stream/source_stream.h"
+#include "simulation/stats_format.h"
+
 
 #include <nlohmann/json.hpp>
 

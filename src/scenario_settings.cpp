@@ -1,9 +1,9 @@
 
 #include "scenario_settings.h"
 
-#include "group.h"
-#include "source_stream/source_stream.h"
-#include "world.h"
+#include "simulation/group.h"
+#include "simulation/source_stream/source_stream.h"
+#include "simulation/world.h"
 
 #include <random>
 

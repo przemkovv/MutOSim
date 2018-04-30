@@ -1,8 +1,8 @@
 
 #include "poisson.h"
 
-#include "world.h"
-#include "group.h"
+#include "simulation/world.h"
+#include "simulation/group.h"
 
 #include <fmt/ostream.h>
 

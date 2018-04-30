@@ -1,12 +1,12 @@
 
 #include "analytical.h"
 
-#include "../group.h"
 #include "logger.h"
 #include "model/group.h"
 #include "overflow_far.h"
 #include "scenario_settings.h"
-#include "source_stream/source_stream.h"
+#include "simulation/group.h"
+#include "simulation/source_stream/source_stream.h"
 #include "traffic_class.h"
 
 #include <map>

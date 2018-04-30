@@ -1,8 +1,8 @@
 
 #include "source_stream.h"
 
-#include "group.h"
-#include "world.h"
+#include "simulation/group.h"
+#include "simulation/world.h"
 
 #include <fmt/ostream.h>
 SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc)

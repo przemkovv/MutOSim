@@ -1,10 +1,10 @@
 
 #include "pascal.h"
 
-#include "group.h"
+#include "simulation/group.h"
 #include "logger.h"
 #include "types.h"
-#include "world.h"
+#include "simulation/world.h"
 
 #include <fmt/ostream.h>
 #include <optional>

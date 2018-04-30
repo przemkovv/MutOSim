@@ -1,9 +1,9 @@
 
 #include "topology_based.h"
 
-#include "group.h"
-#include "overflow_policy/factory.h"
-#include "source_stream/factory.h"
+#include "simulation/group.h"
+#include "simulation/overflow_policy/factory.h"
+#include "simulation/source_stream/factory.h"
 
 ScenarioSettings
 prepare_scenario_global_A(const Config::Topology &config, Intensity A)
