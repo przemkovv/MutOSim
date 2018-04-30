@@ -49,6 +49,7 @@ public:
   void pause() { pause_ = true; }
 
   const SourceName &get_name() { return name_; }
+  const Group &get_target_group() { return *target_group_;}
 
   void print_stats();
 

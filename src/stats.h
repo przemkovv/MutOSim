@@ -53,6 +53,7 @@ struct LostServedStats {
 struct TrafficClassStats {
   LostServedStats lost_served_stats{};
   Duration block_time{};
+  Duration block_recursive_time{};
   Duration simulation_time{};
 
   double loss_ratio() const
@@ -80,6 +81,7 @@ struct TrafficClassStats {
                                       get(lost_served_stats.lost.count));
   }
   auto block_ratio() const { return block_time / simulation_time; }
+  auto block_recursive_ratio() const { return block_recursive_time / simulation_time; }
 };
 
 struct Stats {

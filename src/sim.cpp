@@ -134,7 +134,7 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
     if (cli.analytical) {
-      Model::analytical_computations(scenarios[i]);
+      Model::analytical_computations2(scenarios[i]);
     }
     run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
 

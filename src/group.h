@@ -19,6 +19,7 @@ using overflow_policy::OverflowPolicy;
 struct GroupStatistics {
   boost::container::flat_map<TrafficClassId, LostServedStats> served_by_tc;
   boost::container::flat_map<TrafficClassId, BlockStats> blocked_by_tc;
+  boost::container::flat_map<TrafficClassId, BlockStats> blocked_recursive_by_tc;
 
   Stats get_stats(Duration sim_duration)
   {
@@ -31,12 +32,18 @@ struct GroupStatistics {
         continue;
       stats.by_traffic_class[tc_id] = {
           {serve_stats.lost, serve_stats.served, serve_stats.forwarded},
-          blocked_by_tc[tc_id].block_time,
+          blocked_by_tc[tc_id].block_time, blocked_recursive_by_tc[tc_id].block_time,
           sim_duration};
       stats.total += serve_stats;
     }
     return stats;
   }
+};
+
+struct CanServeResult {
+  bool recursively;
+  bool local;
+  operator bool() { return recursively || local; }
 };
 
 using CompressionRatios = boost::container::flat_map<Capacity, CompressionRatio, std::greater<Capacity>>;
@@ -64,6 +71,7 @@ struct Group {
   void set_traffic_classes(const TrafficClasses &traffic_classes);
   void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
   void add_next_group(Group &group);
+  const std::vector<Group*> &next_groups() { return next_groups_; }
 
   void add_compression_ratio(TrafficClassId tc_id,
                              Capacity threshold,
@@ -76,9 +84,13 @@ struct Group {
   bool forward(Load load);
 
   Capacity free_capacity() { return capacity_ - size_; }
+  Capacity capacity() { return capacity_; }
+  Layer layer() { return layer_; }
   std::pair<bool, CompressionRatio*> can_serve(const TrafficClass& tc);
   std::pair<bool, CompressionRatio*> can_serve(TrafficClassId tc_id);
-  bool can_serve_recursive(const TrafficClass &tc, Path &path);
+  CanServeResult can_serve_recursive(const TrafficClass &tc, Path &path);
+  void block_recursive(TrafficClassId tc_id, const Load &load);
+  void unblock_recursive(TrafficClassId tc_id, const Load &load);
   void block(TrafficClassId tc_id, const Load &load);
   void unblock(TrafficClassId tc_id, const Load &load);
   void update_block_stat(const Load &load);
@@ -96,7 +108,8 @@ struct Group {
   void notify_on_service_end(LoadServiceEndEvent *event);
 
   Stats get_stats(Duration duration);
-  const GroupName &get_name() const { return name_; }
+  [[deprecated]] const GroupName &get_name() const { return name_; }
+  const GroupName &name() const { return name_; }
 };
 
 void format_arg(fmt::BasicFormatter<char> &f,

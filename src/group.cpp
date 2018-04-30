@@ -117,9 +117,12 @@ void Group::update_unblock_stat(const Load &load)
   for (const auto &[tc_id, tc] : *traffic_classes_) {
     std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
-               // load path?
-    if (can_serve_recursive(tc, path)) {
+    if (auto [recursive, local] = can_serve_recursive(tc, path);
+        local) {
+      unblock_recursive(tc.id, load);
       unblock(tc.id, load);
+    } else if (recursive) {
+      unblock_recursive(tc.id, load);
     }
     assert(path.size() == 0 /*load.path.size() */);
   }
@@ -129,9 +132,12 @@ void Group::update_block_stat(const Load &load)
   for (const auto &[tc_id, tc] : *traffic_classes_) {
     std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
-               // load path?
-    if (!can_serve_recursive(tc, path)) {
-      block(tc.id, load);
+    if (auto [recursive, local] = can_serve_recursive(tc, path);
+        !local && recursive) {
+        block(tc.id, load);
+    } else if (!recursive) {
+        block_recursive(tc.id, load);
+        block(tc.id, load);
     }
     assert(path.size() == 0 /*load.path.size() */);
   }
@@ -153,6 +159,23 @@ void Group::unblock(TrafficClassId tc_id, const Load &load)
   }
 }
 
+
+void Group::block_recursive(TrafficClassId tc_id, const Load &load)
+{
+  auto &block_stats = stats_.blocked_recursive_by_tc[tc_id];
+  if (block_stats.try_block(load.send_time)) {
+    debug_print("{} Load: {}, Blocking recursive bt={}, sobt={}\n", *this, load,
+                block_stats.block_time, block_stats.start_of_block);
+  }
+}
+
+void Group::unblock_recursive(TrafficClassId tc_id, const Load &load)
+{
+  auto &block_stats = stats_.blocked_recursive_by_tc[tc_id];
+  if (block_stats.try_unblock(load.end_time)) {
+    debug_print("{} Load: {}, Unblocking recursive bt={}\n", *this, load, block_stats.block_time);
+  }
+}
 std::pair<bool, CompressionRatio *> Group::can_serve(TrafficClassId tc_id)
 {
   return can_serve(traffic_classes_->at(tc_id));
@@ -173,25 +196,25 @@ std::pair<bool, CompressionRatio *> Group::can_serve(const TrafficClass &tc)
   return {size_ + tc.size <= capacity_, nullptr};
 }
 
-bool Group::can_serve_recursive(const TrafficClass &tc, Path &path)
+CanServeResult Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 {
   if (auto [ok, compression] = can_serve(tc); ok) {
     std::ignore = compression;
-    return true;
+    return {true, true};
   }
   path.emplace_back(this);
   auto pop_on_exit = gsl::finally([&path]() { path.pop_back(); });
 
   if (path.size() >= tc.max_path_length) {
-    return false;
+    return {false, false};
   }
 
   for (const auto &next_group : next_groups_) {
     if (std::find(std::begin(path), std::end(path), next_group) == std::end(path)) {
-      return next_group->can_serve_recursive(tc, path);
+      return {bool(next_group->can_serve_recursive(tc, path)), false};
     }
   }
-  return false;
+  return {false, false};
 }
 
 bool Group::forward(Load load)

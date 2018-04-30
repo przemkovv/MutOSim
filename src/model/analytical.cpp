@@ -1,10 +1,15 @@
 
 #include "analytical.h"
 
+#include "../group.h"
 #include "logger.h"
 #include "model/group.h"
 #include "overflow_far.h"
+#include "scenario_settings.h"
+#include "source_stream/source_stream.h"
 #include "traffic_class.h"
+
+#include <map>
 
 namespace Model
 {
@@ -21,16 +26,64 @@ analytical_computations(const ScenarioSettings & /* scenario_settings */)
   Model::Group g1{Capacity{60}};
   Model::Group g2{Capacity{60}};
   Model::Group g3{Capacity{60}};
-  g1.add_incoming_request_stream(traffic_classes1);
-  g2.add_incoming_request_stream(traffic_classes1);
-  g3.add_incoming_request_stream(traffic_classes1);
+  g1.add_incoming_request_streams(traffic_classes1);
+  g2.add_incoming_request_streams(traffic_classes1);
+  g3.add_incoming_request_streams(traffic_classes1);
 
   Model::Group g0{Capacity{42}};
-  g0.add_incoming_request_stream(g1.get_outgoing_request_streams());
-  g0.add_incoming_request_stream(g2.get_outgoing_request_streams());
-  g0.add_incoming_request_stream(g3.get_outgoing_request_streams());
+  g0.add_incoming_request_streams(g1.get_outgoing_request_streams());
+  g0.add_incoming_request_streams(g2.get_outgoing_request_streams());
+  g0.add_incoming_request_streams(g3.get_outgoing_request_streams());
 
   println("{}", g0.get_outgoing_request_streams());
+}
+void
+analytical_computations2(const ScenarioSettings &scenario_settings)
+{
+  const auto &topology = scenario_settings.topology;
+
+  using Groups = std::map<GroupName, Model::Group>;
+  using GroupsPtr = std::map<GroupName, Model::Group *>;
+  Groups groups;
+  std::map<Layer, GroupsPtr> groups_layers;
+
+  for (const auto &[group_name, group] : topology.groups) {
+    ASSERT(
+        group->next_groups().size() <= 1,
+        "The current model doesn't support forwarding traffic to more than one next "
+        "groups.");
+    auto [group_it, inserted] =
+        groups.emplace(group_name, Model::Group{group->capacity()});
+
+    for (const auto &next_group : group->next_groups()) {
+      group_it->second.add_next_group(next_group->name());
+    }
+    groups_layers[group->layer()].emplace(group_name, &group_it->second);
+  }
+
+  for (const auto &[source_name, source_stream] : topology.sources) {
+    const auto &target_group = source_stream->get_target_group().name();
+    groups.at(target_group)
+        .add_incoming_request_stream(IncomingRequestStream{source_stream->tc_});
+  }
+
+  for (const auto &[layer, groups_ptrs] : groups_layers) {
+    std::ignore = layer;
+    for (const auto &[group_name, group_ptr] : groups_ptrs) {
+      std::ignore = group_name;
+      for (const auto &next_group_name : group_ptr->next_groups()) {
+        groups.at(next_group_name)
+            .add_incoming_request_streams(group_ptr->get_outgoing_request_streams());
+      }
+    }
+  }
+
+  for (const auto &[layer, groups_ptrs] : groups_layers) {
+    for (const auto &[group_name, group_ptr] : groups_ptrs) {
+      println("Layer {}, Group {}: ", layer, group_name);
+      println("{}", group_ptr->get_outgoing_request_streams());
+    }
+  }
 }
 
 } // namespace Model

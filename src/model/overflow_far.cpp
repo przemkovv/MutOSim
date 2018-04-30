@@ -112,7 +112,6 @@ KaufmanRobertsDistribution(
   std::vector<Probability> state(size_t(V) + 1);
   state[0] = Probability{1};
 
-  println("[KR] V={}", V);
   rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
     for (const auto &in_stream : in_request_streams) {
       auto tc_size = in_stream.tc.size;
@@ -125,8 +124,6 @@ KaufmanRobertsDistribution(
     state[size_t(n)] /= n;
   });
   Math::normalize(state);
-
-  print("{}", state);
   return state;
 }
 

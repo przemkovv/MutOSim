@@ -1,10 +1,12 @@
 
 #include "topology_based.h"
+
 #include "group.h"
 #include "overflow_policy/factory.h"
 #include "source_stream/factory.h"
 
-ScenarioSettings prepare_scenario_global_A(const Config::Topology &config, Intensity A)
+ScenarioSettings
+prepare_scenario_global_A(const Config::Topology &config, Intensity A)
 {
   ScenarioSettings sim_settings{config.name};
   Capacity V{0};
@@ -33,7 +35,9 @@ ScenarioSettings prepare_scenario_global_A(const Config::Topology &config, Inten
     }
   }
   Weight sum = std::accumulate(
-      begin(config.traffic_classes), end(config.traffic_classes), Weight{0},
+      begin(config.traffic_classes),
+      end(config.traffic_classes),
+      Weight{0},
       [](const auto x, const auto &tc) { return tc.second.weight + x; });
 
   for (const auto &[tc_id, tc] : config.traffic_classes) {
@@ -52,8 +56,8 @@ ScenarioSettings prepare_scenario_global_A(const Config::Topology &config, Inten
   return sim_settings;
 }
 
-ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
-                                                Intensity A)
+ScenarioSettings
+prepare_scenario_local_group_A(const Config::Topology &config, Intensity A)
 {
   ScenarioSettings sim_settings{config.name};
   Capacity V{0};
@@ -94,12 +98,15 @@ ScenarioSettings prepare_scenario_local_group_A(const Config::Topology &config,
     const auto ratio = cfg_tc.weight / weights_sum_per_group[source.attached];
     const auto &group = topology.get_group(source.attached);
     const auto intensity_multiplier =
-        config.groups.at(group.get_name()).intensity_multiplier;
+        config.groups.at(group.name()).intensity_multiplier;
     Intensity offered_intensity =
         A * intensity_multiplier * group.capacity_ * ratio / cfg_tc.size;
-    const auto &tc =
-        topology.add_traffic_class(cfg_tc.id, offered_intensity, cfg_tc.serve_intensity,
-                                   cfg_tc.size, cfg_tc.max_path_length);
+    const auto &tc = topology.add_traffic_class(
+        cfg_tc.id,
+        offered_intensity,
+        cfg_tc.serve_intensity,
+        cfg_tc.size,
+        cfg_tc.max_path_length);
 
     topology.add_source(create_stream(source.type, source, tc));
     topology.attach_source_to_group(source.name, source.attached);

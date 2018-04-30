@@ -7,7 +7,7 @@
 Group &Topology::add_group(std::unique_ptr<Group> group)
 {
   group->id = GroupId{get_uuid()};
-  auto it = groups.emplace(group->get_name(), std::move(group)).first;
+  auto it = groups.emplace(group->name(), std::move(group)).first;
   return *(it->second.get());
 }
 

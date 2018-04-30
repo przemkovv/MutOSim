@@ -17,6 +17,8 @@ private:
   mutable std::vector<OutgoingRequestStream> out_request_streams_;
   mutable bool need_recalculate_ = true;
 
+  std::vector<GroupName> next_groups_names_;
+
 public:
   const std::vector<OutgoingRequestStream> &get_outgoing_request_streams() const;
 
@@ -25,7 +27,13 @@ public:
   template <typename RequestStream>
   void add_incoming_request_stream(const RequestStream &request_stream);
   template <typename RequestStream>
-  void add_incoming_request_stream(const std::vector<RequestStream> &request_streams);
+  void add_incoming_request_streams(const std::vector<RequestStream> &request_streams);
+
+  void add_next_group(GroupName group_name)
+  {
+    next_groups_names_.emplace_back(std::move(group_name));
+  }
+  const std::vector<GroupName> next_groups() { return next_groups_names_; }
 };
 
 template <typename RequestStream>
@@ -49,7 +57,7 @@ Group::add_incoming_request_stream(const RequestStream &in_request_stream)
 
 template <typename RequestStream>
 void
-Group::add_incoming_request_stream(const std::vector<RequestStream> &in_request_streams)
+Group::add_incoming_request_streams(const std::vector<RequestStream> &in_request_streams)
 {
   ranges::for_each(in_request_streams, [this](const auto &rs) {
     this->add_incoming_request_stream(rs);

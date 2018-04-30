@@ -103,6 +103,7 @@ World::append_stats(nlohmann::json &j)
       j_tc["P_forward"].push_back(stats.forward_ratio());
       j_tc["P_forward_u"].push_back(stats.forward_ratio_u());
       j_tc["P_block"].push_back(stats.block_ratio());
+      j_tc["P_block_recursive"].push_back(stats.block_recursive_ratio());
     }
   }
   return j;
