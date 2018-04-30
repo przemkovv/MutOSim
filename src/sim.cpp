@@ -133,8 +133,9 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
 
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
+    nlohmann::json analytical_stats;
     if (cli.analytical) {
-      Model::analytical_computations2(scenarios[i]);
+      analytical_stats = Model::analytical_computations2(scenarios[i]);
     }
     run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
 
@@ -149,6 +150,9 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
       scenarios[i].world->append_stats(scenario_stats);
       scenario_stats["_a"] = ts::get(scenarios[i].a);
       scenario_stats["_A"] = ts::get(scenarios[i].A);
+      if (!analytical_stats.empty()) {
+        scenario_stats["_analytical"] = analytical_stats;
+      }
 
       scenarios_state[i] = true;
       print_state(scenarios_state);
