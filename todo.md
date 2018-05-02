@@ -1,6 +1,8 @@
 
 # Poprawki książka
 
+- wzór 3.23 - na pewno powinno być dwa razy d_{c,s}?
+
 - s. 122 BBU -> JA
 - symbol w tabeli 3.7 nu -> upsilon https://www.sharelatex.com/learn/List_of_Greek_letters_and_math_symbols
 - s. 142, tabela 3.8. Liczba mnoga -> liczba pojedyncza
@@ -49,9 +51,7 @@ latex package changes
  Analytical models:
  - Wiązka z ograniczoną dostępnością 75
   - metoda Sandersa porównanie z Haywarded -- znaleźć
-
   - model analityczny - podgrupy, LAG, s.212, prof 3.4.2.1, równe pojemność
-  - Hayward z Iversena Z*t An approximation 
 
 
 - Verify Q
@@ -90,6 +90,12 @@ latex package changes
     in plot.py
 
 # Done
+
+- Analytical methods
+  - (1) V/Z vs. (2) Z*t: Metoda (1) jest dokładniejsza od (2) w przypadku
+    małych pojemności (<1000). I dokładność jest praktycznie stała. Metoda (2)
+    dla niskich objętości ma błąd większy aniżeli (1), jednakże dla dużych się
+    poprawia. Dla (2) zaokrąglanie (podłoga) jest opóźniona jak najbardziej.
 
 - Use cases:
   - filter groups by traffic class

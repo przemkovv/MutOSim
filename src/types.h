@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -87,6 +88,12 @@ struct CapacityF : ts::strong_typedef<CapacityF, count_float_t>,
   explicit operator Capacity() { return Capacity{static_cast<count_t>(get(*this))}; }
 };
 
+// constexpr auto
+// operator<(const CapacityF &cf, const Capacity &c)
+// {
+// return get(cf) < get(c);
+// }
+
 struct Size : ts::strong_typedef<Size, count_t>,
               ts::strong_typedef_op::equality_comparison<Size>,
               ts::strong_typedef_op::relational_comparison<Size>,
@@ -100,10 +107,32 @@ struct Size : ts::strong_typedef<Size, count_t>,
   constexpr bool operator>(const Capacity &c) { return ts::get(*this) > ts::get(c); }
 };
 
+struct SizeF : ts::strong_typedef<SizeF, count_float_t>,
+               ts::strong_typedef_op::equality_comparison<SizeF>,
+               ts::strong_typedef_op::relational_comparison<SizeF>,
+               ts::strong_typedef_op::addition<SizeF>,
+               ts::strong_typedef_op::subtraction<SizeF>,
+               ts::strong_typedef_op::output_operator<SizeF> {
+  using strong_typedef::strong_typedef;
+
+  constexpr SizeF(const Size &c) : SizeF(get(c)) {}
+  explicit operator Size() { return Size{static_cast<count_t>(std::ceil(get(*this)))}; }
+};
+
 constexpr auto
 operator-(const Capacity &c, const Size &s)
 {
   return Capacity{get(c) - get(s)};
+}
+constexpr auto
+operator+(const CapacityF &c, const Size &s)
+{
+  return CapacityF{get(c) + get(s)};
+}
+constexpr auto
+operator-(const Capacity &c, const SizeF &s)
+{
+  return CapacityF{get(c) - get(s)};
 }
 constexpr auto
 operator+(const Capacity &c, const Size &s)
@@ -134,6 +163,10 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   constexpr auto operator/(const Size &size) const
   {
     return Intensity(ts::get(*this) / ts::get(size));
+  }
+  constexpr auto operator*(const SizeF &size) const
+  {
+    return IntensitySize(ts::get(*this) * ts::get(size));
   }
   constexpr auto operator*(const Size &size) const
   {
@@ -286,11 +319,19 @@ operator/(const Capacity &capacity, const Peakness &peakness)
 {
   return CapacityF{static_cast<stat_t>(get(capacity)) / get(peakness)};
 }
+constexpr auto operator*(const Size &size, const Peakness &peakness)
+{
+  return SizeF{static_cast<stat_t>(get(size)) * get(peakness)};
+}
 constexpr auto operator*(const MeanIntensity &mean, const Size &size)
 {
   return WeightF{get(mean) * static_cast<weight_float_t>(get(size))};
 }
 constexpr auto operator*(const MeanRequestNumber &mean, const Size &size)
+{
+  return CapacityF{get(mean) * static_cast<intensity_t>(get(size))};
+}
+constexpr auto operator*(const MeanRequestNumber &mean, const SizeF &size)
 {
   return CapacityF{get(mean) * static_cast<intensity_t>(get(size))};
 }

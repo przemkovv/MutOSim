@@ -79,7 +79,7 @@ compute_collective_peakness(const std::vector<IncomingRequestStream> &in_request
 //----------------------------------------------------------------------
 Variance
 compute_riordan_variance(
-    MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, Size tc_size)
+    MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, SizeF tc_size)
 {
   return Variance{get(mean) * (get(intensity) / (get(fictional_capacity) / get(tc_size) +
                                                  1 - get(intensity) + get(mean)) +
@@ -93,13 +93,14 @@ CapacityF
 compute_fictional_capacity(
     const std::vector<OutgoingRequestStream> &out_request_streams,
     Capacity V,
-    TrafficClassId tc_id)
+    TrafficClassId tc_id,
+    Peakness size_rescale)
 {
   return V - rng::accumulate(
                  out_request_streams | rng::view::filter([tc_id](const auto &rs) {
                    return rs.tc.id != tc_id;
-                 }) | rng::view::transform([](const auto &rs) {
-                   return rs.mean_request_number * rs.tc.size;
+                 }) | rng::view::transform([&](const auto &rs) {
+                   return rs.mean_request_number * (rs.tc.size * size_rescale);
                  }),
                  CapacityF{0});
 }
@@ -107,15 +108,18 @@ compute_fictional_capacity(
 //----------------------------------------------------------------------
 Probabilities
 KaufmanRobertsDistribution(
-    const std::vector<IncomingRequestStream> &in_request_streams, Capacity V)
+    const std::vector<IncomingRequestStream> &in_request_streams,
+    Capacity V,
+    Peakness size_rescale)
 {
   std::vector<Probability> state(size_t(V) + 1);
   state[0] = Probability{1};
 
   rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
     for (const auto &in_stream : in_request_streams) {
-      auto tc_size = in_stream.tc.size;
-      auto previous_state = n - tc_size;
+      auto tc_size = in_stream.tc.size * size_rescale;
+
+      auto previous_state = Capacity{n - tc_size};
       if (previous_state >= Capacity{0}) {
         auto intensity = in_stream.intensity;
         state[size_t(n)] += intensity * tc_size * state[size_t(previous_state)];
@@ -130,17 +134,28 @@ KaufmanRobertsDistribution(
 //----------------------------------------------------------------------
 std::vector<OutgoingRequestStream>
 KaufmanRobertsBlockingProbability(
-    std::vector<IncomingRequestStream> &in_request_streams, Capacity V)
+    std::vector<IncomingRequestStream> &in_request_streams,
+    Capacity V,
+    Peakness peakness,
+    bool fixed_capacity)
 {
-  auto distribution = KaufmanRobertsDistribution(in_request_streams, V);
+  Peakness size_rescale;
+  if (fixed_capacity) {
+    size_rescale = peakness;
+  } else {
+    size_rescale = Peakness{1};
+    V = Capacity{V / peakness};
+  }
+  auto distribution = KaufmanRobertsDistribution(in_request_streams, V, size_rescale);
 
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams) {
     OutgoingRequestStream out_rs;
     out_rs.tc = in_rs.tc;
-    auto n = V - out_rs.tc.size + Size{1};
+    CapacityF n{V - out_rs.tc.size * size_rescale + Size{1}};
+    Capacity n_int{n};
     out_rs.blocking_probability =
-        rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
+        rng::accumulate(distribution | rng::view::drop(size_t(n_int)), Probability{0});
 
     out_rs.intensity = in_rs.intensity;
     out_rs.mean = out_rs.intensity * out_rs.blocking_probability;
@@ -151,10 +166,11 @@ KaufmanRobertsBlockingProbability(
   }
 
   for (auto &rs : out_request_streams) {
-    rs.fictional_capacity = compute_fictional_capacity(out_request_streams, V, rs.tc.id);
+    rs.fictional_capacity =
+        compute_fictional_capacity(out_request_streams, V, rs.tc.id, size_rescale);
 
     rs.variance = compute_riordan_variance(
-        rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size);
+        rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size * size_rescale);
 
     rs.peakness = rs.variance / rs.mean;
   }

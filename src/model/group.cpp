@@ -19,8 +19,8 @@ Group::get_outgoing_request_streams() const
     std::vector<IncomingRequestStream> in_request_streams = in_request_streams_ |
                                                             rng::view::values;
     auto peakness = compute_collective_peakness(in_request_streams);
-    Capacity V{V_ / peakness};
-    out_request_streams_ = KaufmanRobertsBlockingProbability(in_request_streams, V);
+    out_request_streams_ =
+        KaufmanRobertsBlockingProbability(in_request_streams, V_, peakness, true);
     need_recalculate_ = false;
   }
   return out_request_streams_;
