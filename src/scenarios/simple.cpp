@@ -2,18 +2,18 @@
 #include "simple.h"
 
 #include "calculation.h"
-#include "simulation/group.h"
 #include "logger.h"
-#include "topology.h"
-
+#include "simulation/group.h"
 #include "simulation/source_stream/engset.h"
 #include "simulation/source_stream/pascal.h"
 #include "simulation/source_stream/poisson.h"
+#include "topology.h"
 
 #include <fmt/ostream.h>
 
 //----------------------------------------------------------------------
-ScenarioSettings erlang_model(const Intensity lambda, const Capacity V)
+ScenarioSettings
+erlang_model(const Intensity lambda, const Capacity V)
 {
   const auto serve_intensity = Intensity(1.0L);
   const auto A = lambda / serve_intensity;
@@ -24,8 +24,9 @@ ScenarioSettings erlang_model(const Intensity lambda, const Capacity V)
   ScenarioSettings sim_settings{name};
 
   sim_settings.do_before = [=]() {
-    print("[Erlang] P_loss = P_block = E_V(A) = {}\n",
-          erlang_pk_distribution(get(A), ts::get(V), ts::get(V)));
+    print(
+        "[Erlang] P_loss = P_block = E_V(A) = {}\n",
+        erlang_pk_distribution(get(A), ts::get(V), ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 
@@ -43,24 +44,32 @@ ScenarioSettings erlang_model(const Intensity lambda, const Capacity V)
   return sim_settings;
 }
 
-ScenarioSettings engset_model(const Intensity lambda, const Capacity V, const Count N)
+ScenarioSettings
+engset_model(const Intensity lambda, const Capacity V, const Count N)
 { // Engset model
 
   const auto serve_intensity = Intensity(1.0L);
-  const auto gamma = lambda /N;
+  const auto gamma = lambda / N;
   const auto alpha = gamma / serve_intensity;
   const auto size = Size(1);
 
-  auto name =
-      fmt::format("Engset model. alpha={}, lambda={}, gamma={}, mu={}, V={}, N={} ",
-                  alpha, lambda, gamma, serve_intensity, V, N);
+  auto name = fmt::format(
+      "Engset model. alpha={}, lambda={}, gamma={}, mu={}, V={}, N={} ",
+      alpha,
+      lambda,
+      gamma,
+      serve_intensity,
+      V,
+      N);
   ScenarioSettings sim_settings{name};
 
   sim_settings.do_before = [=]() {
-    print("[Engset] P_block = E(alfa, V, N) = {}\n",
-          engset_pi(get(alpha), ts::get(V), ts::get(N), ts::get(V)));
-    print("[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-          engset_pi(get(alpha), ts::get(V), ts::get(N) - 1, ts::get(V)));
+    print(
+        "[Engset] P_block = E(alfa, V, N) = {}\n",
+        engset_pi(get(alpha), ts::get(V), ts::get(N), ts::get(V)));
+    print(
+        "[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
+        engset_pi(get(alpha), ts::get(V), ts::get(N) - 1, ts::get(V)));
   };
   sim_settings.do_after = sim_settings.do_before;
 
@@ -104,15 +113,21 @@ poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity pri
 
 //----------------------------------------------------------------------
 
-ScenarioSettings pascal_source_model(Intensity lambda, Capacity V, Count S)
+ScenarioSettings
+pascal_source_model(Intensity lambda, Capacity V, Count S)
 { // Pascal source
 
   auto serve_intensity = Intensity(1.0L);
-  auto gamma = lambda /S;
+  auto gamma = lambda / S;
   auto size = Size(1);
 
-  auto name = fmt::format("Pascal source. lambda={}, gamma={}, mu={}, V={}, S={} ",
-                          lambda, gamma, serve_intensity, V, S);
+  auto name = fmt::format(
+      "Pascal source. lambda={}, gamma={}, mu={}, V={}, S={} ",
+      lambda,
+      gamma,
+      serve_intensity,
+      V,
+      S);
   ScenarioSettings sim_settings{name};
 
   // const auto lambda = Intensity(5);

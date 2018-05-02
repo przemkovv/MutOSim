@@ -1,20 +1,21 @@
 
 #include "topology_parser.h"
+
 #include "logger.h"
 #include "types_parser.h"
 
+#include <boost/filesystem.hpp>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
-
-#include <boost/filesystem.hpp>
 
 using nlohmann::json;
 
 namespace std
 {
 template <typename T>
-void to_json(json &j, const std::optional<T> &opt)
+void
+to_json(json &j, const std::optional<T> &opt)
 {
   if (opt) {
     j = *opt;
@@ -23,7 +24,8 @@ void to_json(json &j, const std::optional<T> &opt)
   }
 }
 template <typename T>
-void from_json(const json &j, std::optional<T> &opt)
+void
+from_json(const json &j, std::optional<T> &opt)
 {
   if (j.is_null()) {
     opt = std::nullopt;
@@ -56,12 +58,13 @@ void from_json(const json &j, CompressionRatio &c);
 void to_json(json &j, const TrafficClassSettings &c);
 void from_json(const json &j, TrafficClassSettings &c);
 
-void to_json(json &j,
-             const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
-void from_json(const json &j,
-               std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+void
+to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+void
+from_json(const json &j, std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
 
-void to_json(json &j, const SourceType &st)
+void
+to_json(json &j, const SourceType &st)
 {
   j = [=]() {
     switch (st) {
@@ -75,7 +78,8 @@ void to_json(json &j, const SourceType &st)
   }();
 }
 
-void from_json(const json &j, SourceType &st)
+void
+from_json(const json &j, SourceType &st)
 {
   const auto str = j;
   static const std::unordered_map<std::string, SourceType> m = {
@@ -88,14 +92,16 @@ void from_json(const json &j, SourceType &st)
   st = it->second;
 }
 
-void to_json(json &j, const TrafficClass &tc)
+void
+to_json(json &j, const TrafficClass &tc)
 {
   j = {{"micro", tc.serve_intensity},
        {"size", tc.size},
        {"weight", tc.weight},
        {"max_path_length", tc.max_path_length}};
 }
-void from_json(const json &j, TrafficClass &tc)
+void
+from_json(const json &j, TrafficClass &tc)
 {
   tc.serve_intensity = Intensity(j.at("micro"));
   tc.size = Size(j.at("size"));
@@ -103,7 +109,8 @@ void from_json(const json &j, TrafficClass &tc)
   tc.max_path_length = Length(j.value("max_path_length", MaxPathLength));
 }
 
-void to_json(json &j, const Source &s)
+void
+to_json(json &j, const Source &s)
 {
   j = {{"type", s.type}, {"traffic_class", s.tc_id}, {"attached", s.attached}};
   if (s.type == SourceType::Pascal) {
@@ -112,7 +119,8 @@ void to_json(json &j, const Source &s)
     j["N"] = s.source_number;
   }
 }
-void from_json(const json &j, Source &s)
+void
+from_json(const json &j, Source &s)
 {
   s.type = j.at("type");
   s.tc_id = j.at("traffic_class");
@@ -124,7 +132,8 @@ void from_json(const json &j, Source &s)
   }
 }
 
-void to_json(json &j, const Group &g)
+void
+to_json(json &j, const Group &g)
 {
   j = {{"capacity", g.capacity},
        {"connected", g.connected},
@@ -133,7 +142,8 @@ void to_json(json &j, const Group &g)
        {"overflow_policy", g.overflow_policy},
        {"traffic_classes", g.traffic_classess_settings}};
 }
-void from_json(const json &j, Group &g)
+void
+from_json(const json &j, Group &g)
 {
   g.capacity = j.at("capacity");
   g.layer = j.at("layer");
@@ -149,20 +159,23 @@ void from_json(const json &j, Group &g)
   }
 }
 
-void to_json(json &j, const CompressionRatio &c)
+void
+to_json(json &j, const CompressionRatio &c)
 {
   j = {{"threshold", c.threshold},
        {"size", c.size},
        {"intensity_factor", c.intensity_factor}};
 }
-void from_json(const json &j, CompressionRatio &c)
+void
+from_json(const json &j, CompressionRatio &c)
 {
   c.threshold = j.at("threshold");
   c.size = j.at("size");
   c.intensity_factor = j.at("intensity_factor");
 }
 
-void to_json(json &j, const TrafficClassSettings &c)
+void
+to_json(json &j, const TrafficClassSettings &c)
 {
   if (!c.compression_ratios.empty()) {
     j["compression"] = c.compression_ratios;
@@ -170,13 +183,15 @@ void to_json(json &j, const TrafficClassSettings &c)
   j["block"] = c.block;
 }
 
-void from_json(const json &j, TrafficClassSettings &c)
+void
+from_json(const json &j, TrafficClassSettings &c)
 {
   if (j.find("compression") != j.end()) {
     c.compression_ratios = j["compression"].get<std::vector<CompressionRatio>>();
   }
   std::sort(
-      begin(c.compression_ratios), end(c.compression_ratios),
+      begin(c.compression_ratios),
+      end(c.compression_ratios),
       [](const auto &cr1, const auto &cr2) { return cr1.threshold < cr2.threshold; });
 
   if (j.find("block") != j.end()) {
@@ -184,22 +199,24 @@ void from_json(const json &j, TrafficClassSettings &c)
   }
 }
 
-void to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
+void
+to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
 {
   for (const auto &[tc_id, tc_s] : tcs) {
     j[std::to_string(get(tc_id))] = tc_s;
   }
 }
-void from_json(const json &j,
-               std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
+void
+from_json(const json &j, std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
 {
   for (const auto &tc_j : j.items()) {
-    tcs.emplace(TrafficClassId{std::stoul(tc_j.key())},
-                tc_j.value().get<TrafficClassSettings>());
+    tcs.emplace(
+        TrafficClassId{std::stoul(tc_j.key())}, tc_j.value().get<TrafficClassSettings>());
   }
 }
 
-void to_json(json &j, const Topology &t)
+void
+to_json(json &j, const Topology &t)
 {
   j["name"] = t.name;
   json tcs_j = {};
@@ -220,7 +237,8 @@ void to_json(json &j, const Topology &t)
   }
   j["groups"] = groups_j;
 }
-void from_json(const json &j, Topology &t)
+void
+from_json(const json &j, Topology &t)
 {
   t.name = j["name"];
   const json default_tc = [&]() {
@@ -254,7 +272,8 @@ void from_json(const json &j, Topology &t)
   }
 }
 
-nlohmann::json load_topology_config(const std::string &filename)
+nlohmann::json
+load_topology_config(const std::string &filename)
 {
   namespace fs = boost::filesystem;
   fs::path filename_path{std::string{filename}};
@@ -276,17 +295,17 @@ nlohmann::json load_topology_config(const std::string &filename)
     }
   } while (is_include);
 
-  auto config = std::accumulate(configs.rbegin(), configs.rend(), nlohmann::json{},
-                                [](auto &j1, const auto &p) {
-                                  j1.merge_patch(p);
-                                  return j1;
-                                });
+  auto config = std::accumulate(
+      configs.rbegin(), configs.rend(), nlohmann::json{}, [](auto &j1, const auto &p) {
+        j1.merge_patch(p);
+        return j1;
+      });
   return config;
 }
 
 std::pair<Topology, nlohmann::json>
-parse_topology_config(const std::string &filename,
-                      const std::vector<std::string> &append_filenames)
+parse_topology_config(
+    const std::string &filename, const std::vector<std::string> &append_filenames)
 {
   auto main_scenario = load_topology_config(filename);
   for (const auto &append_filename : append_filenames) {
@@ -299,7 +318,8 @@ parse_topology_config(const std::string &filename,
   return {main_scenario, main_scenario};
 } // namespace Config
 
-void dump(const Topology &topology)
+void
+dump(const Topology &topology)
 {
   json j = topology;
   print("[Topology]: {}", j.dump(2));

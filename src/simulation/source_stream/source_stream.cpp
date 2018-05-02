@@ -9,7 +9,8 @@ SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc)
   : name_(name), tc_(tc)
 {
 }
-Load SourceStream::create_load(Time time, Size size)
+Load
+SourceStream::create_load(Time time, Size size)
 {
   loads_produced_++;
 
@@ -23,49 +24,61 @@ Load SourceStream::create_load(Time time, Size size)
   return load;
 }
 
-void SourceStream::notify_on_produce(const ProduceServiceRequestEvent * /* event */)
+void
+SourceStream::notify_on_produce(const ProduceServiceRequestEvent * /* event */)
 {
 }
-void SourceStream::notify_on_service_start(const LoadServiceRequestEvent * /* event */)
+void
+SourceStream::notify_on_service_start(const LoadServiceRequestEvent * /* event */)
 {
 }
-void SourceStream::notify_on_service_end(const LoadServiceEndEvent * /* event */)
-{
-}
-
-void SourceStream::notify_on_service_accept(const LoadServiceRequestEvent * /* event */)
-{
-}
-void SourceStream::notify_on_service_drop(const LoadServiceRequestEvent * /* event */)
-{
-}
-void SourceStream::notify_on_skip_processing(const Event * /* event */)
-{
-}
-void SourceStream::init()
+void
+SourceStream::notify_on_service_end(const LoadServiceEndEvent * /* event */)
 {
 }
 
-void SourceStream::attach_to_group(Group& target_group)
+void
+SourceStream::notify_on_service_accept(const LoadServiceRequestEvent * /* event */)
+{
+}
+void
+SourceStream::notify_on_service_drop(const LoadServiceRequestEvent * /* event */)
+{
+}
+void
+SourceStream::notify_on_skip_processing(const Event * /* event */)
+{
+}
+void
+SourceStream::init()
+{
+}
+
+void
+SourceStream::attach_to_group(Group &target_group)
 {
   target_group_ = &target_group;
 }
 
-void SourceStream::set_world(World& world)
+void
+SourceStream::set_world(World &world)
 {
   world_ = &world;
 }
 
-void SourceStream::print_stats()
+void
+SourceStream::print_stats()
 {
   print("{}: {} produced loads: {:n}\n", *this, tc_, loads_produced_);
 }
 
 //----------------------------------------------------------------------
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const SourceStream &source)
+void
+format_arg(
+    fmt::BasicFormatter<char> &f,
+    const char *& /* format_str */,
+    const SourceStream &source)
 {
   f.writer().write("[Source {} id={:>2}]", source.name_, source.id);
   // f.writer().write("[Source {} (id={:>2})]", source.world_->get_current_time(),

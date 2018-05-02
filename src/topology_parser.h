@@ -4,9 +4,9 @@
 #include "types.h"
 
 #include <nlohmann/json_fwd.hpp>
+#include <optional>
 #include <string_view>
 #include <unordered_map>
-#include <optional>
 
 namespace Config
 {
@@ -57,8 +57,8 @@ struct Topology {
 };
 
 nlohmann::json load_topology_config(const std::string &filename);
-std::pair<Topology, nlohmann::json>
-parse_topology_config(const std::string &filename, const std::vector<std::string> &append_filenames);
+std::pair<Topology, nlohmann::json> parse_topology_config(
+    const std::string &filename, const std::vector<std::string> &append_filenames);
 
 void dump(const Topology &topology);
 

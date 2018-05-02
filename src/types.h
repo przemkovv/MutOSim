@@ -181,6 +181,17 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
     return Intensity(ts::get(*this) * ts::get(ratio));
   }
 };
+
+constexpr auto
+operator/(const IntensitySize &intensity, const Size &size)
+{
+  return Intensity(ts::get(intensity) / ts::get(size));
+}
+constexpr auto
+operator/(const IntensitySize &intensity, const Capacity &size)
+{
+  return Intensity(ts::get(intensity) / ts::get(size));
+}
 struct Probability : ts::strong_typedef<Probability, probability_t>,
                      ts::strong_typedef_op::multiplication<Probability>,
                      ts::strong_typedef_op::division<Probability>,

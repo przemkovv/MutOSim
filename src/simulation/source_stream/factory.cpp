@@ -5,9 +5,9 @@
 #include "pascal.h"
 #include "poisson.h"
 
-std::unique_ptr<SourceStream> create_stream(Config::SourceType type,
-                                            const Config::Source &source,
-                                            const TrafficClass &tc)
+std::unique_ptr<SourceStream>
+create_stream(
+    Config::SourceType type, const Config::Source &source, const TrafficClass &tc)
 {
   switch (type) {
   case Config::SourceType::Poisson:

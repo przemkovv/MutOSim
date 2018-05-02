@@ -1,8 +1,8 @@
 #pragma once
 
+#include "topology.h"
 #include "types.h"
 
-#include "topology.h"
 #include <functional>
 #include <nlohmann/json.hpp>
 
@@ -18,7 +18,6 @@ struct ScenarioSettings {
   Topology topology{};
   nlohmann::json json{};
 
-
   std::function<void()> do_before = nullptr;
   std::function<void()> do_after = nullptr;
 
@@ -26,7 +25,8 @@ struct ScenarioSettings {
 };
 
 uint64_t seed(bool use_random_seed);
-void run_scenario(ScenarioSettings &scenario,
-                  const Duration duration,
-                  bool use_random_seed,
-                  bool quiet);
+void run_scenario(
+    ScenarioSettings &scenario,
+    const Duration duration,
+    bool use_random_seed,
+    bool quiet);

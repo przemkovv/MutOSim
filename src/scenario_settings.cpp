@@ -7,7 +7,8 @@
 
 #include <random>
 
-uint64_t seed(bool use_random_seed)
+uint64_t
+seed(bool use_random_seed)
 {
   if (!use_random_seed) {
     return 0;
@@ -16,10 +17,9 @@ uint64_t seed(bool use_random_seed)
   return rd();
 }
 
-void run_scenario(ScenarioSettings &scenario,
-                  const Duration duration,
-                  bool use_random_seed,
-                  bool quiet)
+void
+run_scenario(
+    ScenarioSettings &scenario, const Duration duration, bool use_random_seed, bool quiet)
 {
   scenario.world = std::make_unique<World>(seed(use_random_seed), duration);
   auto &world = *scenario.world;

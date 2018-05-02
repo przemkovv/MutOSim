@@ -4,9 +4,8 @@
 #include "group.h"
 #include "load.h"
 #include "logger.h"
-#include "source_stream/source_stream.h"
 #include "simulation/stats_format.h"
-
+#include "source_stream/source_stream.h"
 
 #include <nlohmann/json.hpp>
 
@@ -136,17 +135,7 @@ World::print_stats()
           stats);
     }
   }
-  /* for (auto &[tc_id, tc] : topology_->traffic_classes) {
-    std::ignore = tc_id;
-    auto p_block = blocked_by_tc[tc.id].block_time / Duration{ts::get(current_time_)};
-    print("{} {}: P_block {:<12} ({:<12})\n", *this, tc, p_block, std::log10(p_block));
-  }
 
-  for (auto &[size, stats] : blocked_by_size) {
-    auto p_block = stats.block_time / Duration{ts::get(current_time_)};
-    print("{} Size: {}: P_block {:<12} ({:<12})\n", *this, size, p_block,
-          std::log10(p_block));
-  } */
   for (auto &[source_id, source] : topology_->sources) {
     std::ignore = source_id;
     source->print_stats();
@@ -180,45 +169,6 @@ World::schedule(std::unique_ptr<Event> event)
 {
   debug_print("{} Scheduled: {}\n", *this, *event);
   events_.emplace(std::move(event));
-}
-
-void
-World::update_block_stat(const Load & /* load */)
-{
-  /* auto can_serve = [](const TrafficClass& tc) {
-    return [&tc](const auto &group) { return group.second->can_serve(tc)->first; };
-  };
-  // TODO(PW): think how to measure global block
-  for (const auto &[tc_id, tc] : topology_->traffic_classes) {
-    if (std::none_of(begin(topology_->groups), end(topology_->groups),
-                     can_serve(tc))) {
-      blocked_by_tc[tc_id].try_block(load.send_time);
-    }
-  } */
-  // for (auto &[size, stats] : blocked_by_size) {
-  // if (std::none_of(begin(topology_->groups), end(topology_->groups), can_serve(size)))
-  // { stats.try_block(load.send_time);
-  // }
-  // }
-}
-void
-World::update_unblock_stat(const Load & /* load */)
-{
-  /* auto can_serve = [](const TrafficClass &tc) {
-    return [&tc](const auto &group) { return group.second->can_serve(tc)->first; };
-  };
-  // TODO(PW): think how to measure global block
-  for (const auto &[tc_id, tc] : topology_->traffic_classes) {
-    if (std::any_of(begin(topology_->groups), end(topology_->groups),
-                    can_serve(tc))) {
-      blocked_by_tc[tc_id].try_unblock(load.end_time);
-    }
-  } */
-  // for (auto &[size, stats] : blocked_by_size) {
-  // if (std::any_of(begin(topology_->groups), end(topology_->groups), can_serve(size))) {
-  // stats.try_unblock(load.end_time);
-  // }
-  // }
 }
 
 void

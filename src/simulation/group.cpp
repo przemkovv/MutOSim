@@ -1,5 +1,6 @@
 
 #include "group.h"
+
 #include "logger.h"
 #include "overflow_policy/factory.h"
 #include "source_stream/source_stream.h"
@@ -18,16 +19,23 @@ Group::Group(GroupName name, Capacity capacity, Layer layer)
     layer_(layer),
     overflow_policy_(overflow_policy::make_overflow_policy("default", *this))
 {
-  assert(layer_ < MaxLayersNumber);
+  ASSERT(
+      layer_ < MaxLayersNumber,
+      "The layer number {} of group {} should be lower than {}.",
+      layer,
+      name,
+      MaxLayersNumber);
 }
 
-void Group::set_world(World &world)
+void
+Group::set_world(World &world)
 {
   world_ = &world;
   overflow_policy_->set_world(world);
 }
 
-void Group::set_end_time(Load &load, IntensityFactor intensity_factor)
+void
+Group::set_end_time(Load &load, IntensityFactor intensity_factor)
 {
   const auto &tcs = *traffic_classes_;
   const auto serve_intensity = intensity_factor * tcs.at(load.tc_id).serve_intensity;
@@ -38,42 +46,47 @@ void Group::set_end_time(Load &load, IntensityFactor intensity_factor)
   load.end_time = load.send_time + t_serv;
 }
 
-void Group::add_next_group(Group &group)
+void
+Group::add_next_group(Group &group)
 {
   next_groups_.emplace_back(&group);
 }
 
-void Group::set_traffic_classes(const TrafficClasses &traffic_classes)
+void
+Group::set_traffic_classes(const TrafficClasses &traffic_classes)
 {
   traffic_classes_ = &traffic_classes;
 }
 
-void Group::set_overflow_policy(
+void
+Group::set_overflow_policy(
     std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy)
 {
   overflow_policy_ = std::move(overflow_policy);
 }
 
-void Group::add_compression_ratio(TrafficClassId tc_id,
-                                  Capacity threshold,
-                                  Size size,
-                                  IntensityFactor intensity_factor)
+void
+Group::add_compression_ratio(
+    TrafficClassId tc_id, Capacity threshold, Size size, IntensityFactor intensity_factor)
 {
   auto &crs = tcs_compression_[tc_id];
   crs.emplace(threshold, CompressionRatio{size, intensity_factor});
 }
 
-void Group::block_traffic_class(TrafficClassId tc_id)
+void
+Group::block_traffic_class(TrafficClassId tc_id)
 {
   tcs_block_.insert(tc_id);
 }
 
-void Group::notify_on_service_end(LoadServiceEndEvent *event)
+void
+Group::notify_on_service_end(LoadServiceEndEvent *event)
 {
   take_off(event->load);
 }
 
-bool Group::try_serve(Load load)
+bool
+Group::try_serve(Load load)
 {
   load.served_by.emplace_back(this);
 
@@ -89,7 +102,6 @@ bool Group::try_serve(Load load)
     set_end_time(load, intensity_factor);
 
     update_block_stat(load);
-    world_->update_block_stat(load);
 
     world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
@@ -98,27 +110,28 @@ bool Group::try_serve(Load load)
   return forward(load);
 }
 
-void Group::take_off(const Load &load)
+void
+Group::take_off(const Load &load)
 {
   debug_print("{} Request has been served: {}\n", *this, load);
   size_ -= load.size;
   update_unblock_stat(load);
-  world_->update_unblock_stat(load);
   stats_.served_by_tc[load.tc_id].serve(load);
 }
-void Group::drop(const Load &load)
+void
+Group::drop(const Load &load)
 {
   debug_print("{} Request has been dropped: {}\n", *this, load);
   stats_.served_by_tc[load.tc_id].drop(load);
 }
 
-void Group::update_unblock_stat(const Load &load)
+void
+Group::update_unblock_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
     std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
-    if (auto [recursive, local] = can_serve_recursive(tc, path);
-        local) {
+    if (auto [recursive, local] = can_serve_recursive(tc, path); local) {
       unblock_recursive(tc.id, load);
       unblock(tc.id, load);
     } else if (recursive) {
@@ -127,31 +140,37 @@ void Group::update_unblock_stat(const Load &load)
     assert(path.size() == 0 /*load.path.size() */);
   }
 }
-void Group::update_block_stat(const Load &load)
+void
+Group::update_block_stat(const Load &load)
 {
   for (const auto &[tc_id, tc] : *traffic_classes_) {
     std::ignore = tc_id;
     Path path; // = load.path; // NOTE(PW): should be considered length of the current
-    if (auto [recursive, local] = can_serve_recursive(tc, path);
-        !local && recursive) {
-        block(tc.id, load);
+    if (auto [recursive, local] = can_serve_recursive(tc, path); !local && recursive) {
+      block(tc.id, load);
     } else if (!recursive) {
-        block_recursive(tc.id, load);
-        block(tc.id, load);
+      block_recursive(tc.id, load);
+      block(tc.id, load);
     }
     assert(path.size() == 0 /*load.path.size() */);
   }
 }
-void Group::block(TrafficClassId tc_id, const Load &load)
+void
+Group::block(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = stats_.blocked_by_tc[tc_id];
   if (block_stats.try_block(load.send_time)) {
-    debug_print("{} Load: {}, Blocking bt={}, sobt={}\n", *this, load,
-                block_stats.block_time, block_stats.start_of_block);
+    debug_print(
+        "{} Load: {}, Blocking bt={}, sobt={}\n",
+        *this,
+        load,
+        block_stats.block_time,
+        block_stats.start_of_block);
   }
 }
 
-void Group::unblock(TrafficClassId tc_id, const Load &load)
+void
+Group::unblock(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = stats_.blocked_by_tc[tc_id];
   if (block_stats.try_unblock(load.end_time)) {
@@ -159,29 +178,37 @@ void Group::unblock(TrafficClassId tc_id, const Load &load)
   }
 }
 
-
-void Group::block_recursive(TrafficClassId tc_id, const Load &load)
+void
+Group::block_recursive(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = stats_.blocked_recursive_by_tc[tc_id];
   if (block_stats.try_block(load.send_time)) {
-    debug_print("{} Load: {}, Blocking recursive bt={}, sobt={}\n", *this, load,
-                block_stats.block_time, block_stats.start_of_block);
+    debug_print(
+        "{} Load: {}, Blocking recursive bt={}, sobt={}\n",
+        *this,
+        load,
+        block_stats.block_time,
+        block_stats.start_of_block);
   }
 }
 
-void Group::unblock_recursive(TrafficClassId tc_id, const Load &load)
+void
+Group::unblock_recursive(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = stats_.blocked_recursive_by_tc[tc_id];
   if (block_stats.try_unblock(load.end_time)) {
-    debug_print("{} Load: {}, Unblocking recursive bt={}\n", *this, load, block_stats.block_time);
+    debug_print(
+        "{} Load: {}, Unblocking recursive bt={}\n", *this, load, block_stats.block_time);
   }
 }
-std::pair<bool, CompressionRatio *> Group::can_serve(TrafficClassId tc_id)
+std::pair<bool, CompressionRatio *>
+Group::can_serve(TrafficClassId tc_id)
 {
   return can_serve(traffic_classes_->at(tc_id));
 }
 
-std::pair<bool, CompressionRatio *> Group::can_serve(const TrafficClass &tc)
+std::pair<bool, CompressionRatio *>
+Group::can_serve(const TrafficClass &tc)
 {
   if (tcs_block_.find(tc.id) != end(tcs_block_)) {
     return {false, nullptr};
@@ -196,7 +223,8 @@ std::pair<bool, CompressionRatio *> Group::can_serve(const TrafficClass &tc)
   return {size_ + tc.size <= capacity_, nullptr};
 }
 
-CanServeResult Group::can_serve_recursive(const TrafficClass &tc, Path &path)
+CanServeResult
+Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 {
   if (auto [ok, compression] = can_serve(tc); ok) {
     std::ignore = compression;
@@ -217,7 +245,8 @@ CanServeResult Group::can_serve_recursive(const TrafficClass &tc, Path &path)
   return {false, false};
 }
 
-bool Group::forward(Load load)
+bool
+Group::forward(Load load)
 {
   // TODO(PW): if the max path has been reached, pass the load to the next layer
   if (load.drop ||
@@ -238,18 +267,24 @@ bool Group::forward(Load load)
   return false;
 }
 
-Stats Group::get_stats(Duration duration)
+Stats
+Group::get_stats(Duration duration)
 {
   return stats_.get_stats(duration);
 }
 
 //----------------------------------------------------------------------
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const Group &group)
+void
+format_arg(
+    fmt::BasicFormatter<char> &f, const char *& /* format_str */, const Group &group)
 
 {
-  f.writer().write("t={} [Group {} V={}/{}, L{}]", group.world_->get_current_time(),
-                   group.name_, group.size_, group.capacity_, group.layer_);
+  f.writer().write(
+      "t={} [Group {} V={}/{}, L{}]",
+      group.world_->get_current_time(),
+      group.name_,
+      group.size_,
+      group.capacity_,
+      group.layer_);
 }

@@ -5,13 +5,16 @@
 
 #include <algorithm>
 #include <random>
+#include <range/v3/algorithm/count_if.hpp>
+#include <range/v3/algorithm/find.hpp>
+
+namespace rng = ranges;
 
 template <typename Container, typename T>
 auto
 contains(const Container &container, const T &value)
 {
-  return std::find(std::begin(container), std::end(container), value) !=
-         std::end(container);
+  return rng::find(container, value) != std::end(container);
 }
 
 template <typename BeginIt, typename EndIt, typename RandomEngine>
@@ -34,8 +37,7 @@ template <typename GroupsContainer, typename Layer>
 auto
 count_same_layer_groups(const GroupsContainer &path, Layer layer)
 {
-  return count_if(begin(path), end(path), [layer](const auto &group_ptr) {
-    return group_ptr->layer_ == layer;
-  });
+  return rng::count_if(
+      path, [layer](const auto &group_ptr) { return group_ptr->layer_ == layer; });
 }
 

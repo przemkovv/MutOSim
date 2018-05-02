@@ -40,24 +40,26 @@ public:
   virtual Intensity get_intensity() const { return tc_.serve_intensity; }
 
   SourceStream(const SourceName &name, const TrafficClass &tc);
-  SourceStream(const SourceStream&) = delete;
-  SourceStream& operator=(const SourceStream&) = delete;
+  SourceStream(const SourceStream &) = delete;
+  SourceStream &operator=(const SourceStream &) = delete;
   virtual ~SourceStream() = default;
 
-  void set_world(World& world);
-  void attach_to_group(Group& target_group);
+  void set_world(World &world);
+  void attach_to_group(Group &target_group);
   void pause() { pause_ = true; }
 
   const SourceName &get_name() { return name_; }
-  const Group &get_target_group() { return *target_group_;}
+  const Group &get_target_group() { return *target_group_; }
 
   void print_stats();
 
-  friend void format_arg(fmt::BasicFormatter<char> &f,
-                         const char *& /* format_str */,
-                         const SourceStream &source);
+  friend void format_arg(
+      fmt::BasicFormatter<char> &f,
+      const char *& /* format_str */,
+      const SourceStream &source);
 };
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *& /* format_str */,
-                const SourceStream &source);
+void format_arg(
+    fmt::BasicFormatter<char> &f,
+    const char *& /* format_str */,
+    const SourceStream &source);

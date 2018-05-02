@@ -5,7 +5,8 @@
 
 #include <types.h>
 
-inline auto erlang_pk_distribution(const long double A, const int64_t V, const int64_t k)
+inline auto
+erlang_pk_distribution(const long double A, const int64_t V, const int64_t k)
 {
   const auto dividend = Math::power_over_factorial(A, k);
   auto divisor = 0.0L;
@@ -15,7 +16,8 @@ inline auto erlang_pk_distribution(const long double A, const int64_t V, const i
   return dividend / divisor;
 }
 
-inline auto erlang_block_probability(const long double A, const int64_t V)
+inline auto
+erlang_block_probability(const long double A, const int64_t V)
 {
   return erlang_pk_distribution(A, V, V);
 }

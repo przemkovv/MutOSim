@@ -17,9 +17,10 @@ class PascalSourceStream : public SourceStream
   std::exponential_distribution<time_type> exponential{
       ts::get(tc_.source_intensity / sources_number_)};
 
-  friend void format_arg(fmt::BasicFormatter<char> &f,
-                         const char *&format_str,
-                         const PascalSourceStream &source);
+  friend void format_arg(
+      fmt::BasicFormatter<char> &f,
+      const char *&format_str,
+      const PascalSourceStream &source);
 
   std::unique_ptr<ProduceServiceRequestEvent> create_produce_service_request(Time time);
 
@@ -34,11 +35,11 @@ public:
   void notify_on_produce(const ProduceServiceRequestEvent *event) override;
   void notify_on_skip_processing(const Event *event) override;
 
-  PascalSourceStream(const SourceName &name,
-                     const TrafficClass &tc,
-                     Count sources_number);
+  PascalSourceStream(
+      const SourceName &name, const TrafficClass &tc, Count sources_number);
 };
 
-void format_arg(fmt::BasicFormatter<char> &f,
-                const char *&format_str,
-                const PascalSourceStream &source);
+void format_arg(
+    fmt::BasicFormatter<char> &f,
+    const char *&format_str,
+    const PascalSourceStream &source);

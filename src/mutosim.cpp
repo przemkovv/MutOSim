@@ -192,26 +192,26 @@ load_scenarios_from_files(
     const std::vector<std::string> &scenario_files,
     const CLI &cli)
 {
-  for (const auto &config_file : scenario_files) {
-    const auto [t, j] =
-        Config::parse_topology_config(config_file, cli.append_scenario_files);
-    // Config::dump(t);
+  for (const auto &scenario_file : scenario_files) {
+    const auto [topology, topology_json] =
+        Config::parse_topology_config(scenario_file, cli.append_scenario_files);
+    // Config::dump(topology);
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
       for (int i = 0; i < cli.count; ++i) {
-        auto &scenario = scenarios.emplace_back(prepare_scenario_local_group_A(t, A));
-        // auto &scenario = scenarios.emplace_back(prepare_scenario_global_A(t, A));
+        auto &scenario =
+            scenarios.emplace_back(prepare_scenario_local_group_A(topology, A));
         scenario.name += fmt::format(" A={}", A);
 
-        std::string filename = config_file;
+        std::string filename = scenario_file;
         auto &appended_filenames = cli.append_scenario_files;
         if (!appended_filenames.empty()) {
           filename = fmt::format(
               "{};{}",
-              config_file,
+              scenario_file,
               fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
         }
         scenario.filename = filename;
-        scenario.json = j;
+        scenario.json = topology_json;
       }
     }
   }
@@ -354,10 +354,6 @@ main(int argc, char *argv[])
   if (cli.help) {
     print("{}", desc);
     return 0;
-  }
-  if (cli.analytical) {
-    ScenarioSettings ss{};
-    Model::analytical_computations(ss);
   }
 
   if (!std::all_of(
