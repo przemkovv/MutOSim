@@ -4,6 +4,8 @@
 #include "logger.h"
 #include "overflow_policy.h"
 
+namespace Simulation
+{
 namespace overflow_policy
 {
 std::unique_ptr<overflow_policy::OverflowPolicy>
@@ -39,3 +41,4 @@ make_overflow_policy(std::optional<std::string_view> name, Group &group)
 }
 
 } // namespace overflow_policy
+} // namespace Simulation

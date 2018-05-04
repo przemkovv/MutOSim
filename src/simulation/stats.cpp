@@ -1,5 +1,7 @@
 #include "stats.h"
 
+namespace Simulation
+{
 //----------------------------------------------------------------------
 
 LoadStats
@@ -76,3 +78,4 @@ GroupStatistics::get_stats(Duration sim_duration)
   return stats;
 }
 
+} // namespace Simulation

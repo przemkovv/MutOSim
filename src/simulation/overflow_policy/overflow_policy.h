@@ -6,6 +6,8 @@
 #include <gsl/gsl>
 #include <optional>
 
+namespace Simulation
+{
 struct Group;
 struct Load;
 class World;
@@ -98,3 +100,4 @@ public:
 };
 
 } // namespace overflow_policy
+} // namespace Simulation

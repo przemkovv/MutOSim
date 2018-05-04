@@ -10,6 +10,8 @@
 #include <fmt/ostream.h>
 #include <gsl/gsl>
 
+namespace Simulation
+{
 Group::Group(GroupName name, Capacity capacity) : Group(name, capacity, 0)
 {
 }
@@ -288,3 +290,5 @@ format_arg(
       group.capacity_,
       group.layer_);
 }
+
+} // namespace Simulation

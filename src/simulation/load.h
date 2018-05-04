@@ -7,6 +7,8 @@
 #include <fmt/format.h>
 #include <vector>
 
+namespace Simulation
+{
 struct Group;
 class SourceStream;
 
@@ -14,7 +16,6 @@ struct CompressionRatio {
   Size size;
   IntensityFactor intensity_factor;
 };
-
 
 using Path = boost::container::small_vector<Group *, 5>;
 
@@ -25,7 +26,7 @@ struct Load {
   Size size{};
   Time end_time{-1};
   bool drop = false;
-  CompressionRatio* compression_ratio = nullptr;
+  CompressionRatio *compression_ratio = nullptr;
 
   Path served_by{};
   SourceStream *produced_by = nullptr;
@@ -33,3 +34,4 @@ struct Load {
 };
 
 void format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const Load &load);
+} // namespace Simulation

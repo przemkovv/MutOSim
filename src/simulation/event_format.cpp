@@ -3,6 +3,8 @@
 
 #include <fmt/ostream.h>
 
+namespace Simulation
+{
 void
 format_arg(
     fmt::BasicFormatter<char> &f, const char *& /* format_str */, const EventType &type)
@@ -54,3 +56,4 @@ format_arg(
 {
   format_arg(f, format_str, static_cast<const Event &>(event));
 }
+} // namespace Simulation

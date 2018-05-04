@@ -6,6 +6,8 @@
 
 #include <memory>
 
+namespace Simulation
+{
 struct Event;
 using EventPtr = std::unique_ptr<Event>;
 
@@ -87,3 +89,4 @@ public:
 
 //----------------------------------------------------------------------
 
+} // namespace Simulation

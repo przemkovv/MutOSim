@@ -3,6 +3,8 @@
 #include "group.h"
 #include "source_stream/source_stream.h"
 
+namespace Simulation
+{
 //----------------------------------------------------------------------
 
 Event::Event(EventType type_, Uuid id_, Time time_) : type(type_), id(id_), time(time_)
@@ -93,3 +95,5 @@ LoadServiceEndEvent::skip_notify()
 }
 
 //----------------------------------------------------------------------
+
+} // namespace Simulation

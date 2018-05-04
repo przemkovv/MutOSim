@@ -8,6 +8,8 @@
 
 #include <type_traits>
 
+namespace Simulation
+{
 namespace overflow_policy
 {
 OverflowPolicy::OverflowPolicy(Group &group) : group_(&group)
@@ -187,3 +189,4 @@ LowestFreeCapacity::find_next_group(const Load &load)
 }
 
 } // namespace overflow_policy
+}

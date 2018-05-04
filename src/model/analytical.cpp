@@ -22,7 +22,7 @@ analytical_computations(const ScenarioSettings & /* scenario_settings */)
   traffic_classes1.emplace_back(
       TrafficClass{TrafficClassId{2}, Intensity{10.0L}, Intensity{1.0L}, Size{2}, {}});
   traffic_classes1.emplace_back(
-      TrafficClass{TrafficClassId{3}, Intensity{3.333L}, Intensity{1.0L}, Size{6}, {}});
+      TrafficClass{TrafficClassId{3}, Intensity{3.33333L}, Intensity{1.0L}, Size{6}, {}});
   Model::Group g1{Capacity{60}};
   Model::Group g2{Capacity{60}};
   Model::Group g3{Capacity{60}};

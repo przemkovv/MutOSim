@@ -2,16 +2,15 @@
 #include "single_overflow.h"
 
 #include "calculation.h"
-#include "simulation/group.h"
 #include "logger.h"
-#include "topology.h"
-
+#include "simulation/group.h"
 #include "simulation/source_stream/engset.h"
 #include "simulation/source_stream/poisson.h"
-
+#include "topology.h"
 
 //----------------------------------------------------------------------
-ScenarioSettings single_overflow_poisson(const Intensity lambda, const Capacity V)
+ScenarioSettings
+single_overflow_poisson(const Intensity lambda, const Capacity V)
 {
   auto serve_intensity = Intensity(1.0L);
   auto size = Size(1);
@@ -22,9 +21,9 @@ ScenarioSettings single_overflow_poisson(const Intensity lambda, const Capacity 
   GroupName g1{"G1"};
   GroupName g2{"G2"};
   SourceName s1{"Spo1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-  topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(std::make_unique<PoissonSourceStream>(s1, tc1));
+  topology.add_group(std::make_unique<Simulation::Group>(g1, V));
+  topology.add_group(std::make_unique<Simulation::Group>(g2, V));
+  topology.add_source(std::make_unique<Simulation::PoissonSourceStream>(s1, tc1));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(s1, g1);
@@ -34,10 +33,11 @@ ScenarioSettings single_overflow_poisson(const Intensity lambda, const Capacity 
 
 //----------------------------------------------------------------------
 ScenarioSettings
-single_overflow_poisson(Intensity A,
-                        std::vector<Capacity> primary_Vs,
-                        std::vector<std::vector<Size>> size_per_class_per_source,
-                        Capacity secondary_V)
+single_overflow_poisson(
+    Intensity A,
+    std::vector<Capacity> primary_Vs,
+    std::vector<std::vector<Size>> size_per_class_per_source,
+    Capacity secondary_V)
 {
   auto serve_intensity = Intensity(1.0L);
   ScenarioSettings sim_settings{"Single overflow Poisson"};
@@ -49,22 +49,23 @@ single_overflow_poisson(Intensity A,
 
   for (auto group_number = 0u; group_number < primary_Vs.size(); ++group_number) {
     GroupName gn{fmt::format("G{}", group_number)};
-    topology.add_group(std::make_unique<Group>(gn, primary_Vs[group_number]));
+    topology.add_group(std::make_unique<Simulation::Group>(gn, primary_Vs[group_number]));
     group_names.emplace_back(std::move(gn));
   }
 
   GroupName gvo{"GVo"};
-  topology.add_group(std::make_unique<Group>(gvo, secondary_V));
+  topology.add_group(std::make_unique<Simulation::Group>(gvo, secondary_V));
 
   for (auto source_number = 0u; source_number < size_per_class_per_source.size();
        ++source_number) {
     for (auto class_number = 0u;
-         class_number < size_per_class_per_source[source_number].size(); ++class_number) {
+         class_number < size_per_class_per_source[source_number].size();
+         ++class_number) {
       Size t = size_per_class_per_source[source_number][class_number];
       auto &tc = topology.add_traffic_class(A / t, serve_intensity, t);
 
       SourceName sn{fmt::format("S{}{}", class_number, source_number)};
-      topology.add_source(std::make_unique<PoissonSourceStream>(sn, tc));
+      topology.add_source(std::make_unique<Simulation::PoissonSourceStream>(sn, tc));
 
       topology.attach_source_to_group(sn, group_names[source_number]);
     }
@@ -90,9 +91,9 @@ single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
   GroupName g1{"G1"};
   GroupName g2{"G2"};
   SourceName s1{"Spo1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-  topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(std::make_unique<EngsetSourceStream>(s1, tc, N));
+  topology.add_group(std::make_unique<Simulation::Group>(g1, V));
+  topology.add_group(std::make_unique<Simulation::Group>(g2, V));
+  topology.add_source(std::make_unique<Simulation::EngsetSourceStream>(s1, tc, N));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(s1, g1);
@@ -101,7 +102,8 @@ single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
 }
 //----------------------------------------------------------------------
 
-ScenarioSettings multiple_sources_single_overflow()
+ScenarioSettings
+multiple_sources_single_overflow()
 {
   auto serve_intensity = Intensity(1.0L);
   const auto lambda = Intensity(3);
@@ -123,10 +125,10 @@ ScenarioSettings multiple_sources_single_overflow()
   GroupName g2{"G2"};
   SourceName s1{"SPo1"};
   SourceName s2{"SEn2"};
-  topology.add_group(std::make_unique<Group>(g1, V));
-  topology.add_group(std::make_unique<Group>(g2, V));
-  topology.add_source(std::make_unique<PoissonSourceStream>(s1, tc1));
-  topology.add_source(std::make_unique<EngsetSourceStream>(s2, tc2, N));
+  topology.add_group(std::make_unique<Simulation::Group>(g1, V));
+  topology.add_group(std::make_unique<Simulation::Group>(g2, V));
+  topology.add_source(std::make_unique<Simulation::PoissonSourceStream>(s1, tc1));
+  topology.add_source(std::make_unique<Simulation::EngsetSourceStream>(s2, tc2, N));
 
   topology.connect_groups(g1, g2);
   topology.attach_source_to_group(s1, g1);

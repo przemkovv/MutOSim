@@ -35,10 +35,10 @@ erlang_model(const Intensity lambda, const Capacity V)
   auto &tc = topology.add_traffic_class(lambda, serve_intensity, size);
 
   SourceName s1{"SPo1"};
-  topology.add_source(std::make_unique<PoissonSourceStream>(s1, tc));
+  topology.add_source(std::make_unique<Simulation::PoissonSourceStream>(s1, tc));
 
   GroupName g1{"G1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
+  topology.add_group(std::make_unique<Simulation::Group>(g1, V));
   topology.attach_source_to_group(s1, g1);
 
   return sim_settings;
@@ -77,9 +77,9 @@ engset_model(const Intensity lambda, const Capacity V, const Count N)
   auto &tc = topology.add_traffic_class(lambda, serve_intensity, size);
   GroupName g1{"G1"};
   SourceName s1{"SEn1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
+  topology.add_group(std::make_unique<Simulation::Group>(g1, V));
 
-  topology.add_source(std::make_unique<EngsetSourceStream>(s1, tc, N));
+  topology.add_source(std::make_unique<Simulation::EngsetSourceStream>(s1, tc, N));
   topology.attach_source_to_group(s1, g1);
 
   return sim_settings;
@@ -97,13 +97,13 @@ poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity pri
   std::vector<SourceName> source_names;
 
   GroupName g1{"G1"};
-  topology.add_group(std::make_unique<Group>(g1, primary_V));
+  topology.add_group(std::make_unique<Simulation::Group>(g1, primary_V));
 
   for (auto source_number = 0u; source_number < As.size(); ++source_number) {
     SourceName sn{fmt::format("S{}", source_number)};
     Size z = sizes[source_number];
     auto &tc = topology.add_traffic_class(As[source_number], serve_intensity, z);
-    topology.add_source(std::make_unique<PoissonSourceStream>(sn, tc));
+    topology.add_source(std::make_unique<Simulation::PoissonSourceStream>(sn, tc));
 
     topology.attach_source_to_group(sn, g1);
   }
@@ -141,9 +141,9 @@ pascal_source_model(Intensity lambda, Capacity V, Count S)
   auto &tc = topology.add_traffic_class(lambda, serve_intensity, size);
   GroupName g1{"G1"};
   SourceName s1{"SPa1"};
-  topology.add_group(std::make_unique<Group>(g1, V));
+  topology.add_group(std::make_unique<Simulation::Group>(g1, V));
 
-  topology.add_source(std::make_unique<PascalSourceStream>(s1, tc, S));
+  topology.add_source(std::make_unique<Simulation::PascalSourceStream>(s1, tc, S));
   topology.attach_source_to_group(s1, g1);
 
   return sim_settings;

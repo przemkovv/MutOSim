@@ -3,6 +3,8 @@
 
 #include <fmt/format.h>
 
+namespace Simulation
+{
 void
 format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const Stats &stats);
 
@@ -34,3 +36,4 @@ void format_arg(
     const char *& /* format_str */,
     const std::unordered_map<TrafficClassId, LostServedStats> &lost_served_stats);
 
+} // namespace Simulation

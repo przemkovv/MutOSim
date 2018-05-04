@@ -355,6 +355,9 @@ main(int argc, char *argv[])
     print("{}", desc);
     return 0;
   }
+  if (cli.analytical) {
+    Model::analytical_computations(ScenarioSettings{});
+  }
 
   if (!std::all_of(
           begin(cli.scenario_files),

@@ -20,7 +20,7 @@ Group::get_outgoing_request_streams() const
                                                             rng::view::values;
     auto peakness = compute_collective_peakness(in_request_streams);
     out_request_streams_ =
-        KaufmanRobertsBlockingProbability(in_request_streams, V_, peakness, true);
+        KaufmanRobertsBlockingProbability(in_request_streams, V_, peakness, false);
     need_recalculate_ = false;
   }
   return out_request_streams_;

@@ -8,6 +8,8 @@
 #include <map>
 #include <unordered_map>
 
+namespace Simulation
+{
 struct LoadStats {
   Count count;
   Size size;
@@ -112,3 +114,4 @@ LoadStats &operator+=(LoadStats &s1, const LoadStats &s2);
 LostServedStats operator+(const LostServedStats &s1, const LostServedStats &s2);
 LostServedStats &operator+=(LostServedStats &s1, const LostServedStats &s2);
 
+} // namespace Simulation

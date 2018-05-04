@@ -14,8 +14,9 @@
 #include <unordered_set>
 #include <vector>
 
+namespace Simulation
+{
 using overflow_policy::OverflowPolicy;
-
 
 struct CanServeResult {
   bool recursively;
@@ -96,3 +97,5 @@ struct Group {
 
 void
 format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const Group &group);
+
+} // namespace Simulation

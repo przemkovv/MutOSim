@@ -6,6 +6,8 @@
 
 #include <fmt/ostream.h>
 
+namespace Simulation
+{
 void
 format_arg(fmt::BasicFormatter<char> &f, const char *& /* format_str */, const Load &load)
 {
@@ -20,3 +22,4 @@ format_arg(fmt::BasicFormatter<char> &f, const char *& /* format_str */, const L
         load.end_time - load.send_time);
   }
 }
+} // namespace Simulation

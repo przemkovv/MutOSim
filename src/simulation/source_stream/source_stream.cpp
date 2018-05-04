@@ -5,6 +5,9 @@
 #include "simulation/world.h"
 
 #include <fmt/ostream.h>
+
+namespace Simulation
+{
 SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc)
   : name_(name), tc_(tc)
 {
@@ -84,3 +87,4 @@ format_arg(
   // f.writer().write("[Source {} (id={:>2})]", source.world_->get_current_time(),
   // source.name_, source.id);
 }
+} // namespace Simulation

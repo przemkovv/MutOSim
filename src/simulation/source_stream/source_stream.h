@@ -6,7 +6,8 @@
 
 #include <fmt/format.h>
 #include <memory>
-
+namespace Simulation
+{
 class World;
 struct Group;
 
@@ -63,3 +64,4 @@ void format_arg(
     fmt::BasicFormatter<char> &f,
     const char *& /* format_str */,
     const SourceStream &source);
+} // namespace Simulation

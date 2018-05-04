@@ -21,7 +21,7 @@ void
 run_scenario(
     ScenarioSettings &scenario, const Duration duration, bool use_random_seed, bool quiet)
 {
-  scenario.world = std::make_unique<World>(seed(use_random_seed), duration);
+  scenario.world = std::make_unique<Simulation::World>(seed(use_random_seed), duration);
   auto &world = *scenario.world;
   world.set_topology(scenario.topology);
 

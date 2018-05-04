@@ -4,6 +4,8 @@
 
 #include <fmt/ostream.h>
 
+namespace Simulation
+{
 EngsetSourceStream::EngsetSourceStream(
     const SourceName &name, const TrafficClass &tc, Count sources_number)
   : SourceStream(name, tc), sources_number_(sources_number)
@@ -88,3 +90,4 @@ format_arg(
       source.tc_.serve_intensity,
       (source.sources_number_ - source.active_sources_) * source.tc_.serve_intensity);
 }
+} // namespace Simulation

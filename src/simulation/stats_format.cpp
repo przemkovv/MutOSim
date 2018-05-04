@@ -1,7 +1,10 @@
 
 #include "stats_format.h"
+
 #include <fmt/ostream.h>
 
+namespace Simulation
+{
 void
 format_arg(
     fmt::BasicFormatter<char> &f,
@@ -84,3 +87,4 @@ format_arg(
   }
 }
 
+} // namespace Simulation

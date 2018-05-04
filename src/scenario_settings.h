@@ -6,7 +6,10 @@
 #include <functional>
 #include <nlohmann/json.hpp>
 
+namespace Simulation
+{
 class World;
+}
 
 struct ScenarioSettings {
   Name name;
@@ -15,13 +18,13 @@ struct ScenarioSettings {
 
   std::string filename = "";
 
-  Topology topology{};
+  Simulation::Topology topology{};
   nlohmann::json json{};
 
   std::function<void()> do_before = nullptr;
   std::function<void()> do_after = nullptr;
 
-  std::unique_ptr<World> world{};
+  std::unique_ptr<Simulation::World> world{};
 };
 
 uint64_t seed(bool use_random_seed);

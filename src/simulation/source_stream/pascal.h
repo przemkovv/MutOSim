@@ -6,6 +6,8 @@
 #include <random>
 #include <unordered_map>
 
+namespace Simulation
+{
 class PascalSourceStream : public SourceStream
 {
   Count sources_number_;
@@ -43,3 +45,4 @@ void format_arg(
     fmt::BasicFormatter<char> &f,
     const char *&format_str,
     const PascalSourceStream &source);
+} // namespace Simulation

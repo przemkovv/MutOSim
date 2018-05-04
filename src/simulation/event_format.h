@@ -3,6 +3,8 @@
 
 #include <fmt/format.h>
 
+namespace Simulation
+{
 void format_arg(
     fmt::BasicFormatter<char> &f,
     const char *&format_str,
@@ -23,3 +25,4 @@ format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const Event &e
 
 void format_arg(
     fmt::BasicFormatter<char> &f, const char *& /* format_str */, const EventType &type);
+} // namespace Simulation

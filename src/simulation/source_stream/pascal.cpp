@@ -9,6 +9,8 @@
 #include <fmt/ostream.h>
 #include <optional>
 
+namespace Simulation
+{
 PascalSourceStream::PascalSourceStream(
     const SourceName &name, const TrafficClass &tc, Count sources_number)
   : SourceStream(name, tc), sources_number_(sources_number)
@@ -197,3 +199,4 @@ format_arg(
       source.linked_sources_.size(),
       source.tc_.source_intensity);
 }
+} // namespace Simulation

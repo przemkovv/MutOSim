@@ -13,10 +13,11 @@ prepare_scenario_global_A(const Config::Topology &config, Intensity A)
 
   auto &topology = sim_settings.topology;
   for (const auto &[name, group] : config.groups) {
-    auto &g = topology.add_group(std::make_unique<Group>(name, group.capacity));
+    auto &g =
+        topology.add_group(std::make_unique<Simulation::Group>(name, group.capacity));
 
     g.set_overflow_policy(
-        overflow_policy::make_overflow_policy(group.overflow_policy, g));
+        Simulation::overflow_policy::make_overflow_policy(group.overflow_policy, g));
 
     for (const auto &tcs : group.traffic_classess_settings) {
       for (const auto &cr : tcs.second.compression_ratios) {
@@ -49,7 +50,7 @@ prepare_scenario_global_A(const Config::Topology &config, Intensity A)
 
   for (const auto &source : config.sources) {
     auto &tc = topology.get_traffic_class(source.tc_id);
-    topology.add_source(create_stream(source.type, source, tc));
+    topology.add_source(Simulation::create_stream(source.type, source, tc));
     topology.attach_source_to_group(source.name, source.attached);
   }
 
@@ -64,10 +65,10 @@ prepare_scenario_local_group_A(const Config::Topology &config, Intensity A)
 
   auto &topology = sim_settings.topology;
   for (const auto &[name, config_group] : config.groups) {
-    auto &group = topology.add_group(
-        std::make_unique<Group>(name, config_group.capacity, config_group.layer));
-    group.set_overflow_policy(
-        overflow_policy::make_overflow_policy(config_group.overflow_policy, group));
+    auto &group = topology.add_group(std::make_unique<Simulation::Group>(
+        name, config_group.capacity, config_group.layer));
+    group.set_overflow_policy(Simulation::overflow_policy::make_overflow_policy(
+        config_group.overflow_policy, group));
 
     for (const auto &tcs : config_group.traffic_classess_settings) {
       for (const auto &cr : tcs.second.compression_ratios) {
@@ -108,7 +109,7 @@ prepare_scenario_local_group_A(const Config::Topology &config, Intensity A)
         cfg_tc.size,
         cfg_tc.max_path_length);
 
-    topology.add_source(create_stream(source.type, source, tc));
+    topology.add_source(Simulation::create_stream(source.type, source, tc));
     topology.attach_source_to_group(source.name, source.attached);
 
     traffic_intensity +=

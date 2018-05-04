@@ -9,6 +9,8 @@
 
 #include <nlohmann/json.hpp>
 
+namespace Simulation
+{
 World::World(uint64_t seed, Duration duration) : seed_(seed), duration_(duration)
 {
   // print("[World] {:=^100}\n", " New world ");
@@ -177,3 +179,4 @@ format_arg(
 {
   f.writer().write("t={} [World]", world.get_current_time());
 }
+} // namespace Simulation

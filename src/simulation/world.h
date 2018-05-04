@@ -12,6 +12,8 @@
 #include <queue>
 #include <random>
 
+namespace Simulation
+{
 struct Group;
 class SourceStream;
 
@@ -64,3 +66,4 @@ public:
 
 void
 format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const World &world);
+} // namespace Simulation
