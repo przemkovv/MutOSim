@@ -16,8 +16,6 @@
 
 namespace Simulation
 {
-using overflow_policy::OverflowPolicy;
-
 struct CanServeResult {
   bool recursively;
   bool local;
@@ -39,7 +37,7 @@ struct Group {
   World *world_ = nullptr;
   const TrafficClasses *traffic_classes_{};
   std::vector<Group *> next_groups_{};
-  std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy_;
+  std::unique_ptr<OverflowPolicy> overflow_policy_;
 
   boost::container::flat_map<TrafficClassId, CompressionRatios> tcs_compression_{};
   std::unordered_set<TrafficClassId> tcs_block_{};

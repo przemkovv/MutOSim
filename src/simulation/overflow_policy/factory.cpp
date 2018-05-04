@@ -6,12 +6,9 @@
 
 namespace Simulation
 {
-namespace overflow_policy
-{
-std::unique_ptr<overflow_policy::OverflowPolicy>
+std::unique_ptr<OverflowPolicy>
 make_overflow_policy(std::optional<std::string_view> name, Group &group)
 {
-  using namespace overflow_policy;
   using namespace std::literals;
   if (name) {
     if (name == "random_available"sv) {
@@ -40,5 +37,4 @@ make_overflow_policy(std::optional<std::string_view> name, Group &group)
   return std::make_unique<Default>(group);
 }
 
-} // namespace overflow_policy
 } // namespace Simulation

@@ -25,3 +25,5 @@ let g:neomake_cpp_enabled_makers =['clangtidy', 'clangcheck']
 
 let g:clang_compilation_database = "build/"
 
+let $FZF_DEFAULT_COMMAND = 'ag --ignore data -g ""'
+

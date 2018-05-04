@@ -10,8 +10,6 @@
 
 namespace Simulation
 {
-namespace overflow_policy
-{
 OverflowPolicy::OverflowPolicy(Group &group) : group_(&group)
 {
 }
@@ -188,5 +186,4 @@ LowestFreeCapacity::find_next_group(const Load &load)
   return fallback_policy();
 }
 
-} // namespace overflow_policy
-}
+} // namespace Simulation

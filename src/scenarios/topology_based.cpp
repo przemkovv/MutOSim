@@ -16,8 +16,7 @@ prepare_scenario_global_A(const Config::Topology &config, Intensity A)
     auto &g =
         topology.add_group(std::make_unique<Simulation::Group>(name, group.capacity));
 
-    g.set_overflow_policy(
-        Simulation::overflow_policy::make_overflow_policy(group.overflow_policy, g));
+    g.set_overflow_policy(Simulation::make_overflow_policy(group.overflow_policy, g));
 
     for (const auto &tcs : group.traffic_classess_settings) {
       for (const auto &cr : tcs.second.compression_ratios) {
@@ -67,8 +66,8 @@ prepare_scenario_local_group_A(const Config::Topology &config, Intensity A)
   for (const auto &[name, config_group] : config.groups) {
     auto &group = topology.add_group(std::make_unique<Simulation::Group>(
         name, config_group.capacity, config_group.layer));
-    group.set_overflow_policy(Simulation::overflow_policy::make_overflow_policy(
-        config_group.overflow_policy, group));
+    group.set_overflow_policy(
+        Simulation::make_overflow_policy(config_group.overflow_policy, group));
 
     for (const auto &tcs : config_group.traffic_classess_settings) {
       for (const auto &cr : tcs.second.compression_ratios) {

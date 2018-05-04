@@ -12,8 +12,6 @@ struct Group;
 struct Load;
 class World;
 
-namespace overflow_policy
-{
 class OverflowPolicy;
 class NoOverflow;
 class AlwaysFirst;
@@ -99,5 +97,4 @@ public:
   std::optional<Group *> find_next_group(const Load &load) override;
 };
 
-} // namespace overflow_policy
 } // namespace Simulation

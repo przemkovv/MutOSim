@@ -19,7 +19,7 @@ Group::Group(GroupName name, Capacity capacity, Layer layer)
   : name_(std::move(name)),
     capacity_(capacity),
     layer_(layer),
-    overflow_policy_(overflow_policy::make_overflow_policy("default", *this))
+    overflow_policy_(make_overflow_policy("default", *this))
 {
   ASSERT(
       layer_ < MaxLayersNumber,
@@ -61,8 +61,7 @@ Group::set_traffic_classes(const TrafficClasses &traffic_classes)
 }
 
 void
-Group::set_overflow_policy(
-    std::unique_ptr<overflow_policy::OverflowPolicy> overflow_policy)
+Group::set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy)
 {
   overflow_policy_ = std::move(overflow_policy);
 }
@@ -139,7 +138,7 @@ Group::update_unblock_stat(const Load &load)
     } else if (recursive) {
       unblock_recursive(tc.id, load);
     }
-    assert(path.size() == 0 /*load.path.size() */);
+    ASSERT(path.size() == 0 /*load.path.size() */, "Path should be empty.");
   }
 }
 void
@@ -154,7 +153,7 @@ Group::update_block_stat(const Load &load)
       block_recursive(tc.id, load);
       block(tc.id, load);
     }
-    assert(path.size() == 0 /*load.path.size() */);
+    ASSERT(path.size() == 0 /*load.path.size() */, "Path should be empty.");
   }
 }
 void
