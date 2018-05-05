@@ -1,6 +1,7 @@
 
 #include "mutosim.h"
 
+#include "cli_options.h"
 #include "logger.h"
 #include "model/analytical.h"
 #include "scenarios/simple.h"
@@ -12,6 +13,7 @@
 #include "topology_parser.h"
 #include "traffic_class.h"
 #include "types.h"
+#include "utils.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -47,80 +49,9 @@ print_state(const std::vector<bool> &states)
 }
 
 //----------------------------------------------------------------------
-
-CLI
-parse_args(const boost::program_options::variables_map &vm)
-{
-  CLI cli;
-  cli.help = vm.count("help") > 0;
-  cli.use_random_seed = vm["random"].as<bool>();
-  cli.quiet = vm.count("quiet") > 0;
-  cli.output_file = vm["output-file"].as<std::string>();
-  cli.output_dir = vm["output-dir"].as<std::string>();
-  cli.parallel = vm["parallel"].as<bool>();
-  cli.duration = Duration{vm["duration"].as<time_type>()};
-  cli.A_start = Intensity{vm["start"].as<intensity_t>()};
-  cli.A_stop = Intensity{vm["stop"].as<intensity_t>()};
-  cli.A_step = Intensity{vm["step"].as<intensity_t>()};
-  cli.count = vm["count"].as<int>();
-  cli.analytical = vm["analytical"].as<bool>();
-
-  cli.append_scenario_files = [&vm]() -> std::vector<std::string> {
-    if (vm.count("append-scenario-files") > 0) {
-      return vm["append-scenario-files"].as<std::vector<std::string>>();
-    }
-    return {};
-  }();
-  cli.scenario_files = [&vm]() -> std::vector<std::string> {
-    if (vm.count("scenario-file") > 0) {
-      return vm["scenario-file"].as<std::vector<std::string>>();
-    }
-    return {};
-  }();
-  cli.scenarios_dirs = [&vm]() -> std::vector<std::string> {
-    if (vm.count("scenarios-dir") > 0) {
-      return vm["scenarios-dir"].as<std::vector<std::string>>();
-    }
-    return {};
-  }();
-  return cli;
-}
-
-//----------------------------------------------------------------------
-boost::program_options::options_description
-prepare_options_description()
-{
-  namespace po = boost::program_options;
-  /* clang-format off */
-  po::options_description desc("Allowed options");
-  desc.add_options()
-    ("help", "produce help message")
-    ("scenario-file,f", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
-                        "a file with scenario")
-    ("append-scenario-files,a", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
-                        "a file with a patch scenario that will be merge after the main scenario")
-    ("scenarios-dir,I", po::value<std::vector<std::string>>()->multitoken()->zero_tokens(),
-                        "a directories with scenario files")
-    ("output-file,o", po::value<std::string>()->default_value(""),
-                        "output file with stats")
-    ("output-dir,d", po::value<std::string>()->default_value(""),
-                        "output directory")
-    ("duration,t", po::value<time_type>()->default_value(100'000), "duration of the simulation")
-    ("parallel,p", po::value<bool>()->default_value(true), "run simulations in parallel")
-    ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group (included)")
-    ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group (not included)")
-    ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group")
-    ("count,c", po::value<int>()->default_value(1), "number of repeats of each scenario")
-    ("quiet,q", po::value<bool>()->default_value(false), "do not print stats")
-    ("analytical", po::value<bool>()->default_value(false), "Run analytical model")
-    ("random,r",  po::value<bool>()->default_value(false), "use random seed");
-  /* clang-format on */
-  return desc;
-}
-
 //----------------------------------------------------------------------
 nlohmann::json
-run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
+run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 {
   nlohmann::json global_stats = {};
   std::vector<bool> scenarios_state(scenarios.size());
@@ -134,7 +65,7 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
     nlohmann::json analytical_stats;
-    if (cli.analytical) {
+    if (contains(cli.modes, Mode::Analytic)) {
       analytical_stats = Model::analytical_computations2(scenarios[i]);
     }
     run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
@@ -190,7 +121,7 @@ void
 load_scenarios_from_files(
     std::vector<ScenarioSettings> &scenarios,
     const std::vector<std::string> &scenario_files,
-    const CLI &cli)
+    const CLIOptions &cli)
 {
   for (const auto &scenario_file : scenario_files) {
     const auto [topology, topology_json] =
@@ -219,7 +150,7 @@ load_scenarios_from_files(
 //----------------------------------------------------------------------
 
 void
-prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLI &cli)
+prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 {
   if ((false)) {
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
@@ -349,13 +280,14 @@ main(int argc, char *argv[])
     po::notify(vm);
   }
 
-  const CLI cli = parse_args(vm);
+  const auto cli = parse_args(vm);
 
   if (cli.help) {
     print("{}", desc);
     return 0;
   }
-  if (cli.analytical) {
+  println("{}", cli.modes);
+  if (contains(cli.modes, Mode::Analytic)) {
     Model::analytical_computations(ScenarioSettings{});
   }
 
