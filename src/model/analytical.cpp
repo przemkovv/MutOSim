@@ -14,7 +14,7 @@
 namespace Model
 {
 void
-analytical_computations(const ScenarioSettings & /* scenario_settings */)
+analytical_computations_hardcoded()
 {
   std::vector<IncomingRequestStream> traffic_classes1;
   traffic_classes1.emplace_back(
@@ -37,8 +37,8 @@ analytical_computations(const ScenarioSettings & /* scenario_settings */)
 
   println("{}", g0.get_outgoing_request_streams());
 }
-nlohmann::json
-analytical_computations2(const ScenarioSettings &scenario_settings)
+void
+analytical_computations(ScenarioSettings &scenario_settings)
 {
   const auto &topology = scenario_settings.topology;
 
@@ -78,19 +78,18 @@ analytical_computations2(const ScenarioSettings &scenario_settings)
     }
   }
 
-  nlohmann::json stats;
+  auto &stats = scenario_settings.stats;
   for (const auto &[layer, groups_ptrs] : groups_layers) {
     for (const auto &[group_name, group_ptr] : groups_ptrs) {
       auto &group_stats = stats[get(group_name)];
-      println("Layer {}, Group {}: ", layer, group_name);
-      println("{}", group_ptr->get_outgoing_request_streams());
+      debug_println("Layer {}, Group {}: ", layer, group_name);
+      debug_println("{}", group_ptr->get_outgoing_request_streams());
       for (const auto &out_stream : group_ptr->get_outgoing_request_streams()) {
         auto &j_tc = group_stats[std::to_string(get(out_stream.tc.id))];
         j_tc["P_block"] = get(out_stream.blocking_probability);
       }
     }
   }
-  return stats;
 }
 
 } // namespace Model

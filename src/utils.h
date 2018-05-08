@@ -4,6 +4,7 @@
 #include "config.h"
 
 #include <algorithm>
+#include <nlohmann/json_fwd.hpp>
 #include <random>
 #include <range/v3/algorithm/count_if.hpp>
 #include <range/v3/algorithm/find.hpp>
@@ -41,3 +42,4 @@ count_same_layer_groups(const GroupsContainer &path, Layer layer)
       path, [layer](const auto &group_ptr) { return group_ptr->layer_ == layer; });
 }
 
+nlohmann::json concatenate(nlohmann::json target, const nlohmann::json &patch);

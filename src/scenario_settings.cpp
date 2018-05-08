@@ -4,6 +4,7 @@
 #include "simulation/group.h"
 #include "simulation/source_stream/source_stream.h"
 #include "simulation/world.h"
+#include "utils.h"
 
 #include <random>
 
@@ -33,4 +34,19 @@ run_scenario(
   if (scenario.do_after) {
     scenario.do_after();
   }
+
+  scenario.stats = world.get_stats();
+}
+
+void
+append_stats(nlohmann::json &target, const ScenarioSettings &scenario)
+{
+  target = concatenate(target, scenario.stats);
+  // switch (scenario.mode) {
+  // case Mode::Simulation:
+  // scenario.world->append_stats(scenario_stats);
+  // break;
+  // case Mode::Analytic:
+  // break;
+  // }
 }

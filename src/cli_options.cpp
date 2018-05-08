@@ -56,15 +56,29 @@ prepare_options_description()
                         "output file with stats")
     ("output-dir,d", po::value<std::string>()->default_value(""),
                         "output directory")
-    ("duration,t", po::value<time_type>()->default_value(100'000), "duration of the simulation")
-    ("parallel,p", po::value<bool>()->default_value(true), "run simulations in parallel")
-    ("start", po::value<intensity_t>()->default_value(0.5L), "starting intensity per group (included)")
-    ("stop", po::value<intensity_t>()->default_value(3.0L), "end intensity per group (not included)")
-    ("step", po::value<intensity_t>()->default_value(0.5L), "step intensity per group")
-    ("count,c", po::value<int>()->default_value(1), "number of repeats of each scenario")
-    ("quiet,q", po::value<bool>()->default_value(false), "do not print stats")
-    ("mode,m", po::value<Modes>()->multitoken()->default_value(Modes{Mode::Simulation})->zero_tokens(), "Run analytical model")
-    ("random,r",  po::value<bool>()->default_value(false), "use random seed");
+    ("duration,t", po::value<time_type>()->default_value(100'000), 
+                        "duration of the simulation")
+    ("parallel,p", po::value<bool>()->default_value(true), 
+                        "run simulations in parallel")
+    ("start", po::value<intensity_t>()->default_value(0.5L), 
+                        "starting intensity per group (included)")
+    ("stop", po::value<intensity_t>()->default_value(3.0L), 
+                        "end intensity per group (not included)")
+    ("step", po::value<intensity_t>()->default_value(0.5L), 
+                        "step intensity per group")
+    ("count,c", po::value<int>()->default_value(1), 
+                        "number of repeats of each scenario")
+    ("quiet,q", po::value<bool>()->default_value(false), 
+                        "do not print stats")
+    ("mode,m", po::value<Modes>()->multitoken()
+                                 ->default_value(Modes{Mode::Simulation})
+                                 ->zero_tokens(),
+                        "Selects mode in which run simulation:\n"
+                        " - analytic\n"
+                        " - simulation\n"
+                        "Pararameter can be repeated")
+    ("random,r",  po::value<bool>()->default_value(false), 
+                        "use random seed");
   /* clang-format on */
   return desc;
 }

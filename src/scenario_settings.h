@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cli_options.h"
 #include "topology.h"
 #include "types.h"
 
@@ -18,8 +19,11 @@ struct ScenarioSettings {
 
   std::string filename = "";
 
+  Mode mode{Mode::Analytic};
+
   Simulation::Topology topology{};
   nlohmann::json json{};
+  nlohmann::json stats{};
 
   std::function<void()> do_before = nullptr;
   std::function<void()> do_after = nullptr;
@@ -33,3 +37,5 @@ void run_scenario(
     const Duration duration,
     bool use_random_seed,
     bool quiet);
+
+void append_stats(nlohmann::json &target, const ScenarioSettings &scenario);

@@ -65,10 +65,16 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
   for (auto i = 0ul; i < scenarios.size(); ++i) {
     nlohmann::json analytical_stats;
-    if (contains(cli.modes, Mode::Analytic)) {
-      analytical_stats = Model::analytical_computations2(scenarios[i]);
+    switch (scenarios[i].mode) {
+    case Mode::Simulation: {
+      run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
+      break;
     }
-    run_scenario(scenarios[i], cli.duration, cli.use_random_seed, true);
+    case Mode::Analytic: {
+      Model::analytical_computations(scenarios[i]);
+      break;
+    }
+    }
 
     auto A_str = std::to_string(ts::get(scenarios[i].A));
     auto filename = scenarios[i].filename;
@@ -78,12 +84,10 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
         global_stats[filename]["_scenario"] = scenarios[i].json;
       }
       auto &scenario_stats = global_stats[filename][A_str];
-      scenarios[i].world->append_stats(scenario_stats);
+      append_stats(scenario_stats, scenarios[i]);
+      // scenarios[i].world->append_stats(scenario_stats);
       scenario_stats["_a"] = ts::get(scenarios[i].a);
       scenario_stats["_A"] = ts::get(scenarios[i].A);
-      if (!analytical_stats.empty()) {
-        scenario_stats["_analytical"] = analytical_stats;
-      }
 
       scenarios_state[i] = true;
       print_state(scenarios_state);
@@ -128,10 +132,31 @@ load_scenarios_from_files(
         Config::parse_topology_config(scenario_file, cli.append_scenario_files);
     // Config::dump(topology);
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step) {
-      for (int i = 0; i < cli.count; ++i) {
+      if (contains(cli.modes, Mode::Simulation)) {
+        // TODO(PW): get rid of duplicated code
+        for (int i = 0; i < cli.count; ++i) {
+          auto &scenario =
+              scenarios.emplace_back(prepare_scenario_local_group_A(topology, A));
+          scenario.name += fmt::format(" A={}", A);
+          scenario.mode = Mode::Simulation;
+
+          std::string filename = scenario_file;
+          auto &appended_filenames = cli.append_scenario_files;
+          if (!appended_filenames.empty()) {
+            filename = fmt::format(
+                "{};{}",
+                scenario_file,
+                fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
+          }
+          scenario.filename = filename;
+          scenario.json = topology_json;
+        }
+      }
+      if (contains(cli.modes, Mode::Analytic)) {
         auto &scenario =
             scenarios.emplace_back(prepare_scenario_local_group_A(topology, A));
-        scenario.name += fmt::format(" A={}", A);
+        scenario.name += fmt::format(" analytic A={}", A);
+        scenario.mode = Mode::Analytic;
 
         std::string filename = scenario_file;
         auto &appended_filenames = cli.append_scenario_files;
@@ -141,7 +166,7 @@ load_scenarios_from_files(
               scenario_file,
               fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
         }
-        scenario.filename = filename;
+        scenario.filename = filename + fmt::format(";analytic");
         scenario.json = topology_json;
       }
     }
@@ -272,7 +297,6 @@ main(int argc, char *argv[])
   p.add("scenario-file", -1);
 
   po::variables_map vm;
-  // po::store(po::parse_command_line(argc, argv, desc), vm);
   {
     po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
     std::ifstream cfg_file{"mutosim.cfg"};
@@ -286,10 +310,7 @@ main(int argc, char *argv[])
     print("{}", desc);
     return 0;
   }
-  println("{}", cli.modes);
-  if (contains(cli.modes, Mode::Analytic)) {
-    Model::analytical_computations(ScenarioSettings{});
-  }
+  println("Modes: {}", cli.modes);
 
   if (!std::all_of(
           begin(cli.scenario_files),
