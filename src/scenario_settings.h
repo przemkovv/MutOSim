@@ -20,6 +20,7 @@ struct ScenarioSettings {
   std::string filename = "";
 
   Mode mode{Mode::Analytic};
+  AnalyticModel analytic_model{};
 
   Simulation::Topology topology{};
   nlohmann::json json{};

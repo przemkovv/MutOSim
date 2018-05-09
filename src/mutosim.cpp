@@ -71,7 +71,7 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
       break;
     }
     case Mode::Analytic: {
-      Model::analytical_computations(scenarios[i], true);
+      Model::analytical_computations(scenarios[i]);
       break;
     }
     }
@@ -84,7 +84,8 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
         global_stats[filename]["_scenario"] = scenarios[i].json;
       }
       auto &scenario_stats = global_stats[filename][A_str];
-      append_stats(scenario_stats, scenarios[i]);
+      scenario_stats = concatenate(scenario_stats, scenarios[i].stats);
+      // append_stats(scenario_stats, scenarios[i]);
       scenario_stats["_a"] = ts::get(scenarios[i].a);
       scenario_stats["_A"] = ts::get(scenarios[i].A);
 
@@ -152,21 +153,24 @@ load_scenarios_from_files(
         }
       }
       if (contains(cli.modes, Mode::Analytic)) {
-        auto &scenario =
-            scenarios.emplace_back(prepare_scenario_local_group_A(topology, A));
-        scenario.name += fmt::format(" analytic A={}", A);
-        scenario.mode = Mode::Analytic;
+        for (const auto &model : cli.analytic_models) {
+          auto &scenario =
+              scenarios.emplace_back(prepare_scenario_local_group_A(topology, A));
+          scenario.name += fmt::format(" analytic A={}", A);
+          scenario.mode = Mode::Analytic;
+          scenario.analytic_model = model;
 
-        std::string filename = scenario_file;
-        auto &appended_filenames = cli.append_scenario_files;
-        if (!appended_filenames.empty()) {
-          filename = fmt::format(
-              "{};{}",
-              scenario_file,
-              fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
+          std::string filename = scenario_file;
+          auto &appended_filenames = cli.append_scenario_files;
+          if (!appended_filenames.empty()) {
+            filename = fmt::format(
+                "{};{}",
+                scenario_file,
+                fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
+          }
+          scenario.filename = filename + fmt::format(";analytic;{}", model);
+          scenario.json = topology_json;
         }
-        scenario.filename = filename + fmt::format(";analytic");
-        scenario.json = topology_json;
       }
     }
   }

@@ -9,6 +9,8 @@
 
 namespace ts = type_safe;
 
+constexpr long double epsilon = 0.00000001L;
+
 using uuid_t = uint64_t;
 using name_t = std::string;
 
@@ -182,6 +184,13 @@ struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
   }
 };
 
+constexpr bool
+operator==(const Intensity &intensity1, const Intensity &intensity2)
+{
+  return (get(intensity1) + epsilon) > get(intensity2) &&
+         (get(intensity1) - epsilon) < get(intensity2);
+}
+
 constexpr auto
 operator/(const IntensitySize &intensity, const Size &size)
 {
@@ -301,6 +310,7 @@ struct MeanIntensity : ts::strong_typedef<MeanIntensity, intensity_t>,
 
 struct Peakness : ts::strong_typedef<Peakness, stat_t>,
                   ts::strong_typedef_op::addition<Peakness>,
+                  ts::strong_typedef_op::relational_comparison<Peakness>,
                   ts::strong_typedef_op::output_operator<Peakness> {
   using strong_typedef::strong_typedef;
 };

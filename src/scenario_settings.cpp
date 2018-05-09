@@ -42,11 +42,4 @@ void
 append_stats(nlohmann::json &target, const ScenarioSettings &scenario)
 {
   target = concatenate(target, scenario.stats);
-  // switch (scenario.mode) {
-  // case Mode::Simulation:
-  // scenario.world->append_stats(scenario_stats);
-  // break;
-  // case Mode::Analytic:
-  // break;
-  // }
 }

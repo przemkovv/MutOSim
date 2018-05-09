@@ -58,9 +58,13 @@ Topology::add_traffic_class(
   auto [it, inserted] = traffic_classes.emplace(
       id, TrafficClass{id, source_intensity, serve_intensity, size, max_path_length});
 
-  if (!inserted) {
-    println("[Topology] Traffic class with id {} already exists.", id);
-  }
+  ASSERT(
+      inserted || (!inserted &&
+                   it->second ==
+                       TrafficClass{
+                           id, source_intensity, serve_intensity, size, max_path_length}),
+      "[Topology] Traffic class with id {} already exists.",
+      id);
   return it->second;
 }
 

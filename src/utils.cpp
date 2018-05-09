@@ -11,7 +11,9 @@ concatenate(nlohmann::json target, const nlohmann::json &patch)
       target = {};
     }
     for (auto it = patch.begin(); it != patch.end(); ++it) {
-      if (it.value().is_null()) {
+      if (target.is_null() && it.value().is_null()) {
+      }
+      else if (it.value().is_null()) {
         target.erase(it.key());
       } else {
         target[it.key()] = concatenate(target[it.key()], it.value());

@@ -52,8 +52,8 @@ analytical_computations(ScenarioSettings &scenario_settings, bool assume_fixed_c
         group->next_groups().size() <= 1,
         "The current model doesn't support forwarding traffic to more than one next "
         "groups.");
-    auto [group_it, inserted] =
-        groups.emplace(group_name, Model::Group{group->capacity(), assume_fixed_capacity});
+    auto [group_it, inserted] = groups.emplace(
+        group_name, Model::Group{group->capacity(), assume_fixed_capacity});
 
     for (const auto &next_group : group->next_groups()) {
       group_it->second.add_next_group(next_group->name());
@@ -86,9 +86,21 @@ analytical_computations(ScenarioSettings &scenario_settings, bool assume_fixed_c
       debug_println("{}", group_ptr->get_outgoing_request_streams());
       for (const auto &out_stream : group_ptr->get_outgoing_request_streams()) {
         auto &j_tc = group_stats[std::to_string(get(out_stream.tc.id))];
-        j_tc["P_block"] = get(out_stream.blocking_probability);
+        j_tc["P_block"].push_back(get(out_stream.blocking_probability));
       }
     }
+  }
+}
+void
+analytical_computations(ScenarioSettings &scenario_settings)
+{
+  switch (scenario_settings.analytic_model) {
+  case AnalyticModel::KaufmanRobertsFixedReqSize:
+    analytical_computations(scenario_settings, false);
+    return;
+  case AnalyticModel::KaufmanRobbertFixedCapacity:
+    analytical_computations(scenario_settings, true);
+    return;
   }
 }
 
