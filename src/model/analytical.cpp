@@ -23,14 +23,14 @@ analytical_computations_hardcoded()
       TrafficClass{TrafficClassId{2}, Intensity{10.0L}, Intensity{1.0L}, Size{2}, {}});
   traffic_classes1.emplace_back(
       TrafficClass{TrafficClassId{3}, Intensity{3.33333L}, Intensity{1.0L}, Size{6}, {}});
-  Model::Group g1{Capacity{60}};
-  Model::Group g2{Capacity{60}};
-  Model::Group g3{Capacity{60}};
+  Model::Group g1{Capacity{60}, false};
+  Model::Group g2{Capacity{60}, false};
+  Model::Group g3{Capacity{60}, false};
   g1.add_incoming_request_streams(traffic_classes1);
   g2.add_incoming_request_streams(traffic_classes1);
   g3.add_incoming_request_streams(traffic_classes1);
 
-  Model::Group g0{Capacity{42}};
+  Model::Group g0{Capacity{42}, false};
   g0.add_incoming_request_streams(g1.get_outgoing_request_streams());
   g0.add_incoming_request_streams(g2.get_outgoing_request_streams());
   g0.add_incoming_request_streams(g3.get_outgoing_request_streams());
@@ -38,7 +38,7 @@ analytical_computations_hardcoded()
   println("{}", g0.get_outgoing_request_streams());
 }
 void
-analytical_computations(ScenarioSettings &scenario_settings)
+analytical_computations(ScenarioSettings &scenario_settings, bool assume_fixed_capacity)
 {
   const auto &topology = scenario_settings.topology;
 
@@ -53,7 +53,7 @@ analytical_computations(ScenarioSettings &scenario_settings)
         "The current model doesn't support forwarding traffic to more than one next "
         "groups.");
     auto [group_it, inserted] =
-        groups.emplace(group_name, Model::Group{group->capacity()});
+        groups.emplace(group_name, Model::Group{group->capacity(), assume_fixed_capacity});
 
     for (const auto &next_group : group->next_groups()) {
       group_it->second.add_next_group(next_group->name());

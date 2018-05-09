@@ -5,6 +5,41 @@
 #include <iostream>
 
 std::istream &
+operator>>(std::istream &in, AnalyticModel &model)
+{
+  std::string token;
+  in >> token;
+  if (token == "KRFixedCapacity") {
+    model = AnalyticModel::KaufmanRobbertFixedCapacity;
+  } else if (token == "KRFixedReqSize") {
+    model = AnalyticModel::KaufmanRobertsFixedReqSize;
+  } else {
+    throw boost::program_options::validation_error(
+        boost::program_options::validation_error::invalid_option_value,
+        "Invalid AnalyticModel");
+  }
+  return in;
+}
+std::ostream &
+operator<<(std::ostream &out, const AnalyticModel &model)
+{
+  switch (model) {
+  case AnalyticModel::KaufmanRobbertFixedCapacity:
+    return out << "KRFixedCapacity";
+  case AnalyticModel::KaufmanRobertsFixedReqSize:
+    return out << "KRFixedReqSize";
+  }
+}
+std::ostream &
+operator<<(std::ostream &out, const AnalyticModels &models)
+{
+  for (const auto &model : models) {
+    out << model << "; ";
+  }
+  return out;
+}
+
+std::istream &
 operator>>(std::istream &in, Mode &mode)
 {
   std::string token;
@@ -33,7 +68,7 @@ std::ostream &
 operator<<(std::ostream &out, const Modes &modes)
 {
   for (const auto &mode : modes) {
-    out << mode << " ";
+    out << mode << "; ";
   }
   return out;
 }
@@ -56,19 +91,19 @@ prepare_options_description()
                         "output file with stats")
     ("output-dir,d", po::value<std::string>()->default_value(""),
                         "output directory")
-    ("duration,t", po::value<time_type>()->default_value(100'000), 
+    ("duration,t", po::value<time_type>()->default_value(100'000),
                         "duration of the simulation")
-    ("parallel,p", po::value<bool>()->default_value(true), 
+    ("parallel,p", po::value<bool>()->default_value(true),
                         "run simulations in parallel")
-    ("start", po::value<intensity_t>()->default_value(0.5L), 
+    ("start", po::value<intensity_t>()->default_value(0.5L),
                         "starting intensity per group (included)")
-    ("stop", po::value<intensity_t>()->default_value(3.0L), 
+    ("stop", po::value<intensity_t>()->default_value(3.0L),
                         "end intensity per group (not included)")
-    ("step", po::value<intensity_t>()->default_value(0.5L), 
+    ("step", po::value<intensity_t>()->default_value(0.5L),
                         "step intensity per group")
-    ("count,c", po::value<int>()->default_value(1), 
+    ("count,c", po::value<int>()->default_value(1),
                         "number of repeats of each scenario")
-    ("quiet,q", po::value<bool>()->default_value(false), 
+    ("quiet,q", po::value<bool>()->default_value(false),
                         "do not print stats")
     ("mode,m", po::value<Modes>()->multitoken()
                                  ->default_value(Modes{Mode::Simulation})
@@ -76,8 +111,14 @@ prepare_options_description()
                         "Selects mode in which run simulation:\n"
                         " - analytic\n"
                         " - simulation\n"
-                        "Pararameter can be repeated")
-    ("random,r",  po::value<bool>()->default_value(false), 
+                        "Parameter can be repeated")
+    ("analytic_model", po::value<AnalyticModels>()->multitoken()
+                                                  ->zero_tokens(),
+                        "Choose analytic models to consider:\n"
+                        " - KRFixedCapacity\n"
+                        " - KRFixedReqSize\n"
+                        "Parameter can be repeated")
+    ("random,r",  po::value<bool>()->default_value(false),
                         "use random seed");
   /* clang-format on */
   return desc;
@@ -99,7 +140,14 @@ parse_args(const boost::program_options::variables_map &vm)
   cli.A_stop = Intensity{vm["stop"].as<intensity_t>()};
   cli.A_step = Intensity{vm["step"].as<intensity_t>()};
   cli.count = vm["count"].as<int>();
-  cli.modes = vm["mode"].as<std::vector<Mode>>();
+  cli.modes = vm["mode"].as<Modes>();
+
+  cli.analytic_models = [&vm]() -> AnalyticModels {
+    if (vm.count("analytic_model") > 0) {
+      return vm["analytic_model"].as<AnalyticModels>();
+    }
+    return {};
+  }();
 
   cli.append_scenario_files = [&vm]() -> std::vector<std::string> {
     if (vm.count("append-scenario-files") > 0) {

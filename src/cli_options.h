@@ -9,12 +9,18 @@
 #include <vector>
 
 enum class Mode { Simulation, Analytic };
+enum class AnalyticModel { KaufmanRobbertFixedCapacity, KaufmanRobertsFixedReqSize };
 
 using Modes = std::vector<Mode>;
+using AnalyticModels = std::vector<AnalyticModel>;
+
 
 std::istream &operator>>(std::istream &in, Mode &mode);
 std::ostream &operator<<(std::ostream &out, const Mode &mode);
 std::ostream &operator<<(std::ostream &out, const Modes &modes);
+std::istream &operator>>(std::istream &in, AnalyticModel &model);
+std::ostream &operator<<(std::ostream &out, const AnalyticModel &model);
+std::ostream &operator<<(std::ostream &out, const AnalyticModels &models);
 
 struct CLIOptions {
   bool help = false;
@@ -28,6 +34,7 @@ struct CLIOptions {
   Intensity A_stop{};
   Intensity A_step{};
   Modes modes{};
+  AnalyticModels analytic_models{};
   int count{};
 
   std::vector<std::string> append_scenario_files{};

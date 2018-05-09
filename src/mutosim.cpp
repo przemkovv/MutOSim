@@ -71,7 +71,7 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
       break;
     }
     case Mode::Analytic: {
-      Model::analytical_computations(scenarios[i]);
+      Model::analytical_computations(scenarios[i], true);
       break;
     }
     }
@@ -85,7 +85,6 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
       }
       auto &scenario_stats = global_stats[filename][A_str];
       append_stats(scenario_stats, scenarios[i]);
-      // scenarios[i].world->append_stats(scenario_stats);
       scenario_stats["_a"] = ts::get(scenarios[i].a);
       scenario_stats["_A"] = ts::get(scenarios[i].A);
 
@@ -311,6 +310,9 @@ main(int argc, char *argv[])
     return 0;
   }
   println("Modes: {}", cli.modes);
+  if (contains(cli.modes, Mode::Analytic)) {
+    println("Analytic models: {}", cli.analytic_models);
+  }
 
   if (!std::all_of(
           begin(cli.scenario_files),

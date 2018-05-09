@@ -20,13 +20,14 @@ Group::get_outgoing_request_streams() const
                                                             rng::view::values;
     auto peakness = compute_collective_peakness(in_request_streams);
     out_request_streams_ =
-        KaufmanRobertsBlockingProbability(in_request_streams, V_, peakness, false);
+        KaufmanRobertsBlockingProbability(in_request_streams, V_, peakness, assume_fixed_capacity_);
     need_recalculate_ = false;
   }
   return out_request_streams_;
 }
 
-Group::Group(Capacity V) : V_(V)
+Group::Group(Capacity V, bool assume_fixed_capacity)
+  : V_(V), assume_fixed_capacity_(assume_fixed_capacity)
 {
 }
 

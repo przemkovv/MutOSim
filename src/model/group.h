@@ -16,13 +16,14 @@ private:
 
   mutable std::vector<OutgoingRequestStream> out_request_streams_;
   mutable bool need_recalculate_ = true;
+  const bool assume_fixed_capacity_;
 
   std::vector<GroupName> next_groups_names_;
 
 public:
   const std::vector<OutgoingRequestStream> &get_outgoing_request_streams() const;
 
-  Group(Capacity V);
+  Group(Capacity V, bool assume_fixed_capacity);
 
   template <typename RequestStream>
   void add_incoming_request_stream(const RequestStream &request_stream);

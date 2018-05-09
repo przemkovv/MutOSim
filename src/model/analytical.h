@@ -8,6 +8,7 @@ struct ScenarioSettings;
 namespace Model
 {
 void analytical_computations_hardcoded();
-void analytical_computations(ScenarioSettings &scenario_settings);
+void
+analytical_computations(ScenarioSettings &scenario_settings, bool assume_fixed_capacity);
 
 } // namespace Model
