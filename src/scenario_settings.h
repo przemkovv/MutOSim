@@ -1,12 +1,16 @@
 #pragma once
 
+#include "cli_options.h"
+#include "topology.h"
 #include "types.h"
 
-#include "topology.h"
 #include <functional>
 #include <nlohmann/json.hpp>
 
+namespace Simulation
+{
 class World;
+}
 
 struct ScenarioSettings {
   Name name;
@@ -15,18 +19,24 @@ struct ScenarioSettings {
 
   std::string filename = "";
 
-  Topology topology{};
-  nlohmann::json json{};
+  Mode mode{Mode::Analytic};
+  AnalyticModel analytic_model{};
 
+  Simulation::Topology topology{};
+  nlohmann::json json{};
+  nlohmann::json stats{};
 
   std::function<void()> do_before = nullptr;
   std::function<void()> do_after = nullptr;
 
-  std::unique_ptr<World> world{};
+  std::unique_ptr<Simulation::World> world{};
 };
 
 uint64_t seed(bool use_random_seed);
-void run_scenario(ScenarioSettings &scenario,
-                  const Duration duration,
-                  bool use_random_seed,
-                  bool quiet);
+void run_scenario(
+    ScenarioSettings &scenario,
+    const Duration duration,
+    bool use_random_seed,
+    bool quiet);
+
+void append_stats(nlohmann::json &target, const ScenarioSettings &scenario);

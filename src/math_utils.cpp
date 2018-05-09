@@ -5,7 +5,8 @@
 
 namespace Math
 {
-int64_t n_over_k(const int64_t n, const int64_t k)
+int64_t
+n_over_k(const int64_t n, const int64_t k)
 {
   if (n < 0) {
     return n_over_k(-n + k - 1, k);
