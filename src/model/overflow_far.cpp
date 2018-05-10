@@ -81,6 +81,13 @@ Variance
 compute_riordan_variance(
     MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, SizeF tc_size)
 {
+  println(
+      "Compute riordan variance: mean={}, intensity={}, finctional_capacity={}, "
+      "tc_size={}",
+      mean,
+      intensity,
+      fictional_capacity,
+      tc_size);
   return Variance{get(mean) * (get(intensity) / (get(fictional_capacity) / get(tc_size) +
                                                  1 - get(intensity) + get(mean)) +
                                1 - get(mean))};
@@ -96,6 +103,7 @@ compute_fictional_capacity(
     TrafficClassId tc_id,
     Peakness size_rescale)
 {
+  println("Compute fictional capacity: V={}, rescale={}", V, size_rescale);
   return V - rng::accumulate(
                  out_request_streams | rng::view::filter([tc_id](const auto &rs) {
                    return rs.tc.id != tc_id;
@@ -126,7 +134,7 @@ KaufmanRobertsDistribution(
       }
     }
     state[size_t(n)] /= n;
-    Math::normalizeN(state, size_t(n));
+    // Math::normalizeN(state, size_t(n));
   });
   Math::normalize(state);
   return state;
@@ -169,11 +177,15 @@ KaufmanRobertsBlockingProbability(
   for (auto &rs : out_request_streams) {
     rs.fictional_capacity =
         compute_fictional_capacity(out_request_streams, V, rs.tc.id, size_rescale);
+    println(
+        "Compute fictional capacity: V_f={}, tc_id={}", rs.fictional_capacity, rs.tc.id);
 
     rs.variance = compute_riordan_variance(
         rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size * size_rescale);
+    println("Variance: sigma={}", rs.variance);
 
     rs.peakness = rs.variance / rs.mean;
+    println("Peakedness: Z={}", rs.peakness);
   }
 
   return out_request_streams;

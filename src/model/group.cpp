@@ -20,6 +20,7 @@ Group::get_outgoing_request_streams() const
     std::vector<IncomingRequestStream> in_request_streams = in_request_streams_ |
                                                             rng::view::values;
     auto peakness = compute_collective_peakness(in_request_streams);
+    // TODO(PW): temporarily workaround
     if (!std::isfinite(get(peakness)) || peakness <= Peakness{0}) {
       out_request_streams_.clear();
       return out_request_streams_;

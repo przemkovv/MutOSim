@@ -121,8 +121,11 @@ def append_tc_stat_for_groups_by_size(tc_data_y,
         for tc_id, tc_stats in tcs_stats.items():
             size = tc_sizes[int(tc_id)]
             new_data.setdefault(size, 0)
-            if len(tc_stats[stat_name]) > 0 and tc_stats[stat_name] != [None]:
-                new_data[size] += statistics.mean(tc_stats[stat_name])
+            if len(tc_stats[stat_name]) > 0:
+                if tc_stats[stat_name] != [None]:
+                    new_data[size] += statistics.mean(tc_stats[stat_name])
+                else:
+                    new_data[size] += 0
 
         for tc_size, data in new_data.items():
             tc_series = group_y.setdefault(tc_size, [])
@@ -347,6 +350,9 @@ def main():
                     #  pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
                         #  for serie in data_y])
                     ax.set_xlim(x_min, x_max)
+                    pprint((len(tc_data_x), tc_data_x,
+                            len([statistics.mean(serie) for serie in data_y]),
+                            [statistics.mean(serie) for serie in data_y]))
                     ax.plot(tc_data_x,
                             [statistics.mean(serie) for serie in data_y],
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
