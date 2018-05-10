@@ -126,6 +126,8 @@ if (UNIX)
 endif (UNIX)
 
 option(SIM_DEBUG "Enable more detailed tracing" OFF)
+option(SINGLE_THREADED "Use only single thread" OFF)
+
 if(SIM_DEBUG)
   add_definitions(
     -DSIM_DEBUG=1
@@ -136,8 +138,19 @@ else()
     )
 endif()
 
+if(SINGLE_THREADED)
+  add_definitions(
+    -DSINGLE_THREADED=1
+    )
+else()
+  add_definitions(
+    -DSINGLE_THREADED=0
+    )
+endif()
+
+
 ADD_CUSTOM_TARGET(debug
-  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} -DSINGLE_THREADED=1 -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
   COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all -- -j3
   COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
   )
@@ -149,7 +162,7 @@ ADD_CUSTOM_TARGET(sim_debug
   )
 
 ADD_CUSTOM_TARGET(release
-  COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=0 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} -DSINGLE_THREADED=0 -DSIM_DEBUG=0 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
   COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all -- -j3
   COMMENT "Switch CMAKE_BUILD_TYPE to Release"
   )

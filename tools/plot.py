@@ -80,8 +80,10 @@ stats_name2label = {'served_u': 'Carried traffic',
                     'served': 'Carried requests',
                     'P_block': 'Blocking probability'}
 
+
 def flip(items, ncol):
     return itertools.chain(*[items[i::ncol] for i in range(ncol)])
+
 
 def cols_number(items):
     items_number = len(items)
@@ -92,6 +94,7 @@ def cols_number(items):
         return math.ceil(items_number / 2)
     else:
         return max_per_column
+
 
 def get_traffic_classes_sizes(scenario):
     tc_sizes = {}
@@ -118,7 +121,8 @@ def append_tc_stat_for_groups_by_size(tc_data_y,
         for tc_id, tc_stats in tcs_stats.items():
             size = tc_sizes[int(tc_id)]
             new_data.setdefault(size, 0)
-            new_data[size] += statistics.mean(tc_stats[stat_name])
+            if len(tc_stats[stat_name]) > 0 and tc_stats[stat_name] != [None]:
+                new_data[size] += statistics.mean(tc_stats[stat_name])
 
         for tc_size, data in new_data.items():
             tc_series = group_y.setdefault(tc_size, [])
@@ -236,8 +240,8 @@ def main():
         title += args['--name']
 
     #  rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-    ## for Palatino and other serif fonts use:
-    #rc('font',**{'family':'serif','serif':['Palatino']})
+    # for Palatino and other serif fonts use:
+    # rc('font',**{'family':'serif','serif':['Palatino']})
     #  rc('text', usetex=True)
 
     fig = plt.figure(
@@ -298,7 +302,7 @@ def main():
             # multipliers
             a = float(result["_a"])
             #  if (x_min and x_min > a) or (x_max and x_max < a):
-                #  continue
+            #  continue
             tc_data_x.append(a)
             append_tc_stat_for_groups(
                 tc_data_y, result, stat_name, tcs_served_by_groups)
@@ -420,8 +424,8 @@ def main():
                     #  .format(group_name,
                     #  scenario["groups"][group_name]["capacity"],
                 #  ax.set_title("{} {}"
-                             #  .format(group_name,
-                                     #  title_append))
+                    #  .format(group_name,
+                    #  title_append))
                 ax.set_title("{} {}"
                              .format(group_name,
                                      title_append if title_suffix == None else title_suffix))
@@ -432,7 +436,8 @@ def main():
                 plot_id += 1
                 handles, labels = ax.get_legend_handles_labels()
                 ncol = cols_number(labels)
-                ax.legend(flip(handles, ncol), flip(labels, ncol), loc=9, ncol=ncol, borderaxespad=0)
+                ax.legend(flip(handles, ncol), flip(labels, ncol),
+                          loc=9, ncol=ncol, borderaxespad=0)
                 #  ax.legend(loc=9, ncol=5, borderaxespad=0)
 
     if args['--relative-sums']:
@@ -542,7 +547,8 @@ def main():
             plot_id += 1
             handles, labels = ax.get_legend_handles_labels()
             ncol = cols_number(labels)
-            ax.legend(flip(handles, ncol), flip(labels, ncol), loc=9, ncol=ncol, borderaxespad=0)
+            ax.legend(flip(handles, ncol), flip(labels, ncol),
+                      loc=9, ncol=ncol, borderaxespad=0)
             #  ax.legend(loc=9, ncol=2, borderaxespad=0)
 
     if not args["--quiet"]:

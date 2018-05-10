@@ -62,7 +62,9 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
     return s1.a > s2.a;
   });
 
+#if !SINGLE_THREADED
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
+#endif
   for (auto i = 0ul; i < scenarios.size(); ++i) {
     nlohmann::json analytical_stats;
     switch (scenarios[i].mode) {
@@ -78,7 +80,9 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 
     auto A_str = std::to_string(ts::get(scenarios[i].A));
     auto filename = scenarios[i].filename;
+#if !SINGLE_THREADED
 #pragma omp critical
+#endif
     {
       if (global_stats.find(filename) == end(global_stats)) {
         global_stats[filename]["_scenario"] = scenarios[i].json;

@@ -126,10 +126,11 @@ KaufmanRobertsDistribution(
       }
     }
     state[size_t(n)] /= n;
+    Math::normalizeN(state, size_t(n));
   });
   Math::normalize(state);
   return state;
-}
+} // namespace Model
 
 //----------------------------------------------------------------------
 std::vector<OutgoingRequestStream>

@@ -11,42 +11,6 @@
 latex package changes
 
 
-# Publication experiments
-
- - Topologies:
-   - 3 primary groups:
-     - no mutual overflows
-     - one group mutually overflowing to other
-     - all three mutually overflowing to each other
-   - 3 primary groups, 1 secondary group
-     - no mutual overflows
-     - one group mutually overflowing to other primary groups
-     - all three mutually overflowing to each other primary group
- - Mutual overflow policies:
-   - highest capacity available
-   - lowest capacity available
-   - random available
- - Compression:
-   - no compression
-   - adaptive without modification of serve intensity
-   - adaptive with modification of serve intensity
- - Offered intensity factor for one group:
-   - 1.0
-   - 1.2
-   - 1.5
-  - nierównomierne obciążenie wiązek
-  - porównanie różnych nierównomiernych obciążeń
-  - dopasowanie rozmiarów zgłoszeń (nie 149, tylko coś związanego z UMTS)
-  - filtrowanie jaka wiązka przyjmuje jakie typ żądań
-
-  Other ideas:
-   - compare scenarios with mutual overflows and with threshold mechanisms.
-
-  Scenariusze dlaczego kompresja:
-   - kompresja jednej klasy ruchu, ale wszędzie
-   - kompresja w jednej grupie  - zostaniesz obsłużony przez kogo innego, ale z
-     kompresją
-
 # Todo
  Analytical models:
  - Wiązka z ograniczoną dostępnością 75
@@ -125,6 +89,42 @@ latex package changes
 - fix math computing
 - Service intensity per class
 - add traffic class id
+
+# Publication experiments
+
+ - Topologies:
+   - 3 primary groups:
+     - no mutual overflows
+     - one group mutually overflowing to other
+     - all three mutually overflowing to each other
+   - 3 primary groups, 1 secondary group
+     - no mutual overflows
+     - one group mutually overflowing to other primary groups
+     - all three mutually overflowing to each other primary group
+ - Mutual overflow policies:
+   - highest capacity available
+   - lowest capacity available
+   - random available
+ - Compression:
+   - no compression
+   - adaptive without modification of serve intensity
+   - adaptive with modification of serve intensity
+ - Offered intensity factor for one group:
+   - 1.0
+   - 1.2
+   - 1.5
+  - nierównomierne obciążenie wiązek
+  - porównanie różnych nierównomiernych obciążeń
+  - dopasowanie rozmiarów zgłoszeń (nie 149, tylko coś związanego z UMTS)
+  - filtrowanie jaka wiązka przyjmuje jakie typ żądań
+
+  Other ideas:
+   - compare scenarios with mutual overflows and with threshold mechanisms.
+
+  Scenariusze dlaczego kompresja:
+   - kompresja jednej klasy ruchu, ale wszędzie
+   - kompresja w jednej grupie  - zostaniesz obsłużony przez kogo innego, ale z
+     kompresją
 
 
 # Notes

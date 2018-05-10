@@ -73,6 +73,16 @@ normalize(T &container)
   std::for_each(begin(container), end(container), [sum](auto &v) { v /= sum; });
   return sum;
 }
+template <typename T>
+auto
+normalizeN(T &container, size_t N)
+{
+  using E = std::remove_reference_t<decltype(*begin(container))>;
+  auto sum = std::accumulate(begin(container), next(begin(container), ptrdiff_t(N)), E{});
+  std::for_each(
+      begin(container), next(begin(container), ptrdiff_t(N)), [sum](auto &v) { v /= sum; });
+  return sum;
+}
 
 template <typename T, typename S>
 S
