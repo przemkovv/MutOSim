@@ -17,9 +17,11 @@ const std::vector<OutgoingRequestStream> &
 Group::get_outgoing_request_streams() const
 {
   if (need_recalculate_) {
+    println("----- {} ------", V_);
     std::vector<IncomingRequestStream> in_request_streams = in_request_streams_ |
                                                             rng::view::values;
     auto peakness = compute_collective_peakness(in_request_streams);
+    println("Collective peakness: {}", peakness);
     // TODO(PW): temporarily workaround
     if (!std::isfinite(get(peakness)) || peakness <= Peakness{0}) {
       out_request_streams_.clear();
@@ -29,6 +31,7 @@ Group::get_outgoing_request_streams() const
     out_request_streams_ = KaufmanRobertsBlockingProbability(
         in_request_streams, V_, peakness, assume_fixed_capacity_);
     need_recalculate_ = false;
+    println("---------------------");
   }
   return out_request_streams_;
 }

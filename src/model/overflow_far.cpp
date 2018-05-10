@@ -88,9 +88,21 @@ compute_riordan_variance(
       intensity,
       fictional_capacity,
       tc_size);
-  return Variance{get(mean) * (get(intensity) / (get(fictional_capacity) / get(tc_size) +
-                                                 1 - get(intensity) + get(mean)) +
-                               1 - get(mean))};
+  /* clang-format off */
+  return Variance{
+    get(mean) * (
+                 get(intensity) /
+                 (
+                  (
+                   get(fictional_capacity) /
+                   get(tc_size)
+                  ) +
+                  1 - get(intensity) + get(mean)
+                 ) +
+                 1 - get(mean)
+                )
+  };
+  /* clang-format on */
 }
 
 //----------------------------------------------------------------------
@@ -123,6 +135,7 @@ KaufmanRobertsDistribution(
   std::vector<Probability> state(size_t(V) + 1);
   state[0] = Probability{1};
 
+  println("Streams number: {}", in_request_streams.size());
   rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
     for (const auto &in_stream : in_request_streams) {
       auto tc_size = in_stream.tc.size * size_rescale;
@@ -159,6 +172,7 @@ KaufmanRobertsBlockingProbability(
 
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams) {
+    println("In req str: {}", in_rs);
     OutgoingRequestStream out_rs;
     out_rs.tc = in_rs.tc;
     CapacityF n{V - out_rs.tc.size * size_rescale + Size{1}};
@@ -172,13 +186,17 @@ KaufmanRobertsBlockingProbability(
         MeanRequestNumber{out_rs.intensity * out_rs.blocking_probability.opposite()};
 
     out_request_streams.emplace_back(out_rs);
+    println("Out req str: {}", out_rs);
   }
 
   for (auto &rs : out_request_streams) {
     rs.fictional_capacity =
         compute_fictional_capacity(out_request_streams, V, rs.tc.id, size_rescale);
     println(
-        "Compute fictional capacity: V_f={}, tc_id={}", rs.fictional_capacity, rs.tc.id);
+        "Compute fictional capacity: P_b={}, V_f={}, tc_id={}",
+        rs.blocking_probability,
+        rs.fictional_capacity,
+        rs.tc.id);
 
     rs.variance = compute_riordan_variance(
         rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size * size_rescale);

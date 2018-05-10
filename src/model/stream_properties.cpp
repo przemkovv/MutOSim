@@ -80,11 +80,12 @@ format_arg(
     const OutgoingRequestStream &rs)
 {
   f.writer().write(
-      "[OutgoingRequestStream] {} Blocking probability {}, V={}, R={}, sigma^2={}, Z={}, "
+      "[OutgoingRequestStream] {} P_block={}, V={}, A={}, R={}, sigma^2={}, Z={}, "
       "Y={}",
       rs.tc,
       rs.blocking_probability,
       rs.fictional_capacity,
+      rs.intensity,
       rs.mean,
       rs.variance,
       rs.peakness,
@@ -99,11 +100,12 @@ format_arg(
     const IncomingRequestStream &rs)
 {
   f.writer().write(
-      "[IncomingRequestStream] {} R={}, sigma^2={}, Z={}",
+      "[IncomingRequestStream] {} R={}, sigma^2={}, Z={}, A={}",
       rs.tc,
       rs.mean,
       rs.variance,
-      rs.peakness);
+      rs.peakness,
+      rs.intensity);
 }
 
 } // namespace Model
