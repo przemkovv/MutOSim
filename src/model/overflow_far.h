@@ -33,10 +33,15 @@ compute_collective_peakness(const std::vector<IncomingRequestStream> &in_request
 Variance compute_riordan_variance(
     MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, SizeF tc_size);
 
-CapacityF compute_fictional_capacity(
+CapacityF compute_fictional_capacity_fit_carried_traffic(
     const std::vector<OutgoingRequestStream> &request_streams,
     Capacity V,
-    TrafficClassId tc_id, Peakness size_rescale);
+    TrafficClassId tc_id,
+    Peakness size_rescale);
+
+Probability extended_erlang_b(CapacityF V, Intensity A);
+CapacityF compute_fictional_capacity_fit_blocking_probability(
+    const OutgoingRequestStream &rs, Capacity V, Peakness size_rescale);
 
 Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 

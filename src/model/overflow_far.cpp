@@ -5,6 +5,8 @@
 #include "logger.h"
 #include "math_utils.h"
 
+#include <boost/math/special_functions/gamma.hpp>
+#include <boost/multiprecision/cpp_dec_float.hpp>
 #include <iterator>
 #include <map>
 #include <range/v3/action/transform.hpp>
@@ -81,13 +83,6 @@ Variance
 compute_riordan_variance(
     MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, SizeF tc_size)
 {
-  println(
-      "Compute riordan variance: mean={}, intensity={}, finctional_capacity={}, "
-      "tc_size={}",
-      mean,
-      intensity,
-      fictional_capacity,
-      tc_size);
   /* clang-format off */
   return Variance{
     get(mean) * (
@@ -107,15 +102,13 @@ compute_riordan_variance(
 
 //----------------------------------------------------------------------
 // Serviced traffic fit criterion (Formulas 3.8 and 3.9)
-// TODO(PW): implement criterion based on blocking probability fit (Formula 3.10)
 CapacityF
-compute_fictional_capacity(
+compute_fictional_capacity_fit_carried_traffic(
     const std::vector<OutgoingRequestStream> &out_request_streams,
     Capacity V,
     TrafficClassId tc_id,
     Peakness size_rescale)
 {
-  println("Compute fictional capacity: V={}, rescale={}", V, size_rescale);
   return V - rng::accumulate(
                  out_request_streams | rng::view::filter([tc_id](const auto &rs) {
                    return rs.tc.id != tc_id;
@@ -123,6 +116,41 @@ compute_fictional_capacity(
                    return rs.mean_request_number * (rs.tc.size * size_rescale);
                  }),
                  CapacityF{0});
+}
+//----------------------------------------------------------------------
+Probability
+extended_erlang_b(CapacityF V, Intensity A)
+{
+  using namespace boost::multiprecision;
+  using namespace boost::math;
+  number<cpp_dec_float<40>> x = get(V);
+  number<cpp_dec_float<40>> a = get(A);
+
+  return Probability{probability_t{pow(a, x) * exp(-a) / tgamma(x + 1, a)}};
+}
+
+//----------------------------------------------------------------------
+// criterion based on blocking probability fit (Formula 3.10)
+CapacityF
+compute_fictional_capacity_fit_blocking_probability(
+    const OutgoingRequestStream &rs, Capacity V, Peakness size_rescale)
+{
+  count_float_t epsilon{0.0001L};
+  count_float_t left_bound{1};
+  count_float_t right_bound{count_float_t(get(V))};
+  count_float_t current{left_bound};
+
+  while (right_bound - left_bound > epsilon) {
+    current = (right_bound + left_bound) / 2;
+    auto p = extended_erlang_b(CapacityF{current}, rs.intensity);
+    if (p > rs.blocking_probability) {
+      left_bound = current;
+    } else {
+      right_bound = current;
+    }
+  }
+
+  return CapacityF{current * get(rs.tc.size) * get(size_rescale)};
 }
 
 //----------------------------------------------------------------------
@@ -135,7 +163,6 @@ KaufmanRobertsDistribution(
   std::vector<Probability> state(size_t(V) + 1);
   state[0] = Probability{1};
 
-  println("Streams number: {}", in_request_streams.size());
   rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
     for (const auto &in_stream : in_request_streams) {
       auto tc_size = in_stream.tc.size * size_rescale;
@@ -147,11 +174,10 @@ KaufmanRobertsDistribution(
       }
     }
     state[size_t(n)] /= n;
-    // Math::normalizeN(state, size_t(n));
   });
   Math::normalize(state);
   return state;
-} // namespace Model
+}
 
 //----------------------------------------------------------------------
 std::vector<OutgoingRequestStream>
@@ -164,15 +190,14 @@ KaufmanRobertsBlockingProbability(
   Peakness size_rescale;
   if (fixed_capacity) {
     size_rescale = peakness;
+    peakness = Peakness{1};
   } else {
     size_rescale = Peakness{1};
     V = Capacity{V / peakness};
   }
   auto distribution = KaufmanRobertsDistribution(in_request_streams, V, size_rescale);
-
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams) {
-    println("In req str: {}", in_rs);
     OutgoingRequestStream out_rs;
     out_rs.tc = in_rs.tc;
     CapacityF n{V - out_rs.tc.size * size_rescale + Size{1}};
@@ -186,24 +211,20 @@ KaufmanRobertsBlockingProbability(
         MeanRequestNumber{out_rs.intensity * out_rs.blocking_probability.opposite()};
 
     out_request_streams.emplace_back(out_rs);
-    println("Out req str: {}", out_rs);
   }
 
   for (auto &rs : out_request_streams) {
+    // TODO(PW): add CLI option for choosing fittin to carried traffic
+    // rs.fictional_capacity = compute_fictional_capacity_fit_carried_traffic(
+    // out_request_streams, V, rs.tc.id, size_rescale);
     rs.fictional_capacity =
-        compute_fictional_capacity(out_request_streams, V, rs.tc.id, size_rescale);
-    println(
-        "Compute fictional capacity: P_b={}, V_f={}, tc_id={}",
-        rs.blocking_probability,
-        rs.fictional_capacity,
-        rs.tc.id);
+        compute_fictional_capacity_fit_blocking_probability(rs, V, size_rescale);
 
     rs.variance = compute_riordan_variance(
         rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size * size_rescale);
-    println("Variance: sigma={}", rs.variance);
+    ASSERT(get(rs.variance) >= 0, "Variance should be positive and is {}.", rs.variance);
 
     rs.peakness = rs.variance / rs.mean;
-    println("Peakedness: Z={}", rs.peakness);
   }
 
   return out_request_streams;

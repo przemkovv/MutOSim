@@ -88,7 +88,7 @@ ExternalProject_Add(range-v3
 # hunter_add_package(range-v3)
 # find_package(range-v3 CONFIG REQUIRED)
 
-hunter_add_package(Boost COMPONENTS system program_options filesystem)
+hunter_add_package(Boost COMPONENTS system program_options filesystem math)
 find_package(Boost CONFIG REQUIRED system program_options filesystem)
 
 hunter_add_package(type_safe)

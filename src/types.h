@@ -132,9 +132,26 @@ operator+(const CapacityF &c, const Size &s)
   return CapacityF{get(c) + get(s)};
 }
 constexpr auto
+operator-(const CapacityF &c, const SizeF &s)
+{
+  return CapacityF{get(c) - get(s)};
+}
+constexpr auto
 operator-(const Capacity &c, const SizeF &s)
 {
   return CapacityF{get(c) - get(s)};
+}
+constexpr auto &
+operator+=(CapacityF &c, const SizeF &s)
+{
+  get(c) = get(c) + get(s);
+  return c;
+}
+constexpr auto &
+operator+=(Capacity &c, const Size &s)
+{
+  get(c) = get(c) + get(s);
+  return c;
 }
 constexpr auto
 operator+(const Capacity &c, const Size &s)

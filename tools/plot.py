@@ -405,12 +405,18 @@ def main():
 
                     plot_data = [x/y*100 if y != 0 else 0
                                  for x, y in zip(k1_data_y_means, k2_data_y_means)]
+                    #  pprint((len(k1_data_y_means), len(k2_data_y_means)))
 
                     label = "$t_{}={}$".format(tc_id, tc_sizes[tc_id])
                     #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
                     data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
+                    #  pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x'])))
                     #  ax.plot(tc_data_x,
+                    #  pprint((len(data_x), len(data_x[0]), data_x))
+                    #  pprint((len(plot_data), plot_data))
                     ax.set_xlim(x_min, x_max)
+
+
                     ax.plot(np.average(data_x, axis=0),
                             plot_data,
                             label=label,
