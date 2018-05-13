@@ -11,11 +11,19 @@ struct OutgoingRequestStream {
   TrafficClass tc;
   Probability blocking_probability{0}; // [E_c]_{V_s}
   Intensity intensity{0};
+
   MeanIntensity mean{0};                    // R_{c,s}
   MeanRequestNumber mean_request_number{0}; // Y_{c,s}
+
   CapacityF fictional_capacity{0};
   Variance variance{0}; // sigma^2_{c,s}
   Peakness peakness{0}; // Z_c
+
+  OutgoingRequestStream() = default;
+  OutgoingRequestStream(
+      const TrafficClass &tc,
+      const Probability &blocking_probability,
+      const Intensity &intensity);
 };
 
 struct IncomingRequestStream {
@@ -34,8 +42,6 @@ struct IncomingRequestStream {
   IncomingRequestStream(const IncomingRequestStream &rs);
   IncomingRequestStream() = default;
 };
-
-
 
 //----------------------------------------------------------------------
 void format_arg(

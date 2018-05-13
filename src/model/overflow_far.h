@@ -5,22 +5,27 @@
 #include "types.h"
 
 #include <fmt/ostream.h>
+#include <valarray>
 #include <vector>
 
 namespace Model
 {
-using Probabilities = std::vector<Probability>;
+using Probabilities = std::valarray<Probability>;
 
-Probabilities KaufmanRobertsDistribution(
+Probabilities kaufman_roberts_distribution(
     const std::vector<IncomingRequestStream> &in_request_streams,
     Capacity V,
-    Peakness size_rescale);
+    SizeRescale size_rescale);
 
-std::vector<OutgoingRequestStream> KaufmanRobertsBlockingProbability(
-    std::vector<IncomingRequestStream> &in_request_streams,
-    Capacity V,
-    Peakness peakness,
-    bool fixed_capacity);
+std::vector<OutgoingRequestStream> kaufman_roberts_blocking_probability(
+    const std::vector<IncomingRequestStream> &in_request_streams,
+    CapacityF V,
+    SizeRescale size_rescale);
+
+std::vector<OutgoingRequestStream> compute_overflow_parameters(
+    std::vector<OutgoingRequestStream> out_request_streams,
+    CapacityF V,
+    SizeRescale size_rescale);
 
 //----------------------------------------------------------------------
 std::vector<IncomingRequestStream> convert_to_incoming_streams(
@@ -37,11 +42,10 @@ CapacityF compute_fictional_capacity_fit_carried_traffic(
     const std::vector<OutgoingRequestStream> &request_streams,
     Capacity V,
     TrafficClassId tc_id,
-    Peakness size_rescale);
+    SizeRescale size_rescale);
 
-Probability extended_erlang_b(CapacityF V, Intensity A);
 CapacityF compute_fictional_capacity_fit_blocking_probability(
-    const OutgoingRequestStream &rs, Capacity V, Peakness size_rescale);
+    const OutgoingRequestStream &rs, CapacityF V, SizeRescale size_rescale);
 
 Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 

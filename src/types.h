@@ -88,13 +88,8 @@ struct CapacityF : ts::strong_typedef<CapacityF, count_float_t>,
   constexpr CapacityF(const Capacity &c) : CapacityF(get(c)) {}
 
   explicit operator Capacity() { return Capacity{static_cast<count_t>(get(*this))}; }
+  explicit operator size_t() const { return static_cast<size_t>(get(*this)); }
 };
-
-// constexpr auto
-// operator<(const CapacityF &cf, const Capacity &c)
-// {
-// return get(cf) < get(c);
-// }
 
 struct Size : ts::strong_typedef<Size, count_t>,
               ts::strong_typedef_op::equality_comparison<Size>,
@@ -120,7 +115,6 @@ struct SizeF : ts::strong_typedef<SizeF, count_float_t>,
   constexpr SizeF(const Size &c) : SizeF(get(c)) {}
   explicit operator Size() { return Size{static_cast<count_t>(std::ceil(get(*this)))}; }
 };
-
 constexpr auto
 operator-(const Capacity &c, const Size &s)
 {
@@ -224,6 +218,7 @@ struct Probability : ts::strong_typedef<Probability, probability_t>,
                      ts::strong_typedef_op::addition<Probability>,
                      ts::strong_typedef_op::subtraction<Probability>,
                      ts::strong_typedef_op::relational_comparison<Probability>,
+                     ts::strong_typedef_op::equality_comparison<Probability>,
                      ts::strong_typedef_op::output_operator<Probability> {
   using strong_typedef::strong_typedef;
   constexpr Probability &operator/=(const Capacity &capacity)
@@ -357,10 +352,6 @@ operator/(const Capacity &capacity, const Peakness &peakness)
 {
   return CapacityF{static_cast<stat_t>(get(capacity)) / get(peakness)};
 }
-constexpr auto operator*(const Size &size, const Peakness &peakness)
-{
-  return SizeF{static_cast<stat_t>(get(size)) * get(peakness)};
-}
 constexpr auto operator*(const MeanIntensity &mean, const Size &size)
 {
   return WeightF{get(mean) * static_cast<weight_float_t>(get(size))};
@@ -376,6 +367,21 @@ constexpr auto operator*(const MeanRequestNumber &mean, const SizeF &size)
 constexpr auto operator*(const Size &size, const InvWeightF &inv_weight)
 {
   return WeightF{static_cast<stat_t>(get(size)) * get(inv_weight)};
+}
+
+struct SizeRescale : ts::strong_typedef<SizeRescale, intensity_t>,
+                     ts::strong_typedef_op::output_operator<SizeRescale> {
+  using strong_typedef::strong_typedef;
+  explicit SizeRescale(const Peakness &peakness) : SizeRescale(get(peakness)) {}
+};
+
+constexpr auto operator*(const SizeRescale &rescale, const Size &size)
+{
+  return SizeF{get(rescale) * get(size)};
+}
+constexpr auto operator*(const SizeRescale &rescale, const SizeF &size)
+{
+  return SizeF{get(rescale) * get(size)};
 }
 
 struct Time : ts::strong_typedef<Time, time_type>,

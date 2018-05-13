@@ -89,7 +89,6 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
       }
       auto &scenario_stats = global_stats[filename][A_str];
       scenario_stats = concatenate(scenario_stats, scenarios[i].stats);
-      // append_stats(scenario_stats, scenarios[i]);
       scenario_stats["_a"] = ts::get(scenarios[i].a);
       scenario_stats["_A"] = ts::get(scenarios[i].A);
 

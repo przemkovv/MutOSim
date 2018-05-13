@@ -2,14 +2,12 @@
 
 #include "overflow_far.h"
 
+#include "calculation.h"
 #include "logger.h"
 #include "math_utils.h"
 
-#include <boost/math/special_functions/gamma.hpp>
-#include <boost/multiprecision/cpp_dec_float.hpp>
 #include <iterator>
 #include <map>
-#include <range/v3/action/transform.hpp>
 #include <range/v3/algorithm/for_each.hpp>
 #include <range/v3/algorithm/transform.hpp>
 #include <range/v3/numeric/accumulate.hpp>
@@ -85,16 +83,12 @@ compute_riordan_variance(
 {
   /* clang-format off */
   return Variance{
-    get(mean) * (
-                 get(intensity) /
+    get(mean) * (get(intensity) /
                  (
                   (
-                   get(fictional_capacity) /
-                   get(tc_size)
-                  ) +
-                  1 - get(intensity) + get(mean)
-                 ) +
-                 1 - get(mean)
+                   get(fictional_capacity) / get(tc_size)
+                  ) + 1 - get(intensity) + get(mean)
+                 ) + 1 - get(mean)
                 )
   };
   /* clang-format on */
@@ -107,112 +101,102 @@ compute_fictional_capacity_fit_carried_traffic(
     const std::vector<OutgoingRequestStream> &out_request_streams,
     Capacity V,
     TrafficClassId tc_id,
-    Peakness size_rescale)
+    SizeRescale size_rescale)
 {
   return V - rng::accumulate(
                  out_request_streams | rng::view::filter([tc_id](const auto &rs) {
                    return rs.tc.id != tc_id;
                  }) | rng::view::transform([&](const auto &rs) {
-                   return rs.mean_request_number * (rs.tc.size * size_rescale);
+                   return rs.mean_request_number * (size_rescale * rs.tc.size);
                  }),
                  CapacityF{0});
 }
 //----------------------------------------------------------------------
-Probability
-extended_erlang_b(CapacityF V, Intensity A)
-{
-  using namespace boost::multiprecision;
-  using namespace boost::math;
-  number<cpp_dec_float<40>> x = get(V);
-  number<cpp_dec_float<40>> a = get(A);
-
-  return Probability{probability_t{pow(a, x) * exp(-a) / tgamma(x + 1, a)}};
-}
 
 //----------------------------------------------------------------------
 // criterion based on blocking probability fit (Formula 3.10)
 CapacityF
 compute_fictional_capacity_fit_blocking_probability(
-    const OutgoingRequestStream &rs, Capacity V, Peakness size_rescale)
+    const OutgoingRequestStream &rs, CapacityF V, SizeRescale size_rescale)
 {
   count_float_t epsilon{0.0001L};
   count_float_t left_bound{1};
-  count_float_t right_bound{count_float_t(get(V))};
+  count_float_t right_bound{get(V)};
   count_float_t current{left_bound};
 
   while (right_bound - left_bound > epsilon) {
-    current = (right_bound + left_bound) / 2;
+    current = (right_bound + left_bound) * 0.5L;
     auto p = extended_erlang_b(CapacityF{current}, rs.intensity);
     if (p > rs.blocking_probability) {
       left_bound = current;
-    } else {
+    } else if (p < rs.blocking_probability) {
       right_bound = current;
+    } else {
+      break;
     }
   }
 
-  return CapacityF{current * get(rs.tc.size) * get(size_rescale)};
+  return CapacityF{current * get(size_rescale * rs.tc.size)};
 }
 
 //----------------------------------------------------------------------
 Probabilities
-KaufmanRobertsDistribution(
+kaufman_roberts_distribution(
     const std::vector<IncomingRequestStream> &in_request_streams,
     Capacity V,
-    Peakness size_rescale)
+    SizeRescale size_rescale)
 {
-  std::vector<Probability> state(size_t(V) + 1);
+  Probabilities state(size_t(V) + 1);
   state[0] = Probability{1};
 
   rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
-    for (const auto &in_stream : in_request_streams) {
-      auto tc_size = in_stream.tc.size * size_rescale;
-
+    for (const auto &rs : in_request_streams) {
+      auto tc_size = size_rescale * rs.tc.size;
       auto previous_state = Capacity{n - tc_size};
       if (previous_state >= Capacity{0}) {
-        auto intensity = in_stream.intensity;
-        state[size_t(n)] += intensity * tc_size * state[size_t(previous_state)];
+        state[size_t(n)] += rs.intensity * tc_size * state[size_t(previous_state)];
       }
     }
     state[size_t(n)] /= n;
   });
-  Math::normalize(state);
+  Math::normalize_L1(state);
   return state;
 }
 
 //----------------------------------------------------------------------
 std::vector<OutgoingRequestStream>
-KaufmanRobertsBlockingProbability(
-    std::vector<IncomingRequestStream> &in_request_streams,
-    Capacity V,
-    Peakness peakness,
-    bool fixed_capacity)
+kaufman_roberts_blocking_probability(
+    const std::vector<IncomingRequestStream> &in_request_streams,
+    CapacityF V,
+    SizeRescale size_rescale)
 {
-  Peakness size_rescale;
-  if (fixed_capacity) {
-    size_rescale = peakness;
-    peakness = Peakness{1};
-  } else {
-    size_rescale = Peakness{1};
-    V = Capacity{V / peakness};
-  }
-  auto distribution = KaufmanRobertsDistribution(in_request_streams, V, size_rescale);
+  auto distribution =
+      kaufman_roberts_distribution(in_request_streams, Capacity{V}, size_rescale);
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams) {
-    OutgoingRequestStream out_rs;
-    out_rs.tc = in_rs.tc;
-    CapacityF n{V - out_rs.tc.size * size_rescale + Size{1}};
-    Capacity n_int{n};
-    out_rs.blocking_probability =
-        rng::accumulate(distribution | rng::view::drop(size_t(n_int)), Probability{0});
+    CapacityF n{V - size_rescale * in_rs.tc.size + Size{1}};
 
-    out_rs.intensity = in_rs.intensity;
-    out_rs.mean = out_rs.intensity * out_rs.blocking_probability;
-    out_rs.mean_request_number =
-        MeanRequestNumber{out_rs.intensity * out_rs.blocking_probability.opposite()};
+    auto blocking_probability =
+        rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
 
-    out_request_streams.emplace_back(out_rs);
+    ASSERT(
+        blocking_probability >= Probability{0} && blocking_probability <= Probability{1},
+        "Blocking probability should be between 0 and 1, but is equal to {}",
+        blocking_probability);
+
+    out_request_streams.emplace_back(in_rs.tc, blocking_probability, in_rs.intensity);
   }
 
+  return out_request_streams;
+}
+
+//----------------------------------------------------------------------
+std::vector<OutgoingRequestStream>
+compute_overflow_parameters(
+    std::vector<OutgoingRequestStream> out_request_streams,
+    CapacityF V,
+    SizeRescale size_rescale)
+{
   for (auto &rs : out_request_streams) {
     // TODO(PW): add CLI option for choosing fittin to carried traffic
     // rs.fictional_capacity = compute_fictional_capacity_fit_carried_traffic(
@@ -221,8 +205,12 @@ KaufmanRobertsBlockingProbability(
         compute_fictional_capacity_fit_blocking_probability(rs, V, size_rescale);
 
     rs.variance = compute_riordan_variance(
-        rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size * size_rescale);
-    ASSERT(get(rs.variance) >= 0, "Variance should be positive and is {}.", rs.variance);
+        rs.mean, rs.intensity, rs.fictional_capacity, size_rescale * rs.tc.size);
+
+    ASSERT(
+        get(rs.variance) >= 0,
+        "Variance should be positive but is equal to {}.",
+        rs.variance);
 
     rs.peakness = rs.variance / rs.mean;
   }

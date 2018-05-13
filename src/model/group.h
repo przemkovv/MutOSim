@@ -39,7 +39,7 @@ public:
 
 template <typename RequestStream>
 void
-Group::add_incoming_request_stream(const RequestStream &in_request_stream)
+Group::add_incoming_request_stream(const RequestStream &in_rs)
 {
   static_assert(
       std::is_same_v<RequestStream, IncomingRequestStream> ||
@@ -48,10 +48,9 @@ Group::add_incoming_request_stream(const RequestStream &in_request_stream)
       "supported.");
 
   // Formulas 3.17 and 3.18
-  if (auto [rs_it, inserted] =
-          in_request_streams_.try_emplace(in_request_stream.tc.id, in_request_stream);
+  if (auto [rs_it, inserted] = in_request_streams_.try_emplace(in_rs.tc.id, in_rs);
       !inserted) {
-    rs_it->second += in_request_stream;
+    rs_it->second += in_rs;
   }
   need_recalculate_ = true;
 }

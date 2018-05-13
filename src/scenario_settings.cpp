@@ -38,8 +38,3 @@ run_scenario(
   scenario.stats = world.get_stats();
 }
 
-void
-append_stats(nlohmann::json &target, const ScenarioSettings &scenario)
-{
-  target = concatenate(target, scenario.stats);
-}

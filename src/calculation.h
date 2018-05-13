@@ -34,3 +34,5 @@ engset_pi(const long double alpha, const int64_t V, const int64_t N, const int64
   }
   return dividend / divisor;
 }
+
+Probability extended_erlang_b(CapacityF V, Intensity A);

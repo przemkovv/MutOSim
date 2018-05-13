@@ -39,4 +39,3 @@ void run_scenario(
     bool use_random_seed,
     bool quiet);
 
-void append_stats(nlohmann::json &target, const ScenarioSettings &scenario);

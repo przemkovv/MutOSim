@@ -6,6 +6,7 @@
 #include <cmath>
 #include <numeric>
 #include <type_traits>
+#include <valarray>
 
 namespace Math
 {
@@ -64,23 +65,33 @@ product(int64_t from, int64_t to)
 
 int64_t n_over_k(const int64_t n, const int64_t k);
 
-template <typename T>
+template <typename C>
 auto
-normalize(T &container)
+normalize_L1(C &container) -> std::remove_reference_t<decltype(*begin(container))>
 {
   using E = std::remove_reference_t<decltype(*begin(container))>;
   auto sum = std::accumulate(begin(container), end(container), E{});
   std::for_each(begin(container), end(container), [sum](auto &v) { v /= sum; });
   return sum;
 }
+
 template <typename T>
 auto
-normalizeN(T &container, size_t N)
+normalize_L1(std::valarray<T> &container) -> T
+{
+  auto sum = container.sum();
+  container /= sum;
+  return sum;
+}
+template <typename T>
+auto
+normalize_L1(T &container, size_t N)
 {
   using E = std::remove_reference_t<decltype(*begin(container))>;
   auto sum = std::accumulate(begin(container), next(begin(container), ptrdiff_t(N)), E{});
-  std::for_each(
-      begin(container), next(begin(container), ptrdiff_t(N)), [sum](auto &v) { v /= sum; });
+  std::for_each(begin(container), next(begin(container), ptrdiff_t(N)), [sum](auto &v) {
+    v /= sum;
+  });
   return sum;
 }
 

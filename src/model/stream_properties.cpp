@@ -5,6 +5,17 @@
 
 namespace Model
 {
+OutgoingRequestStream::OutgoingRequestStream(
+    const TrafficClass &tc_,
+    const Probability &blocking_probability_,
+    const Intensity &intensity_)
+  : tc(tc_),
+    blocking_probability(blocking_probability_),
+    intensity(intensity_),
+    mean(intensity * blocking_probability),
+    mean_request_number(intensity * blocking_probability.opposite())
+{
+}
 //----------------------------------------------------------------------
 IncomingRequestStream &
 IncomingRequestStream::operator+=(const TrafficClass &source_tc)
