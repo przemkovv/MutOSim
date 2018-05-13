@@ -38,9 +38,9 @@ namespace Model
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
-std::vector<IncomingRequestStream>
+IncomingRequestStreams
 convert_to_incoming_streams(
-    const std::vector<std::vector<OutgoingRequestStream>> &out_request_streams_per_group)
+    const std::vector<OutgoingRequestStreams> &out_request_streams_per_group)
 {
   // Formulas 3.17 and 3.18
   std::map<TrafficClassId, IncomingRequestStream> incoming_request_streams;
@@ -56,8 +56,7 @@ convert_to_incoming_streams(
 
 //----------------------------------------------------------------------
 Peakedness
-compute_collective_peakedness(
-    const std::vector<IncomingRequestStream> &in_request_streams)
+compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
 {
   // Formula 3.20
   auto inv_sum = rng::accumulate(
@@ -99,7 +98,7 @@ compute_riordan_variance(
 // Serviced traffic fit criterion (Formulas 3.8 and 3.9)
 CapacityF
 compute_fictional_capacity_fit_carried_traffic(
-    const std::vector<OutgoingRequestStream> &out_request_streams,
+    const OutgoingRequestStreams &out_request_streams,
     Capacity V,
     TrafficClassId tc_id,
     SizeRescale size_rescale)
@@ -143,7 +142,7 @@ compute_fictional_capacity_fit_blocking_probability(
 //----------------------------------------------------------------------
 Probabilities
 kaufman_roberts_distribution(
-    const std::vector<IncomingRequestStream> &in_request_streams,
+    const IncomingRequestStreams &in_request_streams,
     Capacity V,
     SizeRescale size_rescale)
 {
@@ -165,9 +164,9 @@ kaufman_roberts_distribution(
 }
 
 //----------------------------------------------------------------------
-std::vector<OutgoingRequestStream>
+OutgoingRequestStreams
 kaufman_roberts_blocking_probability(
-    const std::vector<IncomingRequestStream> &in_request_streams,
+    const IncomingRequestStreams &in_request_streams,
     CapacityF V,
     SizeRescale size_rescale)
 {
@@ -192,11 +191,9 @@ kaufman_roberts_blocking_probability(
 }
 
 //----------------------------------------------------------------------
-std::vector<OutgoingRequestStream>
+OutgoingRequestStreams
 compute_overflow_parameters(
-    std::vector<OutgoingRequestStream> out_request_streams,
-    CapacityF V,
-    SizeRescale size_rescale)
+    OutgoingRequestStreams out_request_streams, CapacityF V, SizeRescale size_rescale)
 {
   for (auto &rs : out_request_streams) {
     // TODO(PW): add CLI option for choosing fittin to carried traffic

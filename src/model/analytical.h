@@ -1,8 +1,6 @@
 
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 struct ScenarioSettings;
 
 namespace Model

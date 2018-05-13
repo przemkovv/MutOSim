@@ -10,13 +10,14 @@
 #include "traffic_class.h"
 
 #include <map>
+#include <nlohmann/json.hpp>
 
 namespace Model
 {
 void
 analytical_computations_hardcoded()
 {
-  std::vector<IncomingRequestStream> traffic_classes1;
+  IncomingRequestStreams traffic_classes1;
   traffic_classes1.emplace_back(
       TrafficClass{TrafficClassId{1}, Intensity{20.0L}, Intensity{1.0L}, Size{1}, {}});
   traffic_classes1.emplace_back(

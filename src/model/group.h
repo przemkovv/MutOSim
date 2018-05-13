@@ -14,14 +14,14 @@ private:
   std::map<TrafficClassId, IncomingRequestStream> in_request_streams_;
   const Capacity V_;
 
-  mutable std::vector<OutgoingRequestStream> out_request_streams_;
+  mutable OutgoingRequestStreams out_request_streams_;
   mutable bool need_recalculate_ = true;
   const bool assume_fixed_capacity_;
 
   std::vector<GroupName> next_groups_names_;
 
 public:
-  const std::vector<OutgoingRequestStream> &get_outgoing_request_streams() const;
+  const OutgoingRequestStreams &get_outgoing_request_streams() const;
 
   Group(Capacity V, bool assume_fixed_capacity);
 

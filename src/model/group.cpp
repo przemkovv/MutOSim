@@ -10,12 +10,11 @@ namespace rng = ranges;
 
 namespace Model
 {
-const std::vector<OutgoingRequestStream> &
+const OutgoingRequestStreams &
 Group::get_outgoing_request_streams() const
 {
   if (need_recalculate_) {
-    std::vector<IncomingRequestStream> in_request_streams = in_request_streams_ |
-                                                            rng::view::values;
+    IncomingRequestStreams in_request_streams = in_request_streams_ | rng::view::values;
     const auto peakedness = compute_collective_peakedness(in_request_streams);
 
     const auto [V, size_rescale] = [&]() {

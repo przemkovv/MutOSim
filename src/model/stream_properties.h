@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include <fmt/ostream.h>
+#include <vector>
 
 namespace Model
 {
@@ -42,6 +43,9 @@ struct IncomingRequestStream {
   IncomingRequestStream(const IncomingRequestStream &rs);
   IncomingRequestStream() = default;
 };
+
+using OutgoingRequestStreams = std::vector<OutgoingRequestStream>;
+using IncomingRequestStreams = std::vector<IncomingRequestStream>;
 
 //----------------------------------------------------------------------
 void format_arg(
