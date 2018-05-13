@@ -32,8 +32,8 @@ std::vector<IncomingRequestStream> convert_to_incoming_streams(
     const std::vector<std::vector<OutgoingRequestStream>> &out_request_streams_per_group);
 
 //----------------------------------------------------------------------
-Peakness
-compute_collective_peakness(const std::vector<IncomingRequestStream> &in_request_streams);
+Peakedness compute_collective_peakedness(
+    const std::vector<IncomingRequestStream> &in_request_streams);
 
 Variance compute_riordan_variance(
     MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, SizeF tc_size);

@@ -16,13 +16,13 @@ Group::get_outgoing_request_streams() const
   if (need_recalculate_) {
     std::vector<IncomingRequestStream> in_request_streams = in_request_streams_ |
                                                             rng::view::values;
-    const auto peakness = compute_collective_peakness(in_request_streams);
+    const auto peakedness = compute_collective_peakedness(in_request_streams);
 
     const auto [V, size_rescale] = [&]() {
       if (assume_fixed_capacity_) {
-        return std::make_pair(CapacityF{V_}, SizeRescale{peakness});
+        return std::make_pair(CapacityF{V_}, SizeRescale{peakedness});
       } else {
-        return std::make_pair(V_ / peakness, SizeRescale{1});
+        return std::make_pair(V_ / peakedness, SizeRescale{1});
       }
     }();
 

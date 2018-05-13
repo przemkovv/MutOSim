@@ -10,7 +10,7 @@ class FredericksHayward
 {
   float variance_; //  sigma
   float mean_;     // R
-  float peakness_; // Z = sigma^2/R
+  float peakedness_; // Z = sigma^2/R
   float capacity_; // V
 
   int subsystem_number_; // ro
@@ -23,13 +23,13 @@ class FredericksHayward
   float variance_eqv_;
 
   float
-  loss_probability(float primary_resources_number /* r */, float peakness, float capacity)
+  loss_probability(float primary_resources_number /* r */, float peakedness, float capacity)
   {
     struct PrimaryResource {
       float intensity; // A
       float capacity;  // V
       float variance;  // ro^2
-      float peakness;  // Z
+      float peakedness;  // Z
     };
 
     std::vector<PrimaryResource> primary_resources(primary_resources_number);
@@ -40,7 +40,7 @@ class FredericksHayward
       float mean = pr.intensity * erlang_block_probability(pr.intensity, pr.capacity);
       pr.variance =
           mean * (pr.intensity / (pr.capacity + 1 - pr.intensity + mean) + 1 - mean);
-      pr.peakness = pr.variance / mean;
+      pr.peakedness = pr.variance / mean;
     }
     // 2. Określenie parametrów całkowitego strumienia spływającego na rozważany zasób
     // alternatywny przy założeniu statystycznej niezależności spływających strumienie, tj

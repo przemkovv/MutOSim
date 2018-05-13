@@ -320,26 +320,26 @@ struct MeanIntensity : ts::strong_typedef<MeanIntensity, intensity_t>,
   explicit MeanIntensity(const Intensity &intensity) : MeanIntensity(get(intensity)) {}
 };
 
-struct Peakness : ts::strong_typedef<Peakness, stat_t>,
-                  ts::strong_typedef_op::addition<Peakness>,
-                  ts::strong_typedef_op::relational_comparison<Peakness>,
-                  ts::strong_typedef_op::output_operator<Peakness> {
+struct Peakedness : ts::strong_typedef<Peakedness, stat_t>,
+                    ts::strong_typedef_op::addition<Peakedness>,
+                    ts::strong_typedef_op::relational_comparison<Peakedness>,
+                    ts::strong_typedef_op::output_operator<Peakedness> {
   using strong_typedef::strong_typedef;
 };
 
 constexpr auto operator*(const Variance &variance, const WeightF &weight)
 {
-  return Peakness{get(variance) * get(weight)};
+  return Peakedness{get(variance) * get(weight)};
 }
 constexpr auto
 operator/(const Variance &variance, const MeanIntensity &mean)
 {
-  return Peakness{get(variance) / get(mean)};
+  return Peakedness{get(variance) / get(mean)};
 }
 constexpr auto
-operator/(const MeanIntensity &mean, const Peakness &peakness)
+operator/(const MeanIntensity &mean, const Peakedness &peakedness)
 {
-  return Intensity{get(mean) / get(peakness)};
+  return Intensity{get(mean) / get(peakedness)};
 }
 
 constexpr auto operator*(const Intensity &intensity, const Probability &probability)
@@ -348,9 +348,9 @@ constexpr auto operator*(const Intensity &intensity, const Probability &probabil
 }
 
 constexpr auto
-operator/(const Capacity &capacity, const Peakness &peakness)
+operator/(const Capacity &capacity, const Peakedness &peakedness)
 {
-  return CapacityF{static_cast<stat_t>(get(capacity)) / get(peakness)};
+  return CapacityF{static_cast<stat_t>(get(capacity)) / get(peakedness)};
 }
 constexpr auto operator*(const MeanIntensity &mean, const Size &size)
 {
@@ -372,7 +372,7 @@ constexpr auto operator*(const Size &size, const InvWeightF &inv_weight)
 struct SizeRescale : ts::strong_typedef<SizeRescale, intensity_t>,
                      ts::strong_typedef_op::output_operator<SizeRescale> {
   using strong_typedef::strong_typedef;
-  explicit SizeRescale(const Peakness &peakness) : SizeRescale(get(peakness)) {}
+  explicit SizeRescale(const Peakedness &peakedness) : SizeRescale(get(peakedness)) {}
 };
 
 constexpr auto operator*(const SizeRescale &rescale, const Size &size)

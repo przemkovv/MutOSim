@@ -39,8 +39,8 @@ IncomingRequestStream::operator+=(const IncomingRequestStream &rs)
       rs.tc.id);
   mean += rs.mean;
   variance += rs.variance;
-  peakness = variance / mean;
-  intensity = mean / peakness;
+  peakedness = variance / mean;
+  intensity = mean / peakedness;
   tc = rs.tc;
 
   return *this;
@@ -61,23 +61,23 @@ IncomingRequestStream::IncomingRequestStream(const IncomingRequestStream &rs)
   : tc(rs.tc),
     mean(rs.mean),
     variance(rs.variance),
-    peakness(variance / mean),
-    intensity(mean / peakness)
+    peakedness(variance / mean),
+    intensity(mean / peakedness)
 {
 }
 IncomingRequestStream::IncomingRequestStream(const OutgoingRequestStream &rs)
   : tc(rs.tc),
     mean(rs.mean),
     variance(rs.variance),
-    peakness(variance / mean),
-    intensity(mean / peakness)
+    peakedness(variance / mean),
+    intensity(mean / peakedness)
 {
 }
 IncomingRequestStream::IncomingRequestStream(const TrafficClass &source_tc)
   : tc(source_tc),
     mean(source_tc.source_intensity / source_tc.serve_intensity),
     variance(source_tc.source_intensity / source_tc.serve_intensity),
-    peakness(1.0L),
+    peakedness(1.0L),
     intensity(source_tc.source_intensity / source_tc.serve_intensity)
 {
 }
@@ -99,7 +99,7 @@ format_arg(
       rs.intensity,
       rs.mean,
       rs.variance,
-      rs.peakness,
+      rs.peakedness,
       rs.mean_request_number);
 }
 
@@ -115,7 +115,7 @@ format_arg(
       rs.tc,
       rs.mean,
       rs.variance,
-      rs.peakness,
+      rs.peakedness,
       rs.intensity);
 }
 

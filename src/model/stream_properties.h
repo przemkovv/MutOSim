@@ -16,8 +16,8 @@ struct OutgoingRequestStream {
   MeanRequestNumber mean_request_number{0}; // Y_{c,s}
 
   CapacityF fictional_capacity{0};
-  Variance variance{0}; // sigma^2_{c,s}
-  Peakness peakness{0}; // Z_c
+  Variance variance{0};     // sigma^2_{c,s}
+  Peakedness peakedness{0}; // Z_c
 
   OutgoingRequestStream() = default;
   OutgoingRequestStream(
@@ -30,7 +30,7 @@ struct IncomingRequestStream {
   TrafficClass tc{};
   MeanIntensity mean{0};
   Variance variance{0};
-  Peakness peakness{0};
+  Peakedness peakedness{0};
   Intensity intensity{0};
 
   IncomingRequestStream &operator+=(const OutgoingRequestStream &rs);

@@ -55,8 +55,9 @@ convert_to_incoming_streams(
 }
 
 //----------------------------------------------------------------------
-Peakness
-compute_collective_peakness(const std::vector<IncomingRequestStream> &in_request_streams)
+Peakedness
+compute_collective_peakedness(
+    const std::vector<IncomingRequestStream> &in_request_streams)
 {
   // Formula 3.20
   auto inv_sum = rng::accumulate(
@@ -67,13 +68,13 @@ compute_collective_peakness(const std::vector<IncomingRequestStream> &in_request
                      .invert();
 
   // Formula 3.19
-  auto peakness = rng::accumulate(
+  auto peakedness = rng::accumulate(
       in_request_streams | rng::view::transform([inv_sum](const auto &rs) {
         return rs.variance * (rs.tc.size * inv_sum);
       }),
-      Peakness{0});
+      Peakedness{0});
 
-  return peakness;
+  return peakedness;
 }
 
 //----------------------------------------------------------------------
@@ -212,7 +213,7 @@ compute_overflow_parameters(
         "Variance should be positive but is equal to {}.",
         rs.variance);
 
-    rs.peakness = rs.variance / rs.mean;
+    rs.peakedness = rs.variance / rs.mean;
   }
 
   return out_request_streams;
