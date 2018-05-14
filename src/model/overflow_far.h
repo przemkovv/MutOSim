@@ -48,7 +48,7 @@ CapacityF compute_fictional_capacity_fit_blocking_probability(
 
 Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 
-Probability transition_probability(
+Probability conditional_transition_probability(
     Capacity n, Capacity V, Count resources_number, Capacity f, Size t);
 
 } // namespace Model

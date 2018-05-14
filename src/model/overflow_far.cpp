@@ -234,6 +234,7 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
 }
 
 //----------------------------------------------------------------------
+// Formula (3.35)
 Count
 combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
 {
@@ -253,9 +254,10 @@ combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
   return Count{sum};
 }
 //----------------------------------------------------------------------
-
+// Formula (3.34)
 Probability
-transition_probability(Capacity n, Capacity V, Count resources_number, Capacity f, Size t)
+conditional_transition_probability(
+    Capacity n, Capacity V, Count resources_number, Capacity f, Size t)
 {
   auto nominator =
       combinatorial_arrangement_number(V - n, resources_number, Capacity{get(t) - 1});
