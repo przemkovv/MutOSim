@@ -60,8 +60,7 @@ Options:
 import os.path as path
 import os
 import json
-import ubjson
-import cbor2
+import math
 import statistics
 import itertools
 import ast
@@ -72,9 +71,9 @@ from matplotlib.ticker import AutoMinorLocator
 import numpy as np
 import scipy as sp
 import scipy.stats
-import math
+import ubjson
+import cbor2
 
-from matplotlib import rc
 
 stats_name2label = {'served_u': 'Carried traffic',
                     'served': 'Carried requests',
@@ -415,7 +414,6 @@ def main():
                     #  pprint((len(data_x), len(data_x[0]), data_x))
                     #  pprint((len(plot_data), plot_data))
                     ax.set_xlim(x_min, x_max)
-
 
                     ax.plot(np.average(data_x, axis=0),
                             plot_data,

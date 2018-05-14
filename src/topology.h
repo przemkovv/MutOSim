@@ -20,6 +20,7 @@ struct Topology {
 
   boost::container::flat_map<GroupName, std::unique_ptr<Group>> groups{};
   boost::container::flat_map<SourceName, std::unique_ptr<SourceStream>> sources{};
+  boost::container::flat_map<Layer, std::vector<Group*>> groups_per_layer{};
 
   TrafficClasses traffic_classes{};
 

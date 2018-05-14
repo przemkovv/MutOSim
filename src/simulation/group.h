@@ -86,11 +86,7 @@ struct Group {
   void notify_on_service_end(LoadServiceEndEvent *event);
 
   Stats get_stats(Duration duration);
-  [[deprecated]] const GroupName &
-  get_name() const { return name_; } const GroupName &name() const
-  {
-    return name_;
-  }
+  const GroupName &name() const { return name_; }
 };
 
 void

@@ -52,6 +52,7 @@ target_sources(sim PRIVATE
 
   "${CMAKE_CURRENT_LIST_DIR}/model/analytical.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/analytical.h"
+  "${CMAKE_CURRENT_LIST_DIR}/model/common.h"
   "${CMAKE_CURRENT_LIST_DIR}/model/group.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/group.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/overflow_far.cpp"

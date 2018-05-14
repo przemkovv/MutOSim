@@ -19,10 +19,16 @@
 #include <boost/program_options/parsers.hpp>
 #include <fmt/format.h>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <optional>
+#include <range/v3/algorithm/any_of.hpp>
+#include <range/v3/utility/functional.hpp>
+#include <range/v3/view/map.hpp>
+
+namespace rng = ranges;
 
 void
 print_state(const std::vector<bool> &states)
@@ -138,8 +144,7 @@ load_scenarios_from_files(
       if (contains(cli.modes, Mode::Simulation)) {
         // TODO(PW): get rid of duplicated code
         for (int i = 0; i < cli.count; ++i) {
-          auto &scenario =
-              scenarios.emplace_back(prepare_scenario_local_group_A(topology, A));
+          auto scenario = prepare_scenario_local_group_A(topology, A);
           scenario.name += fmt::format(" A={}", A);
           scenario.mode = Mode::Simulation;
 
@@ -153,15 +158,23 @@ load_scenarios_from_files(
           }
           scenario.filename = filename;
           scenario.json = topology_json;
+          scenarios.emplace_back(std::move(scenario));
         }
       }
       if (contains(cli.modes, Mode::Analytic)) {
         for (const auto &model : cli.analytic_models) {
-          auto &scenario =
-              scenarios.emplace_back(prepare_scenario_local_group_A(topology, A));
-          scenario.name += fmt::format(" analytic A={}", A);
+          auto scenario = prepare_scenario_local_group_A(topology, A);
+
+          scenario.name += fmt::format(" A={}, analytic model={}", A, model);
           scenario.mode = Mode::Analytic;
           scenario.analytic_model = model;
+
+          scenario.layers_types = Model::determine_layers_types(scenario.topology);
+          if (rng::any_of(scenario.layers_types | rng::view::values, [](auto layer_type) {
+                return layer_type == Model::LayerType::Unknown;
+              })) {
+            continue;
+          }
 
           std::string filename = scenario_file;
           auto &appended_filenames = cli.append_scenario_files;
@@ -173,6 +186,7 @@ load_scenarios_from_files(
           }
           scenario.filename = filename + fmt::format(";analytic;{}", model);
           scenario.json = topology_json;
+          scenarios.emplace_back(std::move(scenario));
         }
       }
     }

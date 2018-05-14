@@ -4,6 +4,7 @@
 #include "topology.h"
 #include "types.h"
 
+#include <boost/container/flat_map.hpp>
 #include <functional>
 #include <nlohmann/json.hpp>
 
@@ -20,7 +21,8 @@ struct ScenarioSettings {
   std::string filename = "";
 
   Mode mode{Mode::Analytic};
-  AnalyticModel analytic_model{};
+  Model::AnalyticModel analytic_model{};
+  boost::container::flat_map<Layer, Model::LayerType> layers_types{};
 
   Simulation::Topology topology{};
   nlohmann::json json{};

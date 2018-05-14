@@ -2,13 +2,12 @@
 # Poprawki książka
 
 - wzór 3.23 - na pewno powinno być dwa razy d_{c,s}?
+- wzór 3.8 - brak granicy sumy
 
 - s. 122 BBU -> JA
 - symbol w tabeli 3.7 nu -> upsilon https://www.sharelatex.com/learn/List_of_Greek_letters_and_math_symbols
 - s. 142, tabela 3.8. Liczba mnoga -> liczba pojedyncza
 - s. 97, stopka: przyjęto -> przyjęte
-
-latex package changes
 
 
 # Todo
@@ -24,7 +23,6 @@ latex package changes
   - Apply criterion on block probability fit 3.3.2.3.2
   - Hierarchical networks and Frederick-Hayward and peakness and original
     source streams
-
 
 - Use cases:
   - support for multiple next groups

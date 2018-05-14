@@ -1,5 +1,6 @@
 #pragma once
 
+#include "model/common.h"
 #include "types.h"
 
 #include <boost/program_options/options_description.hpp>
@@ -9,17 +10,18 @@
 #include <vector>
 
 enum class Mode { Simulation, Analytic };
-enum class AnalyticModel { KaufmanRobbertFixedCapacity, KaufmanRobertsFixedReqSize };
 
 using Modes = std::vector<Mode>;
-using AnalyticModels = std::vector<AnalyticModel>;
-
+using AnalyticModels = std::vector<Model::AnalyticModel>;
 
 std::istream &operator>>(std::istream &in, Mode &mode);
 std::ostream &operator<<(std::ostream &out, const Mode &mode);
 std::ostream &operator<<(std::ostream &out, const Modes &modes);
-std::istream &operator>>(std::istream &in, AnalyticModel &model);
-std::ostream &operator<<(std::ostream &out, const AnalyticModel &model);
+namespace Model
+{
+std::istream &operator>>(std::istream &in, Model::AnalyticModel &model);
+std::ostream &operator<<(std::ostream &out, const Model::AnalyticModel &model);
+} // namespace Model
 std::ostream &operator<<(std::ostream &out, const AnalyticModels &models);
 
 struct CLIOptions {

@@ -4,15 +4,17 @@
 #include <boost/program_options.hpp>
 #include <iostream>
 
+namespace Model
+{
 std::istream &
-operator>>(std::istream &in, AnalyticModel &model)
+operator>>(std::istream &in, Model::AnalyticModel &model)
 {
   std::string token;
   in >> token;
   if (token == "KRFixedCapacity") {
-    model = AnalyticModel::KaufmanRobbertFixedCapacity;
+    model = Model::AnalyticModel::KaufmanRobertsFixedCapacity;
   } else if (token == "KRFixedReqSize") {
-    model = AnalyticModel::KaufmanRobertsFixedReqSize;
+    model = Model::AnalyticModel::KaufmanRobertsFixedReqSize;
   } else {
     throw boost::program_options::validation_error(
         boost::program_options::validation_error::invalid_option_value,
@@ -21,15 +23,16 @@ operator>>(std::istream &in, AnalyticModel &model)
   return in;
 }
 std::ostream &
-operator<<(std::ostream &out, const AnalyticModel &model)
+operator<<(std::ostream &out, const Model::AnalyticModel &model)
 {
   switch (model) {
-  case AnalyticModel::KaufmanRobbertFixedCapacity:
+  case Model::AnalyticModel::KaufmanRobertsFixedCapacity:
     return out << "KRFixedCapacity";
-  case AnalyticModel::KaufmanRobertsFixedReqSize:
+  case Model::AnalyticModel::KaufmanRobertsFixedReqSize:
     return out << "KRFixedReqSize";
   }
 }
+} // namespace Model
 std::ostream &
 operator<<(std::ostream &out, const AnalyticModels &models)
 {

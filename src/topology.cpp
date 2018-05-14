@@ -10,6 +10,7 @@ Group &
 Topology::add_group(std::unique_ptr<Group> group)
 {
   group->id = GroupId{get_uuid()};
+  groups_per_layer[group->layer()].emplace_back(group.get());
   auto it = groups.emplace(group->name(), std::move(group)).first;
   return *(it->second.get());
 }

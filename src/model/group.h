@@ -1,5 +1,6 @@
 
 #pragma once
+
 #include "stream_properties.h"
 #include "types.h"
 

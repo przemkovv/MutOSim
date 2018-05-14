@@ -11,6 +11,19 @@
 
 #include <map>
 #include <nlohmann/json.hpp>
+#include <range/v3/action/push_back.hpp>
+#include <range/v3/action/sort.hpp>
+#include <range/v3/action/transform.hpp>
+#include <range/v3/action/unique.hpp>
+#include <range/v3/algorithm/all_of.hpp>
+#include <range/v3/algorithm/none_of.hpp>
+#include <range/v3/to_container.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/map.hpp>
+#include <range/v3/view/transform.hpp>
+#include <range/v3/view/unique.hpp>
+
+namespace rng = ranges;
 
 namespace Model
 {
@@ -39,53 +52,62 @@ analytical_computations_hardcoded()
   println("{}", g0.get_outgoing_request_streams());
 }
 void
-analytical_computations(ScenarioSettings &scenario_settings, bool assume_fixed_capacity)
+analytical_computations(ScenarioSettings &scenario, bool assume_fixed_capacity)
 {
-  const auto &topology = scenario_settings.topology;
+  auto &layers_types = scenario.layers_types;
+  ASSERT(
+      rng::none_of(
+          layers_types | rng::view::values,
+          [](auto layer_type) { return layer_type == LayerType::Unknown; }),
+      "The current model supports only FAG and LAG with equal and unequal capacities.");
 
-  using Groups = std::map<GroupName, Model::Group>;
-  using GroupsPtr = std::map<GroupName, Model::Group *>;
-  Groups groups;
-  std::map<Layer, GroupsPtr> groups_layers;
+  const auto &topology = scenario.topology;
+
+  using ModelGroups = std::map<GroupName, Model::Group>;
+  using ModelGroupsPtr = std::map<GroupName, Model::Group *>;
+  ModelGroups model_groups;
+  std::map<Layer, ModelGroupsPtr> model_groups_layers;
 
   for (const auto &[group_name, group] : topology.groups) {
     ASSERT(
-        group->next_groups().size() <= 1,
+        layers_types.at(group->layer()) == LayerType::FullAvailability,
         "The current model doesn't support forwarding traffic to more than one next "
         "groups.");
-    auto [group_it, inserted] = groups.emplace(
+
+    auto [model_group_it, inserted] = model_groups.emplace(
         group_name, Model::Group{group->capacity(), assume_fixed_capacity});
 
     for (const auto &next_group : group->next_groups()) {
-      group_it->second.add_next_group(next_group->name());
+      model_group_it->second.add_next_group(next_group->name());
     }
-    groups_layers[group->layer()].emplace(group_name, &group_it->second);
+    model_groups_layers[group->layer()].emplace(group_name, &model_group_it->second);
   }
 
   for (const auto &[source_name, source_stream] : topology.sources) {
     const auto &target_group = source_stream->get_target_group().name();
-    groups.at(target_group)
+    model_groups.at(target_group)
         .add_incoming_request_stream(IncomingRequestStream{source_stream->tc_});
   }
 
-  for (const auto &[layer, groups_ptrs] : groups_layers) {
+  for (const auto &[layer, model_groups_ptrs] : model_groups_layers) {
     std::ignore = layer;
-    for (const auto &[group_name, group_ptr] : groups_ptrs) {
+    for (const auto &[group_name, model_group_ptr] : model_groups_ptrs) {
       std::ignore = group_name;
-      for (const auto &next_group_name : group_ptr->next_groups()) {
-        groups.at(next_group_name)
-            .add_incoming_request_streams(group_ptr->get_outgoing_request_streams());
+      for (const auto &next_group_name : model_group_ptr->next_groups()) {
+        model_groups.at(next_group_name)
+            .add_incoming_request_streams(
+                model_group_ptr->get_outgoing_request_streams());
       }
     }
   }
 
-  auto &stats = scenario_settings.stats;
-  for (const auto &[layer, groups_ptrs] : groups_layers) {
-    for (const auto &[group_name, group_ptr] : groups_ptrs) {
+  auto &stats = scenario.stats;
+  for (const auto &[layer, model_groups_ptrs] : model_groups_layers) {
+    for (const auto &[group_name, model_group_ptr] : model_groups_ptrs) {
       auto &group_stats = stats[get(group_name)];
       debug_println("Layer {}, Group {}: ", layer, group_name);
-      debug_println("{}", group_ptr->get_outgoing_request_streams());
-      for (const auto &out_stream : group_ptr->get_outgoing_request_streams()) {
+      debug_println("{}", model_group_ptr->get_outgoing_request_streams());
+      for (const auto &out_stream : model_group_ptr->get_outgoing_request_streams()) {
         auto &j_tc = group_stats[std::to_string(get(out_stream.tc.id))];
         j_tc["P_block"].push_back(get(out_stream.blocking_probability));
       }
@@ -99,10 +121,65 @@ analytical_computations(ScenarioSettings &scenario_settings)
   case AnalyticModel::KaufmanRobertsFixedReqSize:
     analytical_computations(scenario_settings, false);
     return;
-  case AnalyticModel::KaufmanRobbertFixedCapacity:
+  case AnalyticModel::KaufmanRobertsFixedCapacity:
     analytical_computations(scenario_settings, true);
     return;
   }
 }
 
+LayerType
+check_layer_type(const Simulation::Topology &topology, Layer layer)
+{
+  const auto &groups = topology.groups_per_layer.at(layer);
+  // FullAvailability
+  if (rng::all_of(
+          groups, [](const auto &group) { return group->next_groups().size() <= 1; })) {
+    return LayerType::FullAvailability;
+  }
+
+  auto groups_names =
+      groups | rng::view::transform([](const auto &group) { return group->name(); }) |
+      rng::to_vector | rng::action::sort;
+
+  if (rng::all_of(groups, [&](const auto &group) {
+        auto next_groups_names =
+            group->next_groups() | rng::view::filter([layer](const auto &next_group) {
+              return next_group->layer() == layer;
+            }) |
+            rng::view::transform(
+                [](const auto &next_group) { return next_group->name(); }) |
+            rng::to_vector | rng::action::push_back(group->name()) | rng::action::sort;
+        return next_groups_names == groups_names;
+      })) {
+    if (auto capacities = groups | rng::view::transform([](const auto &group) {
+                            return group->capacity();
+                          }) |
+                          rng::view::unique | rng::to_vector;
+        capacities.size() == 1) {
+      return LayerType::DistributedEqualCapacities;
+    } else {
+      return LayerType::DistributedUnequalCapacities;
+    }
+  }
+  return LayerType::Unknown;
+}
+bool
+check_model_prerequisites(const ScenarioSettings &scenario)
+{
+  return rng::all_of(
+      scenario.topology.groups_per_layer | rng::view::keys,
+      [&](const auto &layer) -> bool {
+        return check_layer_type(scenario.topology, layer) != LayerType::Unknown;
+      });
+}
+
+boost::container::flat_map<Layer, LayerType>
+determine_layers_types(const Simulation::Topology &topology)
+{
+  boost::container::flat_map<Layer, LayerType> layers_types;
+  for (const auto &[layer, groups] : topology.groups_per_layer) {
+    layers_types.emplace(layer, check_layer_type(topology, layer));
+  }
+  return layers_types;
+}
 } // namespace Model
