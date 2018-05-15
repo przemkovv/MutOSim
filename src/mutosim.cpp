@@ -173,6 +173,7 @@ load_scenarios_from_files(
           if (rng::any_of(scenario.layers_types | rng::view::values, [](auto layer_type) {
                 return layer_type == Model::LayerType::Unknown;
               })) {
+            println("Couldn't determine analytic model for each layer.");
             continue;
           }
 

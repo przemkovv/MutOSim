@@ -12,7 +12,8 @@ Usage:
             [--save] [--output-dir=DIR]
             [--quiet]
             [--bp] [-i INDICES]
-            [-r]
+            [-r] [--relatives]
+            [--relatives-diffs]
             [--relative-sums]
             [--relative-divs]
             [--normal]
@@ -44,7 +45,8 @@ Options:
                                 [default: data/results/plots/]
     --bp                        enable box plots
     -i INDICES                  indices of scenarios to plot [default: -1]
-    -r, --relatives             plot relations
+    -r, --relatives             plot relations (ratio)
+    --relatives-diffs           plot relations (difference)
     --normal                    normal plots
     --relative-sums             plots of relatives sums
     --relative-divs             plots of relatives divisions
@@ -324,7 +326,7 @@ def main():
                             marker=next(markerscycle))
 
                 set_style(ax)
-                ax.set_title("{} ({})".format(group_name, scenario["name"]))
+                ax.set_title("{} ({}\n{})".format(group_name, scenario["name"], scenario_file))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
@@ -349,11 +351,15 @@ def main():
                     #  pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
                         #  for serie in data_y])
                     ax.set_xlim(x_min, x_max)
-                    pprint((len(tc_data_x), tc_data_x,
-                            len([statistics.mean(serie) for serie in data_y]),
-                            [statistics.mean(serie) for serie in data_y]))
+                    #  pprint((len(tc_data_x), tc_data_x,
+                            #  len([statistics.mean(serie) for serie in data_y]),
+                            #  [statistics.mean(serie) for serie in data_y]))
+
+                    series_means = [statistics.mean(serie) for serie in data_y]
+                    for i in range(0, len(tc_data_x) - len(series_means)):
+                        series_means.insert(0,0)
                     ax.plot(tc_data_x,
-                            [statistics.mean(serie) for serie in data_y],
+                            series_means,
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
                             label="$t_{}={}$".format(tc_id, tc_sizes[tc_id]),
                             marker=next(markerscycle))
@@ -362,9 +368,9 @@ def main():
                 #  ax.set_title("{} V={} {}"
                 #  .format(group_name,
                 #  scenario["groups"][group_name]["capacity"],
-                ax.set_title("{} {}"
+                ax.set_title("{} {}\n({})"
                              .format(group_name,
-                                     scenario["name"] if title_suffix == None else title_suffix))
+                                     scenario["name"] if title_suffix == None else title_suffix, scenario_file))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
@@ -380,6 +386,82 @@ def main():
         key_pairs = itertools.combinations(all_data.keys(), 2)
         key_pairs = list(p + (None,) for p in key_pairs)
 
+    if args['--relatives-diffs']:
+        for k1, k2, p_name in key_pairs:
+            print((k1, k2))
+            if all_data[k1]['x'] == all_data[k2]['x']:
+                print("OK")
+            if not compare_dicts_structure(all_data[k1]['y'], all_data[k2]['y']):
+                print("NOT OK")
+                #  continue
+            for group_name, k1_group_data_y in all_data[k1]['y'].items():
+                if groups and group_name not in groups:
+                    continue
+                k2_group_data_y = all_data[k2]['y'][group_name]
+
+                markerscycle = itertools.cycle(markers)
+                ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
+                for tc_id, k1_data_y in k1_group_data_y.items():
+                    if tc_id not in k2_group_data_y:
+                        continue
+                    k2_data_y = k2_group_data_y[tc_id]
+                    k2_data_y_means = [statistics.mean(x) for x in k2_data_y]
+                    k1_data_y_means = [statistics.mean(x) for x in k1_data_y]
+
+                    plot_data = [x-y
+                                 for x, y in zip(k1_data_y_means, k2_data_y_means)]
+                    #  pprint((len(k1_data_y_means), len(k2_data_y_means)))
+
+                    label = "$t_{}={}$".format(tc_id, tc_sizes[tc_id])
+                    #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
+                    data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
+                    #  pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x'])))
+                    #  ax.plot(tc_data_x,
+                    pprint((len(data_x), len(data_x[0]), data_x))
+                    pprint((len(plot_data), plot_data))
+                    for i in range(0, len(data_x[0]) - len(plot_data)):
+                        plot_data.insert(0,0)
+                    pprint(("ZIP", list(zip(data_x[0], k1_data_y_means, k2_data_y_means))))
+                    pprint(plot_data)
+
+
+
+                    ax.set_xlim(x_min, x_max)
+
+                    ax.plot(np.average(data_x, axis=0),
+                            plot_data,
+                            label=label,
+                            marker=next(markerscycle))
+
+                set_style(ax)
+
+                def remove_prefix(s):
+                    return s.replace("data/journal/", "").replace("data/journal2/", "").replace(".json", "")
+                if p_name:
+                    title_append = p_name
+                else:
+                    title_append = "\n({} - \n{})".format(
+                        remove_prefix(k1), remove_prefix(k2))
+
+                #  ax.set_title("{} V={} {}"
+                    #  .format(group_name,
+                    #  scenario["groups"][group_name]["capacity"],
+                #  ax.set_title("{} {}"
+                    #  .format(group_name,
+                    #  title_append))
+                ax.set_title("{} {}"
+                             .format(group_name,
+                                     title_append if title_suffix == None else title_suffix))
+                ax.set_ylabel("{}\n difference".format(
+                    stats_name2label.get(stat_name, stat_name)))
+                if plot_id % plots_number_x == 0:
+                    ax.set_xlabel("a")
+                plot_id += 1
+                handles, labels = ax.get_legend_handles_labels()
+                ncol = cols_number(labels)
+                ax.legend(flip(handles, ncol), flip(labels, ncol),
+                          loc=9, ncol=ncol, borderaxespad=0)
+                #  ax.legend(loc=9, ncol=5, borderaxespad=0)
     if args['--relatives']:
         for k1, k2, p_name in key_pairs:
             print((k1, k2))
@@ -413,8 +495,7 @@ def main():
                     #  ax.plot(tc_data_x,
                     #  pprint((len(data_x), len(data_x[0]), data_x))
                     #  pprint((len(plot_data), plot_data))
-                    if len(plot_data) < len(data_x[0]):
-                        plot_data.insert(0,0)
+                    for i in range(0, len(data_x[0]) - len(plot_data)):
                         plot_data.insert(0,0)
                     ax.set_xlim(x_min, x_max)
 
