@@ -413,6 +413,9 @@ def main():
                     #  ax.plot(tc_data_x,
                     #  pprint((len(data_x), len(data_x[0]), data_x))
                     #  pprint((len(plot_data), plot_data))
+                    if len(plot_data) < len(data_x[0]):
+                        plot_data.insert(0,0)
+                        plot_data.insert(0,0)
                     ax.set_xlim(x_min, x_max)
 
                     ax.plot(np.average(data_x, axis=0),

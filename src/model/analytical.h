@@ -17,7 +17,7 @@ namespace Model
 {
 void analytical_computations_hardcoded();
 void
-analytical_computations(ScenarioSettings &scenario_settings, bool assume_fixed_capacity);
+analytical_computations(ScenarioSettings &scenario_settings, KaufmanRobertsVariant kr_variant);
 void analytical_computations(ScenarioSettings &scenario_settings);
 
 LayerType check_layer_type(const Simulation::Topology &topology, Layer layer);

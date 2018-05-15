@@ -2,6 +2,7 @@
 #include "analytical.h"
 
 #include "logger.h"
+#include "model/common.h"
 #include "model/group.h"
 #include "overflow_far.h"
 #include "scenario_settings.h"
@@ -37,14 +38,14 @@ analytical_computations_hardcoded()
       TrafficClass{TrafficClassId{2}, Intensity{10.0L}, Intensity{1.0L}, Size{2}, {}});
   traffic_classes1.emplace_back(
       TrafficClass{TrafficClassId{3}, Intensity{3.33333L}, Intensity{1.0L}, Size{6}, {}});
-  Model::Group g1{Capacity{60}, false};
-  Model::Group g2{Capacity{60}, false};
-  Model::Group g3{Capacity{60}, false};
+  Model::Group g1{Capacity{60}, KaufmanRobertsVariant::FixedReqSize};
+  Model::Group g2{Capacity{60}, KaufmanRobertsVariant::FixedReqSize};
+  Model::Group g3{Capacity{60}, KaufmanRobertsVariant::FixedReqSize};
   g1.add_incoming_request_streams(traffic_classes1);
   g2.add_incoming_request_streams(traffic_classes1);
   g3.add_incoming_request_streams(traffic_classes1);
 
-  Model::Group g0{Capacity{42}, false};
+  Model::Group g0{Capacity{42}, KaufmanRobertsVariant::FixedReqSize};
   g0.add_incoming_request_streams(g1.get_outgoing_request_streams());
   g0.add_incoming_request_streams(g2.get_outgoing_request_streams());
   g0.add_incoming_request_streams(g3.get_outgoing_request_streams());
@@ -52,7 +53,7 @@ analytical_computations_hardcoded()
   println("{}", g0.get_outgoing_request_streams());
 }
 void
-analytical_computations(ScenarioSettings &scenario, bool assume_fixed_capacity)
+analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_variant)
 {
   auto &layers_types = scenario.layers_types;
   ASSERT(
@@ -75,7 +76,7 @@ analytical_computations(ScenarioSettings &scenario, bool assume_fixed_capacity)
         "groups.");
 
     auto [model_group_it, inserted] = model_groups.emplace(
-        group_name, Model::Group{group->capacity(), assume_fixed_capacity});
+        group_name, Model::Group{group->capacity(), kr_variant});
 
     for (const auto &next_group : group->next_groups()) {
       model_group_it->second.add_next_group(next_group->name());
@@ -119,10 +120,10 @@ analytical_computations(ScenarioSettings &scenario_settings)
 {
   switch (scenario_settings.analytic_model) {
   case AnalyticModel::KaufmanRobertsFixedReqSize:
-    analytical_computations(scenario_settings, false);
+    analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedReqSize);
     return;
   case AnalyticModel::KaufmanRobertsFixedCapacity:
-    analytical_computations(scenario_settings, true);
+    analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedCapacity);
     return;
   }
 }

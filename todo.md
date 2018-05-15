@@ -19,9 +19,18 @@
    F-H?
  - Łączenie modeli niepełnodostępnych wraz z ruchem Er-En-Pa
  - Efektywność modelu EIR
+ - Metoda Sanders w teletraffic handbook
+ - Artykuły
 
 
 # Todo
+
+Fix:
+ - consider peakedness of the traffic class not aggregated  in FixedCapacity
+   method
+
+
+
  Analytical models:
  - Wiązka z ograniczoną dostępnością 75
   - metoda Sandersa porównanie z Haywarded -- znaleźć

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "model/common.h"
 #include "stream_properties.h"
 #include "traffic_class.h"
 #include "types.h"
@@ -15,15 +16,15 @@ using Probabilities = std::valarray<Probability>;
 Probabilities kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
     Capacity V,
-    SizeRescale size_rescale);
+    KaufmanRobertsVariant kr_variant);
 
 OutgoingRequestStreams kaufman_roberts_blocking_probability(
     const IncomingRequestStreams &in_request_streams,
     CapacityF V,
-    SizeRescale size_rescale);
+    KaufmanRobertsVariant kr_variant);
 
-OutgoingRequestStreams compute_overflow_parameters(
-    OutgoingRequestStreams out_request_streams, CapacityF V, SizeRescale size_rescale);
+OutgoingRequestStreams
+compute_overflow_parameters(OutgoingRequestStreams out_request_streams, CapacityF V);
 
 //----------------------------------------------------------------------
 IncomingRequestStreams convert_to_incoming_streams(
@@ -40,10 +41,10 @@ CapacityF compute_fictional_capacity_fit_carried_traffic(
     const OutgoingRequestStreams &request_streams,
     Capacity V,
     TrafficClassId tc_id,
-    SizeRescale size_rescale);
+    KaufmanRobertsVariant kr_variant);
 
 CapacityF compute_fictional_capacity_fit_blocking_probability(
-    const OutgoingRequestStream &rs, CapacityF V, SizeRescale size_rescale);
+    const OutgoingRequestStream &rs, CapacityF V);
 
 Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 
