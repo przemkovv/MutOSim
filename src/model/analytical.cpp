@@ -110,7 +110,11 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
       debug_println("{}", model_group_ptr->get_outgoing_request_streams());
       for (const auto &out_stream : model_group_ptr->get_outgoing_request_streams()) {
         auto &j_tc = group_stats[std::to_string(get(out_stream.tc.id))];
-        j_tc["P_block"].push_back(get(out_stream.blocking_probability));
+        j_tc["P_block"].push_back(stat_t{out_stream.blocking_probability});
+        j_tc["peakedness"].push_back(stat_t{out_stream.peakedness});
+        j_tc["variance"].push_back(stat_t{out_stream.variance});
+        j_tc["mean"].push_back(stat_t{out_stream.mean});
+        j_tc["fictious_capacity"].push_back(get(out_stream.fictional_capacity));
       }
     }
   }
