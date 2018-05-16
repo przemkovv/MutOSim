@@ -15,6 +15,9 @@
 #include "types.h"
 #include "utils.h"
 
+#include "calculation.h"
+#include "model/kaufman_roberts.h"
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <fmt/format.h>

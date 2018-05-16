@@ -421,6 +421,7 @@ def main():
                     pprint((len(plot_data), plot_data))
                     for i in range(0, len(data_x[0]) - len(plot_data)):
                         plot_data.insert(0,0)
+                    pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x']), label))
                     pprint(("ZIP", list(zip(data_x[0], k1_data_y_means, k2_data_y_means))))
                     pprint(plot_data)
 

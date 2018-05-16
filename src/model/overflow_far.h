@@ -11,7 +11,7 @@
 
 namespace Model
 {
-using Probabilities = std::valarray<Probability>;
+using Probabilities = std::vector<Probability>;
 
 Probabilities kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
@@ -39,7 +39,7 @@ Variance compute_riordan_variance(
 
 CapacityF compute_fictional_capacity_fit_carried_traffic(
     const OutgoingRequestStreams &request_streams,
-    Capacity V,
+    CapacityF V,
     TrafficClassId tc_id,
     KaufmanRobertsVariant kr_variant);
 
