@@ -2,8 +2,9 @@
 #pragma once
 
 #include "math_utils.h"
+#include "model/stream_properties.h"
 
-#include <types.h>
+#include "types.h"
 
 inline auto
 erlang_pk_distribution(const long double A, const int64_t V, const int64_t k)
@@ -36,3 +37,5 @@ engset_pi(const long double alpha, const int64_t V, const int64_t N, const int64
 }
 
 Probability extended_erlang_b(CapacityF V, Intensity A);
+CapacityF compute_fictional_capacity_fit_blocking_probability2(
+    const Model::OutgoingRequestStream &rs, CapacityF V);
