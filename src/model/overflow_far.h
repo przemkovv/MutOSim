@@ -43,9 +43,6 @@ CapacityF compute_fictional_capacity_fit_carried_traffic(
     TrafficClassId tc_id,
     KaufmanRobertsVariant kr_variant);
 
-CapacityF compute_fictional_capacity_fit_blocking_probability(
-    const OutgoingRequestStream &rs, CapacityF V);
-
 Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 
 Probability conditional_transition_probability(

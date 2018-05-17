@@ -2,7 +2,7 @@
 
 #include "overflow_far.h"
 
-#include "calculation.h"
+#include "erlang_formula.h"
 #include "kaufman_roberts.h"
 #include "logger.h"
 #include "math_utils.h"
@@ -119,42 +119,6 @@ compute_fictional_capacity_fit_carried_traffic(
 }
 //----------------------------------------------------------------------
 
-//----------------------------------------------------------------------
-// criterion based on blocking probability fit (Formula 3.10)
-CapacityF
-compute_fictional_capacity_fit_blocking_probability(
-    const OutgoingRequestStream &rs, CapacityF V)
-{
-  count_float_t epsilon{0.000001L};
-  count_float_t left_bound{1};
-  count_float_t right_bound{get(V)};
-  count_float_t current{left_bound};
-
-  while (right_bound - left_bound > epsilon) {
-    current = (right_bound + left_bound) * 0.5L;
-    auto p = extended_erlang_b(CapacityF{current}, rs.intensity);
-    println(
-        "<{};{};{}> {} - {} = {}",
-        left_bound,
-        current,
-        right_bound,
-        p,
-        rs.blocking_probability,
-        p - rs.blocking_probability);
-    if (p > rs.blocking_probability) {
-      left_bound = current;
-    } else if (p < rs.blocking_probability) {
-      right_bound = current;
-    } else {
-      break;
-    }
-  }
-
-  // TODO(PW): check if multiply by peakness is needed
-  return CapacityF{current * get(rs.tc.size)};
-}
-
-//----------------------------------------------------------------------
 Probabilities
 kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
@@ -175,36 +139,19 @@ kaufman_roberts_distribution(
       }();
       auto previous_state = Capacity{n - tc_size};
       if (previous_state >= Capacity{0}) {
-        // println("State {}", state);
-        auto s1 = state[size_t(previous_state)];
-        // println("Idx={}", std::min(size_t(previous_state) + 1, size_t(V) + 1));
-        auto s2 = state[std::min(size_t(previous_state) + 1, size_t(V))];
-
         Probability previous_state_value{0};
-        auto prec = get(n - tc_size);
-        probability_t interp = 1;
-        if (std::floor(prec) < prec) {
-          interp = prec - std::floor(prec);
+
+        if (auto prec = get(n - tc_size); std::floor(prec) < prec) {
+          const auto interp = prec - std::floor(prec);
+          const auto s1 = state[size_t(previous_state)];
+          const auto s2 = state[std::min(size_t(previous_state) + 1, size_t(V))];
           previous_state_value = Probability{(1 - interp) * get(s1) + (interp)*get(s2)};
         } else {
-          previous_state_value = Probability{s1};
+          previous_state_value = state[size_t(previous_state)];
         }
 
-        auto delta =
+        state[size_t(n)] +=
             Intensity{get(rs.mean) / get(rs.peakedness)} * tc_size * previous_state_value;
-        // println(
-        // "n={},tc_size={}, peak={}, interp={}, s1={}, s2={}, ps_v={}, delta={}",
-        // n - tc_size,
-        // tc_size,
-        // rs.peakedness,
-        // interp,
-        // s1,
-        // s2,
-        // previous_state_value,
-        // delta);
-        // state[size_t(previous_state)];
-
-        state[size_t(n)] += delta;
       }
     }
     state[size_t(n)] /= n;
@@ -226,27 +173,19 @@ kaufman_roberts_blocking_probability(
   for (const auto &in_rs : in_request_streams) {
     CapacityF n{V - in_rs.tc.size + Size{1}};
 
-    // println("---");
-    // println("{}", in_rs);
-    // println(
-    // "V={}, tc_size={}, n={} Distribution:\n{}", V, in_rs.tc.size, n, distribution);
-    // println("---");
+    auto blocking_probability = rng::accumulate(
+        distribution | rng::view::drop(size_t(std::floor(get(n)))), Probability{0});
 
-    auto blocking_probability =
-        rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
-    // auto blocking_probability2 =
-    // rng::accumulate(distribution | rng::view::drop(size_t(n) + 1), Probability{0});
+    if (auto prec = get(n); (false) && std::floor(prec) < prec) {
+      auto blocking_probability2 = rng::accumulate(
+          distribution | rng::view::drop(size_t(std::ceil(get(n)))), Probability{0});
 
-    // println("P1 {}\tP2 {}", blocking_probability, blocking_probability2);
-    // blocking_probability = Probability{Math::lerp(
-    // count_float_t{get(n) - static_cast<count_float_t>(size_t(n))},
-    // get(blocking_probability),
-    // get(blocking_probability2))};
-    // println(
-    // "n {}, dn {}\tP3 {}",
-    // n,
-    // get(n) - static_cast<count_float_t>(size_t(n)),
-    // blocking_probability);
+      auto interp = prec - std::floor(prec);
+      println("P1 {}\tP2 {}", blocking_probability, blocking_probability2);
+      blocking_probability = Probability{(1 - interp) * get(blocking_probability) +
+                                         interp * get(blocking_probability2)};
+      println("n {}, interp {}\tP3 {}", n, interp, blocking_probability);
+    }
 
     ASSERT(
         blocking_probability >= Probability{0} && blocking_probability <= Probability{1},
@@ -272,7 +211,7 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
     // V,
     // rs.fictional_capacity,
     // extended_erlang_b(rs.fictional_capacity, rs.intensity));
-    rs.fictional_capacity = compute_fictional_capacity_fit_blocking_probability2(rs, V);
+    rs.fictional_capacity = compute_fictitious_capacity_fit_blocking_probability(rs, V);
 
     rs.variance = compute_riordan_variance(
         rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size);
