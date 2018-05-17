@@ -161,7 +161,7 @@ kaufman_roberts_distribution(
     Capacity V,
     KaufmanRobertsVariant kr_variant)
 {
-  Probabilities state(size_t(V) + 1);
+  Probabilities state(size_t(V) + 1, Probability{0});
   state[0] = Probability{1};
 
   rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
@@ -175,8 +175,36 @@ kaufman_roberts_distribution(
       }();
       auto previous_state = Capacity{n - tc_size};
       if (previous_state >= Capacity{0}) {
-        state[size_t(n)] += Intensity{get(rs.mean) / get(rs.peakedness)} * tc_size *
-                            state[size_t(previous_state)];
+        // println("State {}", state);
+        auto s1 = state[size_t(previous_state)];
+        // println("Idx={}", std::min(size_t(previous_state) + 1, size_t(V) + 1));
+        auto s2 = state[std::min(size_t(previous_state) + 1, size_t(V))];
+
+        Probability previous_state_value{0};
+        auto prec = get(n - tc_size);
+        probability_t interp = 1;
+        if (std::floor(prec) < prec) {
+          interp = prec - std::floor(prec);
+          previous_state_value = Probability{(1 - interp) * get(s1) + (interp)*get(s2)};
+        } else {
+          previous_state_value = Probability{s1};
+        }
+
+        auto delta =
+            Intensity{get(rs.mean) / get(rs.peakedness)} * tc_size * previous_state_value;
+        // println(
+        // "n={},tc_size={}, peak={}, interp={}, s1={}, s2={}, ps_v={}, delta={}",
+        // n - tc_size,
+        // tc_size,
+        // rs.peakedness,
+        // interp,
+        // s1,
+        // s2,
+        // previous_state_value,
+        // delta);
+        // state[size_t(previous_state)];
+
+        state[size_t(n)] += delta;
       }
     }
     state[size_t(n)] /= n;
@@ -198,8 +226,27 @@ kaufman_roberts_blocking_probability(
   for (const auto &in_rs : in_request_streams) {
     CapacityF n{V - in_rs.tc.size + Size{1}};
 
+    // println("---");
+    // println("{}", in_rs);
+    // println(
+    // "V={}, tc_size={}, n={} Distribution:\n{}", V, in_rs.tc.size, n, distribution);
+    // println("---");
+
     auto blocking_probability =
         rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
+    // auto blocking_probability2 =
+    // rng::accumulate(distribution | rng::view::drop(size_t(n) + 1), Probability{0});
+
+    // println("P1 {}\tP2 {}", blocking_probability, blocking_probability2);
+    // blocking_probability = Probability{Math::lerp(
+    // count_float_t{get(n) - static_cast<count_float_t>(size_t(n))},
+    // get(blocking_probability),
+    // get(blocking_probability2))};
+    // println(
+    // "n {}, dn {}\tP3 {}",
+    // n,
+    // get(n) - static_cast<count_float_t>(size_t(n)),
+    // blocking_probability);
 
     ASSERT(
         blocking_probability >= Probability{0} && blocking_probability <= Probability{1},

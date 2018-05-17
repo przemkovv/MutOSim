@@ -304,7 +304,7 @@ def main():
         for _, result in scenario_results.items():
             # TODO(PW): make this range properly work on different intensity
             # multipliers
-            a = float(result["_a"])
+            a = float(result["_A"])
             #  if (x_min and x_min > a) or (x_max and x_max < a):
             #  continue
             tc_data_x.append(a)

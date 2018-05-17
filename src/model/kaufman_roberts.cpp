@@ -53,7 +53,6 @@ kaufman_roberts_distribution(Intensity A, Size tc_size, Capacity V)
   });
   Math::normalize_L1(state);
 
-
   Probabilities state2(size_t(V) + 1);
   for (size_t i = 0; i < state.size(); ++i) {
     state2[i] = Probability{probability_t{state[i]}};
@@ -70,6 +69,8 @@ kaufman_roberts_blocking_probability(Intensity A, Size tc_size, CapacityF V)
   // tc_size = Size(get(tc_size)*100);
   auto distribution = kaufman_roberts_distribution(A, tc_size, Capacity{V});
   CapacityF n{V - tc_size + Size{1}};
+
+  println("V={}, tc_size={}, n={} Distribution:\n{}", V, tc_size, n, distribution);
 
   auto blocking_probability =
       rng::accumulate(distribution | rng::view::drop(size_t(n)), Probability{0});
