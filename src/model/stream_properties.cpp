@@ -95,7 +95,7 @@ format_arg(
       "Y={}",
       rs.tc,
       rs.blocking_probability,
-      rs.fictional_capacity,
+      rs.fictitous_capacity,
       rs.intensity,
       rs.mean,
       rs.variance,

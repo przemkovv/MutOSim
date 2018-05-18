@@ -80,14 +80,14 @@ compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
 //----------------------------------------------------------------------
 Variance
 compute_riordan_variance(
-    MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, SizeF tc_size)
+    MeanIntensity mean, Intensity intensity, CapacityF fictitous_capacity, SizeF tc_size)
 {
   /* clang-format off */
   return Variance{
     get(mean) * (get(intensity) /
                  (
                   (
-                   get(fictional_capacity) / get(tc_size)
+                   get(fictitous_capacity) / get(tc_size)
                   ) + 1 - get(intensity) + get(mean)
                  ) + 1 - get(mean)
                 )
@@ -98,7 +98,7 @@ compute_riordan_variance(
 //----------------------------------------------------------------------
 // Serviced traffic fit criterion (Formulas 3.8 and 3.9)
 CapacityF
-compute_fictional_capacity_fit_carried_traffic(
+compute_fictitious_capacity_fit_carried_traffic(
     const OutgoingRequestStreams &out_request_streams,
     CapacityF V,
     TrafficClassId tc_id,
@@ -141,17 +141,16 @@ kaufman_roberts_distribution(
       if (previous_state >= Capacity{0}) {
         Probability previous_state_value{0};
 
-        if (auto prec = get(n - tc_size); std::floor(prec) < prec) {
-          const auto interp = prec - std::floor(prec);
+        if (auto prec = get(n - tc_size); (false) && std::floor(prec) < prec) {
+          const auto fraction = prec - std::floor(prec);
           const auto s1 = state[size_t(previous_state)];
           const auto s2 = state[std::min(size_t(previous_state) + 1, size_t(V))];
-          previous_state_value = Probability{(1 - interp) * get(s1) + (interp)*get(s2)};
+          previous_state_value = Probability{Math::lerp(1 - fraction, get(s1), get(s2))};
         } else {
           previous_state_value = state[size_t(previous_state)];
         }
 
-        state[size_t(n)] +=
-            Intensity{get(rs.mean) / get(rs.peakedness)} * tc_size * previous_state_value;
+        state[size_t(n)] += rs.intensity * tc_size * previous_state_value;
       }
     }
     state[size_t(n)] /= n;
@@ -204,17 +203,17 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
 {
   for (auto &rs : out_request_streams) {
     // TODO(PW): add CLI option for choosing fittin to carried traffic
-    // rs.fictional_capacity = compute_fictional_capacity_fit_carried_traffic(
+    // rs.fictitous_capacity = compute_fictitious_capacity_fit_carried_traffic(
     // out_request_streams, V, rs.tc.id, KaufmanRobertsVariant::FixedReqSize);
     // println(
     // "Cr V= {}, V_f = {}, P_b={}",
     // V,
-    // rs.fictional_capacity,
-    // extended_erlang_b(rs.fictional_capacity, rs.intensity));
-    rs.fictional_capacity = compute_fictitious_capacity_fit_blocking_probability(rs, V);
+    // rs.fictitious_capacity,
+    // extended_erlang_b(rs.fictitous_capacity, rs.intensity));
+    rs.fictitous_capacity = compute_fictitious_capacity_fit_blocking_probability(rs, V);
 
     rs.variance = compute_riordan_variance(
-        rs.mean, rs.intensity, rs.fictional_capacity, rs.tc.size);
+        rs.mean, rs.intensity, rs.fictitous_capacity, rs.tc.size);
 
     ASSERT(
         get(rs.variance) >= 0,

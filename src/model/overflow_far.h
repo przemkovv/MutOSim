@@ -35,9 +35,9 @@ Peakedness
 compute_collective_peakedness(const IncomingRequestStreams &in_request_streams);
 
 Variance compute_riordan_variance(
-    MeanIntensity mean, Intensity intensity, CapacityF fictional_capacity, SizeF tc_size);
+    MeanIntensity mean, Intensity intensity, CapacityF fictitous_capacity, SizeF tc_size);
 
-CapacityF compute_fictional_capacity_fit_carried_traffic(
+CapacityF compute_fictitious_capacity_fit_carried_traffic(
     const OutgoingRequestStreams &request_streams,
     CapacityF V,
     TrafficClassId tc_id,

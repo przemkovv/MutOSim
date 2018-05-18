@@ -25,6 +25,9 @@
 
 # Todo
 
+- Compare influence of different capacities/ number of streams/ number of
+  primary groups on errors.
+
 Fix:
  - consider peakedness of the traffic class not aggregated  in FixedCapacity
    method

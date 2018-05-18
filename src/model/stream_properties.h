@@ -16,7 +16,7 @@ struct OutgoingRequestStream {
   MeanIntensity mean{0};                    // R_{c,s}
   MeanRequestNumber mean_request_number{0}; // Y_{c,s}
 
-  CapacityF fictional_capacity{0};
+  CapacityF fictitous_capacity{0};
   Variance variance{0};     // sigma^2_{c,s}
   Peakedness peakedness{0}; // Z_c
 

@@ -114,7 +114,7 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
         j_tc["peakedness"].push_back(stat_t{out_stream.peakedness});
         j_tc["variance"].push_back(stat_t{out_stream.variance});
         j_tc["mean"].push_back(stat_t{out_stream.mean});
-        j_tc["fictious_capacity"].push_back(get(out_stream.fictional_capacity));
+        j_tc["fictitous_capacity"].push_back(get(out_stream.fictitous_capacity));
       }
     }
   }
