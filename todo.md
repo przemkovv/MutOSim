@@ -27,6 +27,7 @@
 
 - Compare influence of different capacities/ number of streams/ number of
   primary groups on errors.
+  - in case of a single offered stream there are problems
 
 Fix:
  - consider peakedness of the traffic class not aggregated  in FixedCapacity

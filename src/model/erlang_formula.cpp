@@ -2,6 +2,7 @@
 #include "erlang_formula.h"
 
 #include <boost/math/special_functions/gamma.hpp>
+#include "logger.h"
 
 using namespace boost::math;
 
@@ -51,6 +52,7 @@ compute_fictitious_capacity_fit_blocking_probability(
   while (right_bound - left_bound > e) {
     current = (right_bound + left_bound) * float_hp{0.5L};
     float_hp p = extended_erlang_b(current, a);
+    // println("{} {} {}, {} -> {}", right_bound, current, left_bound, p, target_p_block);
     if (p > target_p_block) {
       left_bound = current;
     } else if (p < target_p_block) {

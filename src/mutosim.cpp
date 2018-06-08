@@ -75,6 +75,7 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 #pragma omp parallel for schedule(guided, 8) if (cli.parallel)
 #endif
   for (auto i = 0ul; i < scenarios.size(); ++i) {
+    // println("Scenario: {}, file: {}", scenarios[i].name, scenarios[i].filename);
     nlohmann::json analytical_stats;
     switch (scenarios[i].mode) {
     case Mode::Simulation: {
