@@ -168,6 +168,8 @@ kaufman_roberts_blocking_probability(
 {
   auto distribution =
       kaufman_roberts_distribution(in_request_streams, Capacity{V}, kr_variant);
+  auto distribution2 =
+      kaufman_roberts_distribution(in_request_streams, Capacity{V} + Size{1}, kr_variant);
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams) {
     CapacityF n{V - in_rs.tc.size + Size{1}};
@@ -175,15 +177,15 @@ kaufman_roberts_blocking_probability(
     auto blocking_probability = rng::accumulate(
         distribution | rng::view::drop(size_t(std::floor(get(n)))), Probability{0});
 
-    if (auto prec = get(n); (false) && std::floor(prec) < prec) {
+    if (auto prec = get(n); (true) && std::floor(prec) < prec) {
       auto blocking_probability2 = rng::accumulate(
-          distribution | rng::view::drop(size_t(std::ceil(get(n)))), Probability{0});
+          distribution2 | rng::view::drop(size_t(std::ceil(get(n)))), Probability{0});
 
       auto interp = prec - std::floor(prec);
-      println("P1 {}\tP2 {}", blocking_probability, blocking_probability2);
+      // println("P1 {}\tP2 {}", blocking_probability, blocking_probability2);
       blocking_probability = Probability{(1 - interp) * get(blocking_probability) +
                                          interp * get(blocking_probability2)};
-      println("n {}, interp {}\tP3 {}", n, interp, blocking_probability);
+      // println("n {}, interp {}\tP3 {}", n, interp, blocking_probability);
     }
 
     ASSERT(
@@ -217,8 +219,8 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
 
     ASSERT(
         get(rs.variance) >= 0,
-        "Variance should be positive but is equal to {}.",
-        rs.variance);
+        "Variance should be positive but is equal to {}. ({})",
+        rs.variance, rs);
 
     rs.peakedness = rs.variance / rs.mean;
   }
