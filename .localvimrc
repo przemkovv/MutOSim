@@ -1,7 +1,7 @@
 
 set tags=tags,./tags
 
-set makeprg=make\ -j3\ -C\ build/
+set makeprg=ninja\ -C\ build/
 setlocal path=.,build/include,~/dev/hunter/_Base/5cd594b/7c2aa2e/2918ff8/Install/include,/usr/include,/usr/include/c++/8.1.0,src/,
 
 " set omnifunc=lsp#complete

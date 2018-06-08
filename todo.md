@@ -15,11 +15,6 @@
 
 # Issues
 
- - Czy różnego typu warstwy (FAG,LAG, itp.) są ze sobą kompatybilne w metodzie
-   F-H?
- - Łączenie modeli niepełnodostępnych wraz z ruchem Er-En-Pa
- - Efektywność modelu EIR
- - Metoda Sanders w teletraffic handbook
  - Artykuły
 
 
@@ -34,14 +29,6 @@
  - Wiązka z ograniczoną dostępnością 75
   - metoda Sandersa porównanie z Haywarded -- znaleźć
   - model analityczny - podgrupy, LAG, s.212, prof 3.4.2.1, równe pojemność
-
-
-- Verify Q
-  - What happens when peakness is negative?
-  - What happens when peaknes is less than 1.0?
-  - Apply criterion on block probability fit 3.3.2.3.2
-  - Hierarchical networks and Frederick-Hayward and peakness and original
-    source streams
 
 - Use cases:
   - support for multiple next groups
