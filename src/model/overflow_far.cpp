@@ -212,7 +212,13 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
     // V,
     // rs.fictitious_capacity,
     // extended_erlang_b(rs.fictitous_capacity, rs.intensity));
-    rs.fictitous_capacity = compute_fictitious_capacity_fit_blocking_probability(rs, V);
+    auto fictitous_capacity = compute_fictitious_capacity_fit_blocking_probability(rs, V);
+    ASSERT(
+        fictitous_capacity.has_value(),
+        "Couldn't find fictitious capacity for stream {}.",
+        rs);
+
+    rs.fictitous_capacity = fictitous_capacity.value();
 
     rs.variance = compute_riordan_variance(
         rs.mean, rs.intensity, rs.fictitous_capacity, rs.tc.size);
@@ -220,7 +226,8 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
     ASSERT(
         get(rs.variance) >= 0,
         "Variance should be positive but is equal to {}. ({})",
-        rs.variance, rs);
+        rs.variance,
+        rs);
 
     rs.peakedness = rs.variance / rs.mean;
   }

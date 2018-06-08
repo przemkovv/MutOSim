@@ -27,13 +27,8 @@
 
 - Compare influence of different capacities/ number of streams/ number of
   primary groups on errors.
-  - in case of a single offered stream there are problems
-
-Fix:
- - consider peakedness of the traffic class not aggregated  in FixedCapacity
-   method
-
-
+  - in case of a single offered stream there are problems - related to getting
+    to big error (it was related to too small search range)
 
  Analytical models:
  - Wiązka z ograniczoną dostępnością 75

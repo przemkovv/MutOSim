@@ -28,9 +28,7 @@ Group::get_outgoing_request_streams() const
     out_request_streams_ =
         kaufman_roberts_blocking_probability(in_request_streams, V, kr_variant_);
 
-    if (!next_groups_names_.empty()) {
-      out_request_streams_ = compute_overflow_parameters(out_request_streams_, V);
-    }
+    out_request_streams_ = compute_overflow_parameters(out_request_streams_, V);
 
     need_recalculate_ = false;
   }
