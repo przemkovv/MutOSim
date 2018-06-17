@@ -4,6 +4,8 @@
 #include "simulation/group.h"
 #include "simulation/source_stream/source_stream.h"
 
+#include <fmt/ostream.h>
+
 namespace Simulation
 {
 Group &

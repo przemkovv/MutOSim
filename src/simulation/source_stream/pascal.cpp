@@ -6,7 +6,6 @@
 #include "simulation/world.h"
 #include "types.h"
 
-#include <fmt/ostream.h>
 #include <optional>
 
 namespace Simulation

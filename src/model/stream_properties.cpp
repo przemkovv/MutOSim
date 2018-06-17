@@ -3,6 +3,8 @@
 
 #include "logger.h"
 
+#include <fmt/ostream.h>
+
 namespace Model
 {
 OutgoingRequestStream::OutgoingRequestStream(

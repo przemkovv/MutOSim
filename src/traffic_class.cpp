@@ -1,7 +1,6 @@
 
 #include "traffic_class.h"
 
-#include <fmt/ostream.h>
 
 // void
 // format_arg(

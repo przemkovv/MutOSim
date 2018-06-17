@@ -4,7 +4,6 @@
 #include "simulation/group.h"
 #include "simulation/world.h"
 
-#include <fmt/ostream.h>
 
 namespace Simulation
 {

@@ -10,6 +10,7 @@
 #include "source_stream/source_stream_format.h"
 
 #include <nlohmann/json.hpp>
+#include <fmt/ostream.h>
 
 namespace Simulation
 {

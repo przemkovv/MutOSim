@@ -1,4 +1,5 @@
 
+#pragma once
 #include "event.h"
 
 #include <fmt/format.h>

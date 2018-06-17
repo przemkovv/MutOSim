@@ -25,6 +25,7 @@
 #include <range/v3/view/map.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/unique.hpp>
+#include <fmt/ostream.h>
 
 namespace rng = ranges;
 

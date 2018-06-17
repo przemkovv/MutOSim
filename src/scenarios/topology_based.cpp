@@ -5,6 +5,8 @@
 #include "simulation/overflow_policy/factory.h"
 #include "simulation/source_stream/factory.h"
 
+#include <fmt/ostream.h>
+
 ScenarioSettings
 prepare_scenario_global_A(const Config::Topology &config, Intensity A)
 {

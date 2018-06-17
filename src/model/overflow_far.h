@@ -6,7 +6,6 @@
 #include "traffic_class.h"
 #include "types.h"
 
-#include <fmt/ostream.h>
 #include <valarray>
 #include <vector>
 

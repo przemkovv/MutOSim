@@ -7,8 +7,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fmt/ostream.h>
 #include <gsl/gsl>
+#include <fmt/ostream.h>
 
 namespace Simulation
 {
