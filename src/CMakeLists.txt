@@ -64,6 +64,8 @@ target_sources(sim PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/model/overflow_far.h"
   "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties.h"
+  "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties_format.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties_format.h"
 
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/simple.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/simple.h"
@@ -84,6 +86,8 @@ target_sources(sim PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/simulation/group.h"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/load.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/load.h"
+  "${CMAKE_CURRENT_LIST_DIR}/simulation/load_format.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/simulation/load_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/event.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/event_format.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/event_format.h"
@@ -99,6 +103,8 @@ target_sources(sim PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/simulation/source_stream/engset.h"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/source_stream/factory.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/source_stream/factory.h"
+  "${CMAKE_CURRENT_LIST_DIR}/simulation/source_stream/source_stream_format.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/simulation/source_stream/source_stream_format.h"
 
   "${CMAKE_CURRENT_LIST_DIR}/simulation/overflow_policy/factory.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/overflow_policy/factory.h"

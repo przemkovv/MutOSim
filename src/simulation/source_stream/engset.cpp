@@ -1,6 +1,9 @@
 #include "engset.h"
 
 #include "simulation/group.h"
+#include "simulation/world.h"
+#include "source_stream_format.h"
+#include "simulation/load_format.h"
 
 #include <fmt/ostream.h>
 
@@ -75,19 +78,4 @@ EngsetSourceStream::produce_load(Time time)
 
 //----------------------------------------------------------------------
 
-void
-format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *& /* format_str */,
-    const EngsetSourceStream &source)
-{
-  f.writer().write(
-      "[EngsetSource {} (id={}), active={}/{}, gamma={}, lambda={}]",
-      source.name_,
-      source.id,
-      source.active_sources_,
-      source.sources_number_,
-      source.tc_.serve_intensity,
-      (source.sources_number_ - source.active_sources_) * source.tc_.serve_intensity);
-}
 } // namespace Simulation

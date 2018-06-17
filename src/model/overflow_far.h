@@ -2,6 +2,7 @@
 
 #include "model/common.h"
 #include "stream_properties.h"
+#include "stream_properties_format.h"
 #include "traffic_class.h"
 #include "types.h"
 

@@ -3,9 +3,11 @@
 
 #include "group.h"
 #include "load.h"
+#include "load_format.h"
 #include "logger.h"
 #include "simulation/stats_format.h"
 #include "source_stream/source_stream.h"
+#include "source_stream/source_stream_format.h"
 
 #include <nlohmann/json.hpp>
 
@@ -173,10 +175,4 @@ World::schedule(std::unique_ptr<Event> event)
   events_.emplace(std::move(event));
 }
 
-void
-format_arg(
-    fmt::BasicFormatter<char> &f, const char *& /* format_str */, const World &world)
-{
-  f.writer().write("t={} [World]", world.get_current_time());
-}
 } // namespace Simulation

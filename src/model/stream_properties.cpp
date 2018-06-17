@@ -82,43 +82,6 @@ IncomingRequestStream::IncomingRequestStream(const TrafficClass &source_tc)
 {
 }
 
-//----------------------------------------------------------------------
-
-void
-format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *& /* format_str */,
-    const OutgoingRequestStream &rs)
-{
-  f.writer().write(
-      "[OutgoingRequestStream] {} P_block={}, V={}, A={}, R={}, sigma^2={}, Z={}, "
-      "Y={}",
-      rs.tc,
-      rs.blocking_probability,
-      rs.fictitous_capacity,
-      rs.intensity,
-      rs.mean,
-      rs.variance,
-      rs.peakedness,
-      rs.mean_request_number);
-}
-
-//----------------------------------------------------------------------
-void
-format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *& /* format_str */,
-    const IncomingRequestStream &rs)
-{
-  f.writer().write(
-      "[IncomingRequestStream] {} R={}, sigma^2={}, Z={}, A={}",
-      rs.tc,
-      rs.mean,
-      rs.variance,
-      rs.peakedness,
-      rs.intensity);
-}
-
 } // namespace Model
 
 //----------------------------------------------------------------------

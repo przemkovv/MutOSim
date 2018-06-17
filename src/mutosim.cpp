@@ -30,6 +30,7 @@
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/utility/functional.hpp>
 #include <range/v3/view/map.hpp>
+#include <fmt/ostream.h>
 
 namespace rng = ranges;
 
@@ -158,7 +159,7 @@ load_scenarios_from_files(
             filename = fmt::format(
                 "{};{}",
                 scenario_file,
-                fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
+                fmt::format("{}", fmt::join(appended_filenames,  ";")));
           }
           scenario.filename = filename;
           scenario.json = topology_json;

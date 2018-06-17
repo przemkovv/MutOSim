@@ -20,9 +20,5 @@ public:
   void notify_on_service_start(const LoadServiceRequestEvent *event) override;
 };
 
-void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *&format_str,
-    const PoissonSourceStream &source);
-
 } // namespace Simulation
+

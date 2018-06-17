@@ -47,6 +47,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -Wno-newline-eof
     -Wno-padded
     -Wno-exit-time-destructors
+    -fcolor-diagnostics
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC

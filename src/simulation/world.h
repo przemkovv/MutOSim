@@ -64,6 +64,23 @@ public:
   nlohmann::json get_stats();
 };
 
-void
-format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const World &world);
 } // namespace Simulation
+
+namespace fmt
+{
+template <>
+struct formatter<Simulation::World> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const Simulation::World &world, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "t={} [World]", world.get_current_time());
+  }
+};
+
+} // namespace fmt
