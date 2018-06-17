@@ -9,9 +9,10 @@ target_link_libraries(sim PUBLIC
   Boost::program_options
   Boost::system
   ${CMAKE_THREAD_LIBS_INIT}
-  fmt::fmt
+  # fmt::fmt
   nlohmann_json
   type_safe
+  libfmt.a
   )
 
 set_target_properties(sim PROPERTIES
