@@ -13,14 +13,14 @@ namespace Model
 {
 struct Group {
 private:
-  std::map<TrafficClassId, IncomingRequestStream> in_request_streams_;
+  std::map<TrafficClassId, IncomingRequestStream> in_request_streams_{};
   const Capacity V_;
 
-  mutable OutgoingRequestStreams out_request_streams_;
+  mutable OutgoingRequestStreams out_request_streams_{};
   mutable bool need_recalculate_ = true;
   const KaufmanRobertsVariant kr_variant_;
 
-  std::vector<GroupName> next_groups_names_;
+  std::vector<GroupName> next_groups_names_{};
 
 public:
   const OutgoingRequestStreams &get_outgoing_request_streams() const;

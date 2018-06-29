@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.9)
 
 include("cmake/HunterGate.cmake")
 HunterGate(
-  URL "https://github.com/ruslo/hunter/archive/v0.22.0.tar.gz"
-  SHA1 "f91a01c6e0eb53b1dc55a6442cd93580db91da07"
+  URL "https://github.com/ruslo/hunter/archive/v0.22.16.tar.gz"
+  SHA1 "84153076a3cebf4869c904fa5c93ea309386b583"
   LOCAL
   )
 project(MSMutONet)
@@ -47,6 +47,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -Wno-newline-eof
     -Wno-padded
     -Wno-exit-time-destructors
+    -fcolor-diagnostics
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
@@ -97,8 +98,15 @@ find_package(type_safe CONFIG REQUIRED)
 hunter_add_package(nlohmann_json)
 find_package(nlohmann_json CONFIG REQUIRED)
 
-hunter_add_package(fmt)
-find_package(fmt CONFIG REQUIRED)
+ExternalProject_Add(fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  INSTALL_DIR ${PROJECT_BINARY_DIR}
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DFMT_TEST=0 -DFMT_INSTALL=1
+  UPDATE_COMMAND ""
+  )
+
+# hunter_add_package(fmt)
+# find_package(fmt CONFIG REQUIRED)
 
 
 find_package(OpenMP)

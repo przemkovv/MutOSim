@@ -8,6 +8,8 @@
 #include <random>
 #include <range/v3/algorithm/count_if.hpp>
 #include <range/v3/algorithm/find.hpp>
+#include <string>
+#include <vector>
 
 namespace rng = ranges;
 
@@ -43,3 +45,5 @@ count_same_layer_groups(const GroupsContainer &path, Layer layer)
 }
 
 nlohmann::json concatenate(nlohmann::json target, const nlohmann::json &patch);
+
+std::string join(const std::vector<std::string> &strings, const std::string &separator);

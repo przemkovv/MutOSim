@@ -7,8 +7,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fmt/ostream.h>
 #include <gsl/gsl>
+#include <fmt/ostream.h>
 
 namespace Simulation
 {
@@ -276,18 +276,5 @@ Group::get_stats(Duration duration)
 
 //----------------------------------------------------------------------
 
-void
-format_arg(
-    fmt::BasicFormatter<char> &f, const char *& /* format_str */, const Group &group)
-
-{
-  f.writer().write(
-      "t={} [Group {} V={}/{}, L{}]",
-      group.world_->get_current_time(),
-      group.name_,
-      group.size_,
-      group.capacity_,
-      group.layer_);
-}
 
 } // namespace Simulation

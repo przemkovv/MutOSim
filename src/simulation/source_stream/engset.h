@@ -2,6 +2,7 @@
 
 #include "source_stream.h"
 
+#include <fmt/format.h>
 #include <random>
 
 namespace Simulation
@@ -14,12 +15,10 @@ class EngsetSourceStream : public SourceStream
   std::exponential_distribution<time_type> exponential{
       ts::get(tc_.source_intensity / sources_number_)};
 
-  friend void format_arg(
-      fmt::BasicFormatter<char> &f,
-      const char *&format_str,
-      const EngsetSourceStream &source);
-
   std::unique_ptr<ProduceServiceRequestEvent> create_produce_service_request(Time time);
+
+  template <typename T, typename Char, typename Enable>
+  friend struct fmt::formatter;
 
   EventPtr produce_load(Time time);
 
@@ -34,8 +33,5 @@ public:
       const SourceName &name, const TrafficClass &tc, Count sources_number);
 };
 
-void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *&format_str,
-    const EngsetSourceStream &source);
 } // namespace Simulation
+

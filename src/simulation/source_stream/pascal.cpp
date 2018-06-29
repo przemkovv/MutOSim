@@ -6,7 +6,6 @@
 #include "simulation/world.h"
 #include "types.h"
 
-#include <fmt/ostream.h>
 #include <optional>
 
 namespace Simulation
@@ -182,21 +181,4 @@ PascalSourceStream::produce_load(Time time)
 
 //----------------------------------------------------------------------
 
-void
-format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *& /* format_str */,
-    const PascalSourceStream &source)
-{
-  f.writer().write(
-      "t={} [PascalSource {} (id={}), active={}/{}/{}/{}, gamma={}]",
-      source.world_->get_current_time(),
-      source.name_,
-      source.id,
-      source.active_sources_,
-      source.sources_number_,
-      source.linked_sources_count_,
-      source.linked_sources_.size(),
-      source.tc_.source_intensity);
-}
 } // namespace Simulation

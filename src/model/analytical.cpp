@@ -8,6 +8,8 @@
 #include "scenario_settings.h"
 #include "simulation/group.h"
 #include "simulation/source_stream/source_stream.h"
+#include "simulation/source_stream/source_stream_format.h"
+#include "stream_properties_format.h"
 #include "traffic_class.h"
 
 #include <map>
@@ -23,6 +25,7 @@
 #include <range/v3/view/map.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/unique.hpp>
+#include <fmt/ostream.h>
 
 namespace rng = ranges;
 
@@ -75,8 +78,8 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
         "The current model doesn't support forwarding traffic to more than one next "
         "groups.");
 
-    auto [model_group_it, inserted] = model_groups.emplace(
-        group_name, Model::Group{group->capacity(), kr_variant});
+    auto [model_group_it, inserted] =
+        model_groups.emplace(group_name, Model::Group{group->capacity(), kr_variant});
 
     for (const auto &next_group : group->next_groups()) {
       model_group_it->second.add_next_group(next_group->name());

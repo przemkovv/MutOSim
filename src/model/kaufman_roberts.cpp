@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "math_utils.h"
 #include "stream_properties.h"
+#include "stream_properties_format.h"
 
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>

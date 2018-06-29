@@ -1,9 +1,11 @@
 
 #include "mutosim.h"
 
+#include "calculation.h"
 #include "cli_options.h"
 #include "logger.h"
 #include "model/analytical.h"
+#include "model/kaufman_roberts.h"
 #include "scenarios/simple.h"
 #include "scenarios/single_overflow.h"
 #include "scenarios/topology_based.h"
@@ -15,12 +17,10 @@
 #include "types.h"
 #include "utils.h"
 
-#include "calculation.h"
-#include "model/kaufman_roberts.h"
-
 #include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <fstream>
 #include <functional>
 #include <iostream>
@@ -155,10 +155,7 @@ load_scenarios_from_files(
           std::string filename = scenario_file;
           auto &appended_filenames = cli.append_scenario_files;
           if (!appended_filenames.empty()) {
-            filename = fmt::format(
-                "{};{}",
-                scenario_file,
-                fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
+            filename = fmt::format("{};{}", scenario_file, join(appended_filenames, ";"));
           }
           scenario.filename = filename;
           scenario.json = topology_json;
@@ -184,10 +181,7 @@ load_scenarios_from_files(
           std::string filename = scenario_file;
           auto &appended_filenames = cli.append_scenario_files;
           if (!appended_filenames.empty()) {
-            filename = fmt::format(
-                "{};{}",
-                scenario_file,
-                fmt::join(begin(appended_filenames), end(appended_filenames), ";"));
+            filename = fmt::format("{};{}", scenario_file, join(appended_filenames, ";"));
           }
           scenario.filename = filename + fmt::format(";analytic;{}", model);
           scenario.json = topology_json;

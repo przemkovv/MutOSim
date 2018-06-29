@@ -17,6 +17,8 @@
 
  - Artykuły
 
+mail o formatowanie
+http://qshine.org/call-for-papers/
 
 # Todo
 
@@ -24,6 +26,8 @@
   primary groups on errors.
   - in case of a single offered stream there are problems - related to getting
     to big error (it was related to too small search range)
+  - test with fit based on carried traffic
+
 
  Analytical models:
  - Wiązka z ograniczoną dostępnością 75

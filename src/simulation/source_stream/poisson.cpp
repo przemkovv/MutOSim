@@ -4,7 +4,6 @@
 #include "simulation/group.h"
 #include "simulation/world.h"
 
-#include <fmt/ostream.h>
 
 namespace Simulation
 {
@@ -38,12 +37,4 @@ PoissonSourceStream::produce_load(Time time)
   return std::make_unique<LoadServiceRequestEvent>(world_->get_uuid(), load);
 }
 
-void
-format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *& /* format_str */,
-    const PoissonSourceStream &source)
-{
-  f.writer().write("[PoissonSource {} (id={})]", source.name_, source.id);
-}
 } // namespace Simulation

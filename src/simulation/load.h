@@ -33,5 +33,5 @@ struct Load {
   Group *target_group = nullptr;
 };
 
-void format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const Load &load);
 } // namespace Simulation
+

@@ -3,7 +3,6 @@
 #include "traffic_class.h"
 #include "types.h"
 
-#include <fmt/ostream.h>
 #include <vector>
 
 namespace Model
@@ -48,36 +47,6 @@ using OutgoingRequestStreams = std::vector<OutgoingRequestStream>;
 using IncomingRequestStreams = std::vector<IncomingRequestStream>;
 
 //----------------------------------------------------------------------
-void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *&format_str,
-    const OutgoingRequestStream &rs);
-
-void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *&format_str,
-    const IncomingRequestStream &rs);
 
 } // namespace Model
 
-namespace std
-{
-template <typename T>
-void
-format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *& /* format_str */,
-    const std::vector<T> &vec)
-{
-  f.writer().write("S({}) [", std::size(vec));
-  for (const auto &x : vec) {
-    auto s = fmt::format("{}, ", x);
-    if (s.size() > 16) {
-      f.writer().write("\n");
-    }
-    f.writer().write(s);
-  }
-  f.writer().write("]\n");
-}
-
-} // namespace std

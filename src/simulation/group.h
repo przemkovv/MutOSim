@@ -89,7 +89,31 @@ struct Group {
   const GroupName &name() const { return name_; }
 };
 
-void
-format_arg(fmt::BasicFormatter<char> &f, const char *&format_str, const Group &group);
 
 } // namespace Simulation
+
+namespace fmt
+{
+template <>
+struct formatter<Simulation::Group> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const Simulation::Group &group, FormatContext &ctx)
+  {
+    return format_to(
+        ctx.begin(),
+        "t={} [Group {} V={}/{}, L{}]",
+        group.world_->get_current_time(),
+        group.name_,
+        group.size_,
+        group.capacity_,
+        group.layer_);
+  }
+};
+
+} // namespace fmt

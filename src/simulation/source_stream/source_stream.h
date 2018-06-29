@@ -54,14 +54,9 @@ public:
 
   void print_stats();
 
-  friend void format_arg(
-      fmt::BasicFormatter<char> &f,
-      const char *& /* format_str */,
-      const SourceStream &source);
+  template <typename T, typename Char, typename Enable>
+  friend struct fmt::formatter;
 };
 
-void format_arg(
-    fmt::BasicFormatter<char> &f,
-    const char *& /* format_str */,
-    const SourceStream &source);
 } // namespace Simulation
+
