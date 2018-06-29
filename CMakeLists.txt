@@ -100,7 +100,6 @@ find_package(nlohmann_json CONFIG REQUIRED)
 
 ExternalProject_Add(fmt
   GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  GIT_TAG 5.0.0
   INSTALL_DIR ${PROJECT_BINARY_DIR}
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DFMT_TEST=0 -DFMT_INSTALL=1
   UPDATE_COMMAND ""

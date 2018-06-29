@@ -103,9 +103,9 @@ to_json(json &j, const TrafficClass &tc)
 void
 from_json(const json &j, TrafficClass &tc)
 {
-  tc.serve_intensity = Intensity(j.at("micro"));
-  tc.size = Size(j.at("size"));
-  tc.weight = Weight(j.at("weight"));
+  tc.serve_intensity = Intensity(j.at("micro").get<intensity_t>());
+  tc.size = Size(j.at("size").get<count_t>());
+  tc.weight = Weight(j.at("weight").get<weight_t>());
   tc.max_path_length = Length(j.value("max_path_length", MaxPathLength));
 }
 
@@ -150,7 +150,7 @@ from_json(const json &j, Group &g)
   g.intensity_multiplier = j.value("intensity_multiplier", Intensity{1.0L});
   g.connected = j.value("connected", std::vector<GroupName>{});
   if (j.count("overflow_policy")) {
-    g.overflow_policy = j.at("overflow_policy");
+    g.overflow_policy = j.at("overflow_policy").get<std::optional<OverflowPolicyName>>();
   }
   if (j.find("traffic_classes") != j.end()) {
     g.traffic_classess_settings =
