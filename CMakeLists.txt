@@ -1,11 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
 
-include("cmake/HunterGate.cmake")
-HunterGate(
-  URL "https://github.com/ruslo/hunter/archive/v0.22.16.tar.gz"
-  SHA1 "84153076a3cebf4869c904fa5c93ea309386b583"
-  LOCAL
-  )
 project(MSMutONet)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -15,7 +9,6 @@ endif()
 
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-include(hunter_cmake_args)
 
 include(CheckIPOSupported)
 check_ipo_supported()
@@ -72,43 +65,16 @@ endif()
 
 include(ExternalProject)
 
-ExternalProject_Add(gsl
-  GIT_REPOSITORY https://github.com/Microsoft/GSL.git
-  INSTALL_DIR ${PROJECT_BINARY_DIR}
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DGSL_TEST=0
-  UPDATE_COMMAND ""
-  )
+ExternalProject_Add(type_safe
+    GIT_REPOSITORY https://github.com/foonathan/type_safe
+    INSTALL_DIR ${PROJECT_BINARY_DIR}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=OFF -DTYPE_SAFE_BUILD_TEST_EXAMPLE=OFF
+    UPDATE_COMMAND ""
+)
 
-ExternalProject_Add(range-v3
-  GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
-  INSTALL_DIR ${PROJECT_BINARY_DIR}
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>  -DRANGE_V3_NO_TESTING=1 -DRANGE_V3_NO_PERF=1
-  UPDATE_COMMAND ""
-  )
-# Package ranges-v3 is a bit outdated in hunter repository
-# hunter_add_package(range-v3)
-# find_package(range-v3 CONFIG REQUIRED)
-
-hunter_add_package(Boost COMPONENTS system program_options filesystem math)
-find_package(Boost CONFIG REQUIRED system program_options filesystem)
-
-hunter_add_package(type_safe)
-find_package(type_safe CONFIG REQUIRED)
-
-hunter_add_package(nlohmann_json)
-find_package(nlohmann_json CONFIG REQUIRED)
-
-ExternalProject_Add(fmt
-  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-  INSTALL_DIR ${PROJECT_BINARY_DIR}
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DFMT_TEST=0 -DFMT_INSTALL=1
-  UPDATE_COMMAND ""
-  )
-
-# hunter_add_package(fmt)
-# find_package(fmt CONFIG REQUIRED)
-
-
+find_package(Boost REQUIRED system program_options filesystem)
+find_package(fmt CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
 find_package(OpenMP)
 
 if (OPENMP_FOUND)

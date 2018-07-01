@@ -4,7 +4,7 @@
 #include "config.h"
 
 #include <algorithm>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <random>
 #include <range/v3/algorithm/count_if.hpp>
 #include <range/v3/algorithm/find.hpp>

@@ -6,7 +6,7 @@
 #include "types.h"
 
 #include <boost/filesystem.hpp>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <range/v3/algorithm/find.hpp>
 #include <string>
 #include <vector>

@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <string_view>
 #include <unordered_map>

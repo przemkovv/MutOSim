@@ -1,19 +1,13 @@
 project(MSMutONetSim)
 
-add_executable(sim "")
+add_executable(sim)
 target_include_directories(sim PRIVATE ${MSMutONetSim_SOURCE_DIR})
 
-add_dependencies(sim gsl range-v3)
-target_link_libraries(sim PUBLIC
-  Boost::filesystem
-  Boost::program_options
-  Boost::system
-  ${CMAKE_THREAD_LIBS_INIT}
-  # fmt::fmt
-  nlohmann_json
-  type_safe
-  libfmt.a
-  )
+add_dependencies(sim type_safe)
+target_link_libraries(sim PRIVATE meta range-v3)
+target_link_libraries(sim PRIVATE fmt::fmt fmt::fmt-header-only)
+target_link_libraries(sim PRIVATE Boost::filesystem Boost::program_options Boost::system)
+target_link_libraries(sim PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 
 set_target_properties(sim PROPERTIES
   CXX_STANDARD 17

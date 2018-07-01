@@ -8,7 +8,7 @@
 #include "types.h"
 
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <queue>
 #include <random>
 
