@@ -75,15 +75,14 @@ ExternalProject_Add(type_safe
 find_package(Boost REQUIRED system program_options filesystem)
 find_package(fmt CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
-find_package(OpenMP)
 
+find_package(OpenMP)
 if (OPENMP_FOUND)
   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
 
 function(append value)
   foreach(variable ${ARGN})
@@ -94,10 +93,6 @@ endfunction()
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   append("-fuse-ld=gold -Wl,--no-threads,--plugin-opt,cache-dir=${PROJECT_BINARY_DIR}/lto.cache" CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
 endif()
-
-if (UNIX)
-  add_custom_target(ctags ctags -R --options=${CMAKE_SOURCE_DIR}/.ctags -f ${CMAKE_SOURCE_DIR}/tags ${CMAKE_SOURCE_DIR})
-endif (UNIX)
 
 option(SIM_DEBUG "Enable more detailed tracing" OFF)
 option(SINGLE_THREADED "Use only single thread" OFF)

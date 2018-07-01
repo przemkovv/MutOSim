@@ -1,24 +1,26 @@
 project(MSMutONetSim)
 
-add_executable(sim)
-target_include_directories(sim PRIVATE ${MSMutONetSim_SOURCE_DIR})
+set(TARGET_NAME mutosim)
 
-add_dependencies(sim type_safe)
-target_link_libraries(sim PRIVATE meta range-v3)
-target_link_libraries(sim PRIVATE fmt::fmt fmt::fmt-header-only)
-target_link_libraries(sim PRIVATE Boost::filesystem Boost::program_options Boost::system)
-target_link_libraries(sim PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+add_executable(${TARGET_NAME})
+target_include_directories(${TARGET_NAME} PRIVATE ${MSMutONetSim_SOURCE_DIR})
 
-set_target_properties(sim PROPERTIES
+add_dependencies(${TARGET_NAME} type_safe)
+target_link_libraries(${TARGET_NAME} PRIVATE meta range-v3)
+target_link_libraries(${TARGET_NAME} PRIVATE fmt::fmt fmt::fmt-header-only)
+target_link_libraries(${TARGET_NAME} PRIVATE Boost::filesystem Boost::program_options Boost::system)
+target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+
+set_target_properties(${TARGET_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF
   INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-add_custom_target(run COMMAND time ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/sim
+add_custom_target(run COMMAND time ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET_NAME}
   COMMENT "Run with ${CMAKE_BUILD_TYPE} configuration")
 
-target_sources(sim PRIVATE
+target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/calculation.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/calculation.h"
   "${CMAKE_CURRENT_LIST_DIR}/cli_options.cpp"
