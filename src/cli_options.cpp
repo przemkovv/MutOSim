@@ -31,6 +31,7 @@ operator<<(std::ostream &out, const Model::AnalyticModel &model)
   case Model::AnalyticModel::KaufmanRobertsFixedReqSize:
     return out << "KRFixedReqSize";
   }
+  return out;
 }
 } // namespace Model
 std::ostream &
@@ -66,6 +67,7 @@ operator<<(std::ostream &out, const Mode &mode)
   case Mode::Analytic:
     return out << "analytic";
   }
+  return out;
 }
 std::ostream &
 operator<<(std::ostream &out, const Modes &modes)

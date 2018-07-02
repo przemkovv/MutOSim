@@ -19,5 +19,6 @@ create_stream(
   case Config::SourceType::Engset:
     return std::make_unique<EngsetSourceStream>(source.name, tc, source.source_number);
   }
+  return {};
 }
 } // namespace Simulation

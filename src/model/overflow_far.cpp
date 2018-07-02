@@ -50,6 +50,7 @@ convert_to_incoming_streams(
     rng::for_each(out_request_streams, [&](const OutgoingRequestStream &out_rs) {
       auto [stream_it, inserted] =
           incoming_request_streams.emplace(out_rs.tc.id, IncomingRequestStream{});
+      std::ignore = inserted;
       stream_it->second += out_rs;
     });
   }

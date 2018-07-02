@@ -80,6 +80,7 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
 
     auto [model_group_it, inserted] =
         model_groups.emplace(group_name, Model::Group{group->capacity(), kr_variant});
+    std::ignore = inserted;
 
     for (const auto &next_group : group->next_groups()) {
       model_group_it->second.add_next_group(next_group->name());
@@ -88,6 +89,7 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
   }
 
   for (const auto &[source_name, source_stream] : topology.sources) {
+    std::ignore = source_name;
     const auto &target_group = source_stream->get_target_group().name();
     model_groups.at(target_group)
         .add_incoming_request_stream(IncomingRequestStream{source_stream->tc_});
@@ -186,6 +188,7 @@ determine_layers_types(const Simulation::Topology &topology)
 {
   boost::container::flat_map<Layer, LayerType> layers_types;
   for (const auto &[layer, groups] : topology.groups_per_layer) {
+    std::ignore = groups;
     layers_types.emplace(layer, check_layer_type(topology, layer));
   }
   return layers_types;
