@@ -10,6 +10,7 @@ Usage:
             [--x_max=X_MAX] [--x_min=X_MIN]
             [-x X] [-y Y]
             [--save] [--output-dir=DIR]
+            [--format=FORMAT]
             [--quiet]
             [--bp] [-i INDICES]
             [-r] [--relatives]
@@ -40,6 +41,7 @@ Options:
     -x X                        number of plots horizontally [default: 3]
     -y Y                        number of plots vertically [default: 3]
     -s, --save                  save to file
+    --format FORMAT             output format [default: pdf]
     -q, --quiet                 don't show plot window
     -d DIR, --output-dir=DIR    directory where the files are saved
                                 [default: data/results/plots/]
@@ -368,9 +370,11 @@ def main():
                 #  ax.set_title("{} V={} {}"
                 #  .format(group_name,
                 #  scenario["groups"][group_name]["capacity"],
-                ax.set_title("{} {}\n({})"
-                             .format(group_name,
-                                     scenario["name"] if title_suffix == None else title_suffix, scenario_file))
+                if title_suffix == None:
+                    ax.set_title("{} {}\n({})"
+                                .format(group_name, scenario["name"] , scenario_file))
+                else:
+                    ax.set_title("{} {}" .format(group_name, title_suffix))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
@@ -461,7 +465,7 @@ def main():
                 handles, labels = ax.get_legend_handles_labels()
                 ncol = cols_number(labels)
                 ax.legend(flip(handles, ncol), flip(labels, ncol),
-                          loc=9, ncol=ncol, borderaxespad=0)
+                          loc=9, ncol=3, borderaxespad=0)
                 #  ax.legend(loc=9, ncol=5, borderaxespad=0)
     if args['--relatives']:
         for k1, k2, p_name in key_pairs:
@@ -653,7 +657,7 @@ def main():
         output_dir = args["--output-dir"]
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
-        output_file = title + ".pdf"
+        output_file = title +"."+ args["--format"]
         output_file = path.join(output_dir, output_file)
         fig.set_size_inches(float(args["--width"]), float(args["--height"]))
         fig.savefig(output_file, transparent=True)
