@@ -30,10 +30,10 @@ protected:
 
 public:
   virtual void init();
-  virtual void notify_on_service_start(const LoadServiceRequestEvent *event);
-  virtual void notify_on_service_end(const LoadServiceEndEvent *event);
-  virtual void notify_on_service_accept(const LoadServiceRequestEvent *event);
-  virtual void notify_on_service_drop(const LoadServiceRequestEvent *event);
+  virtual void notify_on_request_service_start(const LoadServiceRequestEvent *event);
+  virtual void notify_on_request_service_end(const LoadServiceEndEvent *event);
+  virtual void notify_on_request_accept(const LoadServiceRequestEvent *event);
+  virtual void notify_on_request_drop(const LoadServiceRequestEvent *event);
   virtual void notify_on_produce(const ProduceServiceRequestEvent *event);
   virtual void notify_on_skip_processing(const Event *event);
 

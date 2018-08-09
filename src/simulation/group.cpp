@@ -81,7 +81,7 @@ Group::block_traffic_class(TrafficClassId tc_id)
 }
 
 void
-Group::notify_on_service_end(LoadServiceEndEvent *event)
+Group::notify_on_request_service_end(LoadServiceEndEvent *event)
 {
   take_off(event->load);
 }

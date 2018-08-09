@@ -18,11 +18,11 @@ EngsetSourceStream::EngsetSourceStream(
 void
 EngsetSourceStream::notify_on_produce(const ProduceServiceRequestEvent *event)
 {
-  world_->schedule(produce_load(event->time));
+  world_->schedule(create_request(event->time));
 }
 
 void
-EngsetSourceStream::notify_on_service_end(const LoadServiceEndEvent *event)
+EngsetSourceStream::notify_on_request_service_end(const LoadServiceEndEvent *event)
 {
   active_sources_--;
   debug_print("{} Load has been served {}\n", *this, event->load);
@@ -36,14 +36,14 @@ EngsetSourceStream::notify_on_service_end(const LoadServiceEndEvent *event)
 }
 
 void
-EngsetSourceStream::notify_on_service_accept(const LoadServiceRequestEvent *event)
+EngsetSourceStream::notify_on_request_accept(const LoadServiceRequestEvent *event)
 {
   debug_print("{} Service accepted: {}\n", *this, event->load);
   active_sources_++;
 }
 
 void
-EngsetSourceStream::notify_on_service_drop(const LoadServiceRequestEvent *event)
+EngsetSourceStream::notify_on_request_drop(const LoadServiceRequestEvent *event)
 {
   debug_print("{} Service dropped: {}\n", *this, event->load);
   world_->schedule(create_produce_service_request(event->time));
@@ -66,7 +66,7 @@ EngsetSourceStream::create_produce_service_request(Time time)
 }
 
 EventPtr
-EngsetSourceStream::produce_load(Time time)
+EngsetSourceStream::create_request(Time time)
 {
   if (pause_) {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);

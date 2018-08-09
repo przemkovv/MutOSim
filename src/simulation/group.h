@@ -83,7 +83,7 @@ struct Group {
   void take_off(const Load &load);
   void drop(const Load &load);
 
-  void notify_on_service_end(LoadServiceEndEvent *event);
+  void notify_on_request_service_end(LoadServiceEndEvent *event);
 
   Stats get_stats(Duration duration);
   const GroupName &name() const { return name_; }

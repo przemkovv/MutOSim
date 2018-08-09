@@ -20,14 +20,14 @@ class EngsetSourceStream : public SourceStream
   template <typename T, typename Char, typename Enable>
   friend struct fmt::formatter;
 
-  EventPtr produce_load(Time time);
+  EventPtr create_request(Time time);
 
 public:
   void init() override;
-  void notify_on_service_end(const LoadServiceEndEvent *event) override;
+  void notify_on_request_service_end(const LoadServiceEndEvent *event) override;
   void notify_on_produce(const ProduceServiceRequestEvent *event) override;
-  void notify_on_service_accept(const LoadServiceRequestEvent *event) override;
-  void notify_on_service_drop(const LoadServiceRequestEvent *event) override;
+  void notify_on_request_accept(const LoadServiceRequestEvent *event) override;
+  void notify_on_request_drop(const LoadServiceRequestEvent *event) override;
 
   EngsetSourceStream(
       const SourceName &name, const TrafficClass &tc, Count sources_number);

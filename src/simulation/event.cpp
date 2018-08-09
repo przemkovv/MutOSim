@@ -42,12 +42,12 @@ LoadServiceRequestEvent::LoadServiceRequestEvent(Uuid id, Load load_)
 void
 LoadServiceRequestEvent::process()
 {
-  load.produced_by->notify_on_service_start(this);
+  load.produced_by->notify_on_request_service_start(this);
 
   if (load.target_group->try_serve(load)) {
-    load.produced_by->notify_on_service_accept(this);
+    load.produced_by->notify_on_request_accept(this);
   } else {
-    load.produced_by->notify_on_service_drop(this);
+    load.produced_by->notify_on_request_drop(this);
   }
 }
 void
@@ -85,8 +85,8 @@ LoadServiceEndEvent::LoadServiceEndEvent(Uuid id, Load load_)
 void
 LoadServiceEndEvent::process()
 {
-  load.served_by.back()->notify_on_service_end(this);
-  load.produced_by->notify_on_service_end(this);
+  load.served_by.back()->notify_on_request_service_end(this);
+  load.produced_by->notify_on_request_service_end(this);
 }
 void
 LoadServiceEndEvent::skip_notify()

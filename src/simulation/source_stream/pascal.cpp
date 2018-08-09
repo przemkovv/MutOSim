@@ -33,7 +33,7 @@ PascalSourceStream::notify_on_skip_processing(const Event * /* event */)
 {
 }
 void
-PascalSourceStream::notify_on_service_start(const LoadServiceRequestEvent *event)
+PascalSourceStream::notify_on_request_service_start(const LoadServiceRequestEvent *event)
 {
   auto new_event = create_produce_service_request(event->time);
   debug_print("{} on service start {}\n", *this, *new_event);
@@ -52,7 +52,7 @@ PascalSourceStream::notify_on_service_start(const LoadServiceRequestEvent *event
 }
 
 void
-PascalSourceStream::notify_on_service_drop(const LoadServiceRequestEvent *event)
+PascalSourceStream::notify_on_request_drop(const LoadServiceRequestEvent *event)
 {
   debug_print("{} Load has been dropped {}\n", *this, event->load);
   if (auto it = find_event(linked_sources_, event);
@@ -69,7 +69,7 @@ PascalSourceStream::notify_on_service_drop(const LoadServiceRequestEvent *event)
 }
 
 void
-PascalSourceStream::notify_on_service_accept(const LoadServiceRequestEvent *event)
+PascalSourceStream::notify_on_request_accept(const LoadServiceRequestEvent *event)
 {
   active_sources_++;
   debug_print("{} Load has been accepted {}\n", *this, event->load);
@@ -99,7 +99,7 @@ PascalSourceStream::notify_on_service_accept(const LoadServiceRequestEvent *even
 }
 
 void
-PascalSourceStream::notify_on_service_end(const LoadServiceEndEvent *event)
+PascalSourceStream::notify_on_request_service_end(const LoadServiceEndEvent *event)
 {
   active_sources_--;
 
@@ -124,7 +124,7 @@ PascalSourceStream::notify_on_service_end(const LoadServiceEndEvent *event)
 void
 PascalSourceStream::notify_on_produce(const ProduceServiceRequestEvent *event)
 {
-  auto new_event = produce_load(event->time);
+  auto new_event = create_request(event->time);
   debug_print("{} on produce {}\n", *this, *new_event);
 
   if (auto it = find_event(linked_sources_, event);
@@ -166,7 +166,7 @@ PascalSourceStream::create_produce_service_request(Time time)
 }
 
 EventPtr
-PascalSourceStream::produce_load(Time time)
+PascalSourceStream::create_request(Time time)
 {
   if (pause_) {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);

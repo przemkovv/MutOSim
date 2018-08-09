@@ -13,19 +13,19 @@ PoissonSourceStream::PoissonSourceStream(const SourceName &name, const TrafficCl
 }
 
 void
-PoissonSourceStream::notify_on_service_start(const LoadServiceRequestEvent *event)
+PoissonSourceStream::notify_on_request_service_start(const LoadServiceRequestEvent *event)
 {
-  world_->schedule(produce_load(event->load.send_time));
+  world_->schedule(create_request(event->load.send_time));
 }
 
 void
 PoissonSourceStream::init()
 {
-  world_->schedule(produce_load(world_->get_time()));
+  world_->schedule(create_request(world_->get_time()));
 }
 
 EventPtr
-PoissonSourceStream::produce_load(Time time)
+PoissonSourceStream::create_request(Time time)
 {
   if (pause_) {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);

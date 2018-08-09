@@ -34,20 +34,20 @@ SourceStream::notify_on_produce(const ProduceServiceRequestEvent * /* event */)
 {
 }
 void
-SourceStream::notify_on_service_start(const LoadServiceRequestEvent * /* event */)
+SourceStream::notify_on_request_service_start(const LoadServiceRequestEvent * /* event */)
 {
 }
 void
-SourceStream::notify_on_service_end(const LoadServiceEndEvent * /* event */)
+SourceStream::notify_on_request_service_end(const LoadServiceEndEvent * /* event */)
 {
 }
 
 void
-SourceStream::notify_on_service_accept(const LoadServiceRequestEvent * /* event */)
+SourceStream::notify_on_request_accept(const LoadServiceRequestEvent * /* event */)
 {
 }
 void
-SourceStream::notify_on_service_drop(const LoadServiceRequestEvent * /* event */)
+SourceStream::notify_on_request_drop(const LoadServiceRequestEvent * /* event */)
 {
 }
 void
