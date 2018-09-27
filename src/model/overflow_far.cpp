@@ -258,6 +258,22 @@ combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
   return Count{sum};
 }
 //----------------------------------------------------------------------
+// Formula 3.38
+Count
+combinatorial_arrangement_number_unequal_resources(
+    Capacity /*x*/,
+    std::vector<Count> components_numbers,
+    std::vector<Capacity> /*components_capacities*/)
+{
+  const auto component_types_number = components_numbers.size(); // chi_s
+
+  std::ignore = component_types_number;
+
+
+  return Count{0};
+}
+
+//----------------------------------------------------------------------
 // Formula (3.34)
 Probability
 conditional_transition_probability(

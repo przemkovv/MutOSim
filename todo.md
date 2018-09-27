@@ -15,10 +15,6 @@
 
 # Issues
 
- - Artykuły
-
-mail o formatowanie
-http://qshine.org/call-for-papers/
 
 # Todo
 
