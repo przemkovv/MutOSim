@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 #include <type_safe/strong_typedef.hpp>
+#include <boost/multiprecision/mpfr.hpp>
+#include <boost/multiprecision/gmp.hpp>
 
 namespace ts = type_safe;
 
@@ -13,50 +15,72 @@ constexpr long double epsilon = 0.00000001L;
 
 using uuid_t = uint64_t;
 using name_t = std::string;
+using OverflowPolicyName = name_t;
 
-using time_type = long double;
-using duration_t = long double;
-using count_t = int64_t;
-using count_float_t = long double;
-
-using stat_t = long double;
-using probability_t = long double;
-using intensity_t = long double;
 using Uuid = uuid_t;
 using Name = name_t;
-using weight_t = uint64_t;
-using weight_float_t = long double;
-using ratio_t = long double;
 using Layer = uint64_t;
 using Length = uint64_t;
-using OverflowPolicyName = name_t;
-using threshold_t = count_t;
+
+struct mediump {
+ using float_t = long double;
+ using  int_t = int64_t;
+};
+struct highp {
+  using float_t = boost::multiprecision::number<boost::multiprecision::mpfr_float_backend<100>>;
+  using int_t = boost::multiprecision::mpz_int;
+};
+
+template <typename Precision = mediump>
+using time_type = typename Precision::float_t;
+
+template <typename Precision = mediump>
+using duration_t = typename Precision::float_t;
+template <typename Precision = mediump>
+using count_t = typename Precision::int_t;
+template <typename Precision = mediump>
+using count_float_t = typename Precision::float_t;
+
+template <typename Precision = mediump>
+using stat_t = typename Precision::float_t;
+template <typename Precision = mediump>
+using probability_t = typename Precision::float_t;
+template <typename Precision = mediump>
+using intensity_t = typename Precision::float_t;
+template <typename Precision = mediump>
+using weight_t = typename Precision::int_t;
+template <typename Precision = mediump>
+using weight_float_t = typename Precision::float_t;
+template <typename Precision = mediump>
+using ratio_t = typename Precision::float_t;
+template <typename Precision = mediump>
+using threshold_t = count_t<Precision>;
 
 constexpr auto MaxPathLength = std::numeric_limits<Length>::max();
 constexpr Layer MaxLayersNumber = 3;
 
-struct Ratio : ts::strong_typedef<Ratio, ratio_t>,
+struct Ratio : ts::strong_typedef<Ratio, ratio_t<>>,
                ts::strong_typedef_op::equality_comparison<Ratio>,
                ts::strong_typedef_op::multiplication<Ratio>,
                ts::strong_typedef_op::output_operator<Ratio> {
   using strong_typedef::strong_typedef;
 };
 
-struct InvWeightF : ts::strong_typedef<InvWeightF, weight_float_t>,
+struct InvWeightF : ts::strong_typedef<InvWeightF, weight_float_t<>>,
                     ts::strong_typedef_op::equality_comparison<InvWeightF>,
                     ts::strong_typedef_op::addition<InvWeightF>,
                     ts::strong_typedef_op::output_operator<InvWeightF> {
   using strong_typedef::strong_typedef;
 };
 
-struct WeightF : ts::strong_typedef<WeightF, weight_float_t>,
+struct WeightF : ts::strong_typedef<WeightF, weight_float_t<>>,
                  ts::strong_typedef_op::equality_comparison<WeightF>,
                  ts::strong_typedef_op::addition<WeightF>,
                  ts::strong_typedef_op::output_operator<WeightF> {
   using strong_typedef::strong_typedef;
-  constexpr auto invert() { return InvWeightF{weight_float_t{1} / get(*this)}; }
+  constexpr auto invert() { return InvWeightF{weight_float_t<>{1} / get(*this)}; }
 };
-struct Weight : ts::strong_typedef<Weight, weight_t>,
+struct Weight : ts::strong_typedef<Weight, weight_t<>>,
                 ts::strong_typedef_op::equality_comparison<Weight>,
                 ts::strong_typedef_op::addition<Weight>,
                 ts::strong_typedef_op::output_operator<Weight> {
@@ -67,7 +91,7 @@ struct Weight : ts::strong_typedef<Weight, weight_t>,
   }
 };
 
-struct Capacity : ts::strong_typedef<Capacity, count_t>,
+struct Capacity : ts::strong_typedef<Capacity, count_t<>>,
                   ts::strong_typedef_op::equality_comparison<Capacity>,
                   ts::strong_typedef_op::relational_comparison<Capacity>,
                   ts::strong_typedef_op::addition<Capacity>,
@@ -77,7 +101,7 @@ struct Capacity : ts::strong_typedef<Capacity, count_t>,
   using strong_typedef::strong_typedef;
   explicit operator size_t() const { return static_cast<size_t>(get(*this)); }
 };
-struct CapacityF : ts::strong_typedef<CapacityF, count_float_t>,
+struct CapacityF : ts::strong_typedef<CapacityF, count_float_t<>>,
                    ts::strong_typedef_op::equality_comparison<CapacityF>,
                    ts::strong_typedef_op::relational_comparison<CapacityF>,
                    ts::strong_typedef_op::addition<CapacityF>,
@@ -87,11 +111,11 @@ struct CapacityF : ts::strong_typedef<CapacityF, count_float_t>,
   using strong_typedef::strong_typedef;
   constexpr CapacityF(const Capacity &c) : CapacityF(get(c)) {}
 
-  explicit operator Capacity() { return Capacity{static_cast<count_t>(get(*this))}; }
+  explicit operator Capacity() { return Capacity{static_cast<count_t<>>(get(*this))}; }
   explicit operator size_t() const { return static_cast<size_t>(get(*this)); }
 };
 
-struct Size : ts::strong_typedef<Size, count_t>,
+struct Size : ts::strong_typedef<Size, count_t<>>,
               ts::strong_typedef_op::equality_comparison<Size>,
               ts::strong_typedef_op::relational_comparison<Size>,
               ts::strong_typedef_op::addition<Size>,
@@ -104,7 +128,7 @@ struct Size : ts::strong_typedef<Size, count_t>,
   constexpr bool operator>(const Capacity &c) { return ts::get(*this) > ts::get(c); }
 };
 
-struct SizeF : ts::strong_typedef<SizeF, count_float_t>,
+struct SizeF : ts::strong_typedef<SizeF, count_float_t<>>,
                ts::strong_typedef_op::equality_comparison<SizeF>,
                ts::strong_typedef_op::relational_comparison<SizeF>,
                ts::strong_typedef_op::addition<SizeF>,
@@ -113,7 +137,7 @@ struct SizeF : ts::strong_typedef<SizeF, count_float_t>,
   using strong_typedef::strong_typedef;
 
   constexpr SizeF(const Size &c) : SizeF(get(c)) {}
-  explicit operator Size() { return Size{static_cast<count_t>(std::ceil(get(*this)))}; }
+  explicit operator Size() { return Size{static_cast<count_t<>>(std::ceil(get(*this)))}; }
 };
 constexpr auto
 operator-(const Capacity &c, const Size &s)
@@ -157,13 +181,13 @@ operator>=(const Capacity &c, const Size &s)
 {
   return get(c) >= get(s);
 }
-struct IntensitySize : ts::strong_typedef<IntensitySize, intensity_t>,
+struct IntensitySize : ts::strong_typedef<IntensitySize, intensity_t<>>,
                        ts::strong_typedef_op::multiplication<IntensitySize>,
                        ts::strong_typedef_op::output_operator<IntensitySize> {
   using strong_typedef::strong_typedef;
 };
 
-struct Intensity : ts::strong_typedef<Intensity, intensity_t>,
+struct Intensity : ts::strong_typedef<Intensity, intensity_t<>>,
                    ts::strong_typedef_op::multiplication<Intensity>,
                    ts::strong_typedef_op::addition<Intensity>,
                    ts::strong_typedef_op::relational_comparison<Intensity>,
@@ -212,7 +236,7 @@ operator/(const IntensitySize &intensity, const Capacity &size)
 {
   return Intensity(ts::get(intensity) / ts::get(size));
 }
-struct Probability : ts::strong_typedef<Probability, probability_t>,
+struct Probability : ts::strong_typedef<Probability, probability_t<>>,
                      ts::strong_typedef_op::multiplication<Probability>,
                      ts::strong_typedef_op::division<Probability>,
                      ts::strong_typedef_op::addition<Probability>,
@@ -242,7 +266,7 @@ constexpr auto operator*(const IntensitySize &intensity, const Probability &prob
   return Probability{get(intensity) * get(probability)};
 }
 
-struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t>,
+struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t<>>,
                          ts::strong_typedef_op::multiplication<IntensityFactor>,
                          ts::strong_typedef_op::output_operator<IntensityFactor> {
   using strong_typedef::strong_typedef;
@@ -256,10 +280,10 @@ struct IntensityFactor : ts::strong_typedef<IntensityFactor, intensity_t>,
 constexpr auto
 operator/(const Size &size, const IntensityFactor &intensity_factor)
 {
-  return Size{static_cast<count_t>(get(size) / get(intensity_factor))};
+  return Size{static_cast<count_t<>>(get(size) / get(intensity_factor))};
 }
 
-struct Count : ts::strong_typedef<Count, count_t>,
+struct Count : ts::strong_typedef<Count, count_t<>>,
                ts::strong_typedef_op::equality_comparison<Count>,
                ts::strong_typedef_op::increment<Count>,
                ts::strong_typedef_op::decrement<Count>,
@@ -282,10 +306,10 @@ operator/(const Intensity &intensity, const Count &count)
 constexpr auto
 operator/(const Count &c1, const Count &c2)
 {
-  return Ratio{static_cast<ratio_t>(ts::get(c1)) / static_cast<ratio_t>(ts::get(c2))};
+  return Ratio{static_cast<ratio_t<>>(ts::get(c1)) / static_cast<ratio_t<>>(ts::get(c2))};
 }
 
-struct Duration : ts::strong_typedef<Duration, duration_t>,
+struct Duration : ts::strong_typedef<Duration, duration_t<>>,
                   ts::strong_typedef_op::equality_comparison<Duration>,
                   ts::strong_typedef_op::subtraction<Duration>,
                   ts::strong_typedef_op::addition<Duration>,
@@ -301,18 +325,18 @@ struct Duration : ts::strong_typedef<Duration, duration_t>,
     return Duration{ts::get(*this) / ts::get(size)};
   }
 };
-struct Variance : ts::strong_typedef<Variance, stat_t>,
+struct Variance : ts::strong_typedef<Variance, stat_t<>>,
                   ts::strong_typedef_op::addition<Variance>,
                   ts::strong_typedef_op::output_operator<Variance> {
   using strong_typedef::strong_typedef;
   explicit Variance(const Intensity &intensity) : Variance(get(intensity)) {}
 };
-struct MeanRequestNumber : ts::strong_typedef<MeanRequestNumber, intensity_t>,
+struct MeanRequestNumber : ts::strong_typedef<MeanRequestNumber, intensity_t<>>,
                            ts::strong_typedef_op::addition<MeanRequestNumber>,
                            ts::strong_typedef_op::output_operator<MeanRequestNumber> {
   using strong_typedef::strong_typedef;
 };
-struct MeanIntensity : ts::strong_typedef<MeanIntensity, intensity_t>,
+struct MeanIntensity : ts::strong_typedef<MeanIntensity, intensity_t<>>,
                        ts::strong_typedef_op::addition<MeanIntensity>,
                        ts::strong_typedef_op::output_operator<MeanIntensity> {
   using strong_typedef::strong_typedef;
@@ -320,7 +344,7 @@ struct MeanIntensity : ts::strong_typedef<MeanIntensity, intensity_t>,
   explicit MeanIntensity(const Intensity &intensity) : MeanIntensity(get(intensity)) {}
 };
 
-struct Peakedness : ts::strong_typedef<Peakedness, stat_t>,
+struct Peakedness : ts::strong_typedef<Peakedness, stat_t<>>,
                     ts::strong_typedef_op::addition<Peakedness>,
                     ts::strong_typedef_op::relational_comparison<Peakedness>,
                     ts::strong_typedef_op::output_operator<Peakedness> {
@@ -350,26 +374,26 @@ constexpr auto operator*(const Intensity &intensity, const Probability &probabil
 constexpr auto
 operator/(const Capacity &capacity, const Peakedness &peakedness)
 {
-  return CapacityF{static_cast<stat_t>(get(capacity)) / get(peakedness)};
+  return CapacityF{static_cast<stat_t<>>(get(capacity)) / get(peakedness)};
 }
 constexpr auto operator*(const MeanIntensity &mean, const Size &size)
 {
-  return WeightF{get(mean) * static_cast<weight_float_t>(get(size))};
+  return WeightF{get(mean) * static_cast<weight_float_t<>>(get(size))};
 }
 constexpr auto operator*(const MeanRequestNumber &mean, const Size &size)
 {
-  return CapacityF{get(mean) * static_cast<intensity_t>(get(size))};
+  return CapacityF{get(mean) * static_cast<intensity_t<>>(get(size))};
 }
 constexpr auto operator*(const MeanRequestNumber &mean, const SizeF &size)
 {
-  return CapacityF{get(mean) * static_cast<intensity_t>(get(size))};
+  return CapacityF{get(mean) * static_cast<intensity_t<>>(get(size))};
 }
 constexpr auto operator*(const Size &size, const InvWeightF &inv_weight)
 {
-  return WeightF{static_cast<stat_t>(get(size)) * get(inv_weight)};
+  return WeightF{static_cast<stat_t<>>(get(size)) * get(inv_weight)};
 }
 
-struct SizeRescale : ts::strong_typedef<SizeRescale, intensity_t>,
+struct SizeRescale : ts::strong_typedef<SizeRescale, intensity_t<>>,
                      ts::strong_typedef_op::output_operator<SizeRescale> {
   using strong_typedef::strong_typedef;
   explicit SizeRescale(const Peakedness &peakedness) : SizeRescale(get(peakedness)) {}
@@ -384,7 +408,7 @@ constexpr auto operator*(const SizeRescale &rescale, const SizeF &size)
   return SizeF{get(rescale) * get(size)};
 }
 
-struct Time : ts::strong_typedef<Time, time_type>,
+struct Time : ts::strong_typedef<Time, time_type<>>,
               ts::strong_typedef_op::equality_comparison<Time>,
               ts::strong_typedef_op::relational_comparison<Time>,
               ts::strong_typedef_op::output_operator<Time> {

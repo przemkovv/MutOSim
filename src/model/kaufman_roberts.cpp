@@ -22,11 +22,11 @@ inline namespace v3
 {
 template <>
 struct difference_type<::Count> {
-  using type = count_t;
+  using type = count_t<>;
 };
 template <>
 struct difference_type<::Capacity> {
-  using type = count_t;
+  using type = count_t<>;
 };
 } // namespace v3
 } // namespace ranges
@@ -56,7 +56,7 @@ kaufman_roberts_distribution(Intensity A, Size tc_size, Capacity V)
 
   Probabilities state2(size_t(V) + 1);
   for (size_t i = 0; i < state.size(); ++i) {
-    state2[i] = Probability{probability_t{state[i]}};
+    state2[i] = Probability{probability_t<>{state[i]}};
   }
   return state2;
 }

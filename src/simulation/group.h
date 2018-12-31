@@ -42,7 +42,7 @@ struct Group {
   boost::container::flat_map<TrafficClassId, CompressionRatios> tcs_compression_{};
   std::unordered_set<TrafficClassId> tcs_block_{};
 
-  std::exponential_distribution<time_type> exponential{};
+  std::exponential_distribution<time_type<>> exponential{};
 
   void set_world(World &world);
   void set_traffic_classes(const TrafficClasses &traffic_classes);

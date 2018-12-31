@@ -106,9 +106,9 @@ to_json(json &j, const TrafficClass &tc)
 void
 from_json(const json &j, TrafficClass &tc)
 {
-  tc.serve_intensity = Intensity(j.at("micro").get<intensity_t>());
-  tc.size = Size(j.at("size").get<count_t>());
-  tc.weight = Weight(j.at("weight").get<weight_t>());
+  tc.serve_intensity = Intensity(j.at("micro").get<intensity_t<>>());
+  tc.size = Size(j.at("size").get<count_t<>>());
+  tc.weight = Weight(j.at("weight").get<weight_t<>>());
   tc.max_path_length = Length(j.value("max_path_length", MaxPathLength));
 }
 

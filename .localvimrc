@@ -4,7 +4,8 @@ set tags=tags,./tags
 if hostname() == "legolas"
   set makeprg=ninja\ -j3\ -C\ build/
 else
-  set makeprg=ninja\ -C\ build/
+  set makeprg=cmake\ --build\ ../mutosim_build/
+  " set makeprg=ninja\ -C\ build/
 endif
 
 setlocal path=.,build/include,~/phd/vcpkg/installed/x64-linux/include,/usr/include,/usr/include/c++/8.1.1,src/,

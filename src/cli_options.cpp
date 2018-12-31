@@ -96,15 +96,15 @@ prepare_options_description()
                         "output file with stats")
     ("output-dir,d", po::value<std::string>()->default_value(""),
                         "output directory")
-    ("duration,t", po::value<time_type>()->default_value(100'000),
+    ("duration,t", po::value<time_type<>>()->default_value(100'000),
                         "duration of the simulation")
     ("parallel,p", po::value<bool>()->default_value(true),
                         "run simulations in parallel")
-    ("start", po::value<intensity_t>()->default_value(0.5L),
+    ("start", po::value<intensity_t<>>()->default_value(0.5L),
                         "starting intensity per group (included)")
-    ("stop", po::value<intensity_t>()->default_value(3.0L),
+    ("stop", po::value<intensity_t<>>()->default_value(3.0L),
                         "end intensity per group (not included)")
-    ("step", po::value<intensity_t>()->default_value(0.5L),
+    ("step", po::value<intensity_t<>>()->default_value(0.5L),
                         "step intensity per group")
     ("count,c", po::value<int>()->default_value(1),
                         "number of repeats of each scenario")
@@ -140,10 +140,10 @@ parse_args(const boost::program_options::variables_map &vm)
   cli.output_file = vm["output-file"].as<std::string>();
   cli.output_dir = vm["output-dir"].as<std::string>();
   cli.parallel = vm["parallel"].as<bool>();
-  cli.duration = Duration{vm["duration"].as<time_type>()};
-  cli.A_start = Intensity{vm["start"].as<intensity_t>()};
-  cli.A_stop = Intensity{vm["stop"].as<intensity_t>()};
-  cli.A_step = Intensity{vm["step"].as<intensity_t>()};
+  cli.duration = Duration{vm["duration"].as<time_type<>>()};
+  cli.A_start = Intensity{vm["start"].as<intensity_t<>>()};
+  cli.A_stop = Intensity{vm["stop"].as<intensity_t<>>()};
+  cli.A_step = Intensity{vm["step"].as<intensity_t<>>()};
   cli.count = vm["count"].as<int>();
   cli.modes = vm["mode"].as<Modes>();
 

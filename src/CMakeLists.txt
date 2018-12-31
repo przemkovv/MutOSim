@@ -34,8 +34,6 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/math_utils.h"
   "${CMAKE_CURRENT_LIST_DIR}/mutosim.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/mutosim.h"
-  "${CMAKE_CURRENT_LIST_DIR}/precision_types.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/precision_types.h"
   "${CMAKE_CURRENT_LIST_DIR}/scenario_settings.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/scenario_settings.h"
   "${CMAKE_CURRENT_LIST_DIR}/topology.cpp"

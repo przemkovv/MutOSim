@@ -9,7 +9,7 @@ namespace Simulation
 class PoissonSourceStream : public SourceStream
 
 {
-  std::exponential_distribution<time_type> exponential{ts::get(tc_.source_intensity)};
+  std::exponential_distribution<time_type<>> exponential{ts::get(tc_.source_intensity)};
 
   EventPtr create_request(Time time);
 

@@ -26,11 +26,11 @@ inline namespace v3
 {
 template <>
 struct difference_type<::Count> {
-  using type = count_t;
+  using type = count_t<>;
 };
 template <>
 struct difference_type<::Capacity> {
-  using type = count_t;
+  using type = count_t<>;
 };
 } // namespace v3
 } // namespace ranges

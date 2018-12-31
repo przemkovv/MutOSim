@@ -12,7 +12,7 @@ class EngsetSourceStream : public SourceStream
   Count sources_number_;
   Count active_sources_{0};
 
-  std::exponential_distribution<time_type> exponential{
+  std::exponential_distribution<time_type<>> exponential{
       ts::get(tc_.source_intensity / sources_number_)};
 
   std::unique_ptr<ProduceServiceRequestEvent> create_produce_service_request(Time time);

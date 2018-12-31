@@ -64,7 +64,7 @@ compute_fictitious_capacity_fit_blocking_probability(
     }
   }
   if (p < target_p_block + e && p > target_p_block - e) {
-    return CapacityF{count_float_t{current * get(rs.tc.size)}};
+    return CapacityF{count_float_t<>{current * get(rs.tc.size)}};
   }
   return {};
 }
