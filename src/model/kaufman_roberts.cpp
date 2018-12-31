@@ -22,11 +22,11 @@ inline namespace v3
 {
 template <>
 struct difference_type<::Count> {
-  using type = count_t<>;
+  using type = ::ts::underlying_type<::Count>;
 };
 template <>
 struct difference_type<::Capacity> {
-  using type = count_t<>;
+  using type = ::ts::underlying_type<::Capacity>;
 };
 } // namespace v3
 } // namespace ranges
@@ -69,7 +69,7 @@ kaufman_roberts_blocking_probability(Intensity A, Size tc_size, CapacityF V)
   // V = CapacityF(get(V)*100);
   // tc_size = Size(get(tc_size)*100);
   auto distribution = kaufman_roberts_distribution(A, tc_size, Capacity{V});
-  CapacityF n{V - tc_size + Size{1}};
+  CapacityF n{V - SizeF{tc_size} + Size{1}};
 
   println("V={}, tc_size={}, n={} Distribution:\n{}", V, tc_size, n, distribution);
 
