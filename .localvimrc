@@ -9,7 +9,7 @@ endif
 
 setlocal path=.,build/include,~/phd/vcpkg/installed/x64-linux/include,/usr/include,/usr/include/c++/8.1.1,src/,
 
-set colorcolumn=91
+set colorcolumn=101
 set fixendofline
 
 let g:neomake_cpp_clangcheck_args = ['-p=build/ -analyze']
