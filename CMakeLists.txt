@@ -1,6 +1,10 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.13)
 
 project(MSMutONet)
+
+#list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+#list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to Release")
@@ -72,8 +76,9 @@ ExternalProject_Add(type_safe
     UPDATE_COMMAND ""
 )
 
-find_package(Boost REQUIRED system program_options filesystem)
+find_package(Boost REQUIRED system program_options filesystem )
 find_package(fmt CONFIG REQUIRED)
+find_package(MPFR 4.0.1 MODULE REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
 
 find_package(OpenMP)

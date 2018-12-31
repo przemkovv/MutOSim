@@ -10,6 +10,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE meta range-v3)
 target_link_libraries(${TARGET_NAME} PRIVATE fmt::fmt fmt::fmt-header-only)
 target_link_libraries(${TARGET_NAME} PRIVATE Boost::filesystem Boost::program_options Boost::system)
 target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${TARGET_NAME} PRIVATE ${MPFR_LIBRARIES})
 
 set_target_properties(${TARGET_NAME} PROPERTIES
   CXX_STANDARD 17
