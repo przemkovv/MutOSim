@@ -34,8 +34,8 @@ Event::process()
 }
 //----------------------------------------------------------------------
 
-LoadServiceRequestEvent::LoadServiceRequestEvent(Uuid id, Load load_)
-  : Event(EventType::LoadServiceRequest, id, load_.send_time), load(load_)
+LoadServiceRequestEvent::LoadServiceRequestEvent(Uuid id_, Load load_)
+  : Event(EventType::LoadServiceRequest, id_, load_.send_time), load(load_)
 {
 }
 
@@ -59,8 +59,8 @@ LoadServiceRequestEvent::skip_notify()
 //----------------------------------------------------------------------
 
 ProduceServiceRequestEvent::ProduceServiceRequestEvent(
-    Uuid id, Time time_, SourceStream *source_stream_)
-  : Event(EventType::LoadProduce, id, time_), source_stream(source_stream_)
+    Uuid id_, Time time_, SourceStream *source_stream_)
+  : Event(EventType::LoadProduce, id_, time_), source_stream(source_stream_)
 {
 }
 
@@ -77,8 +77,8 @@ ProduceServiceRequestEvent::skip_notify()
 
 //----------------------------------------------------------------------
 
-LoadServiceEndEvent::LoadServiceEndEvent(Uuid id, Load load_)
-  : Event(EventType::LoadServiceEnd, id, load_.end_time), load((load_))
+LoadServiceEndEvent::LoadServiceEndEvent(Uuid id_, Load load_)
+  : Event(EventType::LoadServiceEnd, id_, load_.end_time), load((load_))
 {
 }
 

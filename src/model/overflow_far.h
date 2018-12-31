@@ -47,5 +47,10 @@ Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capac
 
 Probability conditional_transition_probability(
     Capacity n, Capacity V, Count resources_number, Capacity f, Size t);
+Count
+combinatorial_arrangement_number_unequal_resources(
+    Capacity /*x*/,
+    std::vector<Count> components_numbers,
+    std::vector<Capacity> /*components_capacities*/);
 
 } // namespace Model

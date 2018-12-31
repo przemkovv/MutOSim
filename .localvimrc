@@ -2,7 +2,7 @@
 set tags=tags,./tags
 
 if hostname() == "legolas"
-  set makeprg=ninja\ -j3\ -C\ build/
+  set makeprg=ninja\ -j3\ -C\ ../mutosim_build/
 else
   set makeprg=cmake\ --build\ ../mutosim_build/
   " set makeprg=ninja\ -C\ build/

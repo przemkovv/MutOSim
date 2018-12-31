@@ -74,9 +74,9 @@ to_json(json &j, const SourceType &st)
       return "engset";
     case SourceType::Pascal:
       return "pascal";
-    default:
-      ASSERT(true, "source type not supported");
-      return "Not supported";
+    // default:
+      // ASSERT(true, "source type not supported");
+      // return "Not supported";
     }
   }();
 }

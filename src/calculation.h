@@ -29,7 +29,7 @@ engset_pi(const long double alpha, const int64_t V, const int64_t N, const int64
   if (N == 0)
     return 0.0L;
   const auto dividend = Math::n_over_k(N, i) * Math::pow(alpha, i);
-  auto divisor = 0L;
+  auto divisor = 0.0L;
   for (int64_t j = 0; j <= V; ++j) {
     divisor += Math::n_over_k(N, j) * Math::pow(alpha, j);
   }
