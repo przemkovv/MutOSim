@@ -11,6 +11,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE fmt::fmt fmt::fmt-header-only)
 target_link_libraries(${TARGET_NAME} PRIVATE Boost::filesystem Boost::program_options Boost::system)
 target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(${TARGET_NAME} PRIVATE ${MPFR_LIBRARIES})
+target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARY})
 
 set_target_properties(${TARGET_NAME} PROPERTIES
   CXX_STANDARD 17
@@ -33,6 +34,8 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/math_utils.h"
   "${CMAKE_CURRENT_LIST_DIR}/mutosim.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/mutosim.h"
+  "${CMAKE_CURRENT_LIST_DIR}/precision_types.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/precision_types.h"
   "${CMAKE_CURRENT_LIST_DIR}/scenario_settings.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/scenario_settings.h"
   "${CMAKE_CURRENT_LIST_DIR}/topology.cpp"

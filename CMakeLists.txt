@@ -80,6 +80,7 @@ find_package(Boost REQUIRED system program_options filesystem )
 find_package(fmt CONFIG REQUIRED)
 find_package(MPFR 4.0.1 MODULE REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
+find_library(GMP_LIBRARY NAMES gmp mpir)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
