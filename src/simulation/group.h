@@ -4,7 +4,7 @@
 #include "overflow_policy/overflow_policy.h"
 #include "stats.h"
 #include "traffic_class.h"
-#include "types.h"
+#include "types/types.h"
 #include "world.h"
 
 #include <boost/container/flat_map.hpp>

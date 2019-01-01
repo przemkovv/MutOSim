@@ -4,7 +4,7 @@
 #include "math_utils.h"
 #include "model/stream_properties.h"
 
-#include "types.h"
+#include "types/types.h"
 
 inline auto
 erlang_pk_distribution(const long double A, const int64_t V, const int64_t k)

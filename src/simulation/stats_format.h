@@ -1,6 +1,7 @@
 
 #pragma once
 #include "stats.h"
+#include "types/hash.h"
 
 #include <fmt/format.h>
 

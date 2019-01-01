@@ -2,7 +2,7 @@
 #pragma once
 
 #include "load.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <memory>
 

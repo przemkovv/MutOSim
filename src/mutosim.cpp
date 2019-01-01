@@ -14,7 +14,7 @@
 #include "simulation/world.h"
 #include "topology_parser.h"
 #include "traffic_class.h"
-#include "types.h"
+#include "types/types.h"
 #include "utils.h"
 
 #include <boost/filesystem.hpp>

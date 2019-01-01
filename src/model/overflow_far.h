@@ -4,7 +4,7 @@
 #include "stream_properties.h"
 #include "stream_properties_format.h"
 #include "traffic_class.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <valarray>
 #include <vector>

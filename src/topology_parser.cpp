@@ -2,7 +2,7 @@
 #include "topology_parser.h"
 
 #include "logger.h"
-#include "types_parser.h"
+#include "types/parser.h"
 
 #include <boost/filesystem.hpp>
 #include <fstream>

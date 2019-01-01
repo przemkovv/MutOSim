@@ -1,7 +1,7 @@
 
 #pragma once
 #include "scenario_settings.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <vector>
 

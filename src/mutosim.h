@@ -3,7 +3,7 @@
 
 #include "config.h"
 #include "scenario_settings.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/filesystem.hpp>
 #include <nlohmann/json.hpp>

@@ -1,7 +1,7 @@
 
 #pragma once
 #include "scenario_settings.h"
-#include "types.h"
+#include "types/types.h"
 
 ScenarioSettings single_overflow_poisson(Intensity lambda, Capacity V);
 ScenarioSettings single_overflow_engset(Intensity gamma, Capacity V, Count N);

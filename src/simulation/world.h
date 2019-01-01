@@ -5,7 +5,8 @@
 #include "logger.h"
 #include "stats.h"
 #include "topology.h"
-#include "types.h"
+#include "types/types.h"
+#include "types/hash.h"
 
 #include <memory>
 #include <nlohmann/json.hpp>

@@ -3,6 +3,7 @@
 
 #include <boost/multiprecision/gmp.hpp>
 #include <boost/multiprecision/mpfr.hpp>
+#include <string>
 #include <type_traits>
 
 namespace mp = boost::multiprecision;

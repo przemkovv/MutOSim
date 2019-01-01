@@ -2,7 +2,7 @@
 #pragma once
 
 #include "common.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/container/flat_map.hpp>
 

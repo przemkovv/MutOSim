@@ -1,7 +1,7 @@
 #pragma once
 
 #include "model/common.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/variables_map.hpp>

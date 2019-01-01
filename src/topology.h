@@ -1,7 +1,7 @@
 #pragma once
 
 #include "traffic_class.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <map>

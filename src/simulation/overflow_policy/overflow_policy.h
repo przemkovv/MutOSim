@@ -1,7 +1,7 @@
 #pragma once
 
 #include "simulation/load.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <gsl/gsl>
 #include <optional>

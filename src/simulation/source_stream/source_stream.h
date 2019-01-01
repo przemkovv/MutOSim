@@ -2,7 +2,7 @@
 
 #include "simulation/event.h"
 #include "traffic_class.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <fmt/format.h>
 #include <memory>

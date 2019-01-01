@@ -1,6 +1,6 @@
 
 #include "stream_properties.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <optional>

@@ -2,6 +2,7 @@
 #pragma once
 
 #include "source_stream.h"
+#include "types/hash.h"
 
 #include <random>
 #include <unordered_map>

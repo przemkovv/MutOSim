@@ -2,7 +2,7 @@
 
 #include "cli_options.h"
 #include "topology.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <functional>

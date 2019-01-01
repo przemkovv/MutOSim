@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "types_common.h"
+#include "common.h"
 
 #include <type_safe/strong_typedef.hpp>
 

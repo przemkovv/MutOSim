@@ -4,7 +4,7 @@
 #include "logger.h"
 #include "simulation/group.h"
 #include "simulation/world.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <optional>
 

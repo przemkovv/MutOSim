@@ -1,7 +1,7 @@
 #pragma once
 
 #include "traffic_class.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/container/small_vector.hpp>
 #include <fmt/format.h>

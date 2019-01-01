@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include "types.h"
+#include "types/types.h"
+#include "types/hash.h"
 
 #include <nlohmann/json.hpp>
 #include <optional>

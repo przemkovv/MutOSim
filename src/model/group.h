@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "stream_properties.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <map>
 #include <range/v3/algorithm/for_each.hpp>

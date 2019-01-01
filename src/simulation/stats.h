@@ -2,7 +2,7 @@
 
 #include "math_utils.h"
 #include "simulation/load.h"
-#include "types.h"
+#include "types/types.h"
 
 #include <boost/container/flat_map.hpp>
 #include <map>
