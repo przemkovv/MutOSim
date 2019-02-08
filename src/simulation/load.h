@@ -24,6 +24,7 @@ struct Load {
   TrafficClassId tc_id{};
   Time send_time{};
   Size size{};
+  size_t bucket{};
   Time end_time{-1};
   bool drop = false;
   CompressionRatio *compression_ratio = nullptr;

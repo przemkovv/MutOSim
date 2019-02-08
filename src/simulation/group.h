@@ -7,29 +7,41 @@
 #include "types/types.h"
 #include "world.h"
 
+#include <algorithm>
 #include <boost/container/flat_map.hpp>
 #include <queue>
 #include <random>
+#include <range/v3/numeric.hpp>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 namespace Simulation
 {
-struct CanServeResult {
+struct CanServeRecursiveResult {
   bool recursively;
   bool local;
   operator bool() { return recursively || local; }
 };
 
+struct CanServeResult {
+  bool can_serve;
+  CompressionRatio *compression_ratio;
+  size_t bucket;
+};
+
 using CompressionRatios =
     boost::container::flat_map<Capacity, CompressionRatio, std::greater<Capacity>>;
+
+std::vector<Capacity>
+operator-(const std::vector<Capacity> &capacities, const std::vector<Size> &sizes);
 
 struct Group {
   GroupId id{};
   const GroupName name_;
-  Capacity capacity_;
-  Size size_{};
+  std::vector<Capacity> capacity_;
+  Capacity total_capacity_ = ranges::accumulate(capacity_, Capacity{});
+  std::vector<Size> size_{};
   Layer layer_;
 
   GroupStatistics stats_{};
@@ -51,22 +63,19 @@ struct Group {
   const std::vector<Group *> &next_groups() { return next_groups_; }
 
   void add_compression_ratio(
-      TrafficClassId tc_id,
-      Capacity threshold,
-      Size size,
-      IntensityFactor intensity_factor);
+      TrafficClassId tc_id, Capacity threshold, Size size, IntensityFactor intensity_factor);
   void block_traffic_class(TrafficClassId tc_id);
 
   void set_end_time(Load &load, IntensityFactor intensity_factor);
 
   bool forward(Load load);
 
-  Capacity free_capacity() { return capacity_ - size_; }
-  Capacity capacity() { return capacity_; }
+  std::vector<Capacity> free_capacity() { return capacity_ - size_; }
+  std::vector<Capacity> capacity() { return capacity_; }
   Layer layer() { return layer_; }
-  std::pair<bool, CompressionRatio *> can_serve(const TrafficClass &tc);
-  std::pair<bool, CompressionRatio *> can_serve(TrafficClassId tc_id);
-  CanServeResult can_serve_recursive(const TrafficClass &tc, Path &path);
+  CanServeResult can_serve(const TrafficClass &tc);
+  CanServeResult can_serve(TrafficClassId tc_id);
+  CanServeRecursiveResult can_serve_recursive(const TrafficClass &tc, Path &path);
   void block_recursive(TrafficClassId tc_id, const Load &load);
   void unblock_recursive(TrafficClassId tc_id, const Load &load);
   void block(TrafficClassId tc_id, const Load &load);
@@ -89,7 +98,6 @@ struct Group {
   const GroupName &name() const { return name_; }
 };
 
-
 } // namespace Simulation
 
 namespace fmt
@@ -110,8 +118,8 @@ struct formatter<Simulation::Group> {
         "t={} [Group {} V={}/{}, L{}]",
         group.world_->get_current_time(),
         group.name_,
-        group.size_,
-        group.capacity_,
+        fmt::join(group.size_, ","),
+        fmt::join(group.capacity_, ","),
         group.layer_);
   }
 };

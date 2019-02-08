@@ -49,7 +49,7 @@ OverflowPolicy::get_available_groups(const Load &load, Layer layer)
       back_inserter(available_groups),
       [&](const auto &group) {
         return layers_usage[group->layer_] < overflows_per_layer &&
-               group->layer_ == layer && group->can_serve(load.tc_id).first &&
+               group->layer_ == layer && group->can_serve(load.tc_id).can_serve &&
                !contains(load.served_by, group);
       });
   return available_groups;
@@ -88,7 +88,7 @@ FirstAvailable::find_next_group(const Load &load)
   for (const auto &next_group : group_->next_groups_) {
     if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) ==
         std::end(load.served_by)) {
-      if (auto [is_served, compression] = next_group->can_serve(load.tc_id); is_served) {
+      if (auto [is_served, compression, bucket] = next_group->can_serve(load.tc_id); is_served) {
         std::ignore = compression;
         return next_group;
       }

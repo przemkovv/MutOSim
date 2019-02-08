@@ -58,10 +58,8 @@ void from_json(const json &j, CompressionRatio &c);
 void to_json(json &j, const TrafficClassSettings &c);
 void from_json(const json &j, TrafficClassSettings &c);
 
-void
-to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
-void
-from_json(const json &j, std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+void to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+void from_json(const json &j, std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
 
 void
 to_json(json &j, const SourceType &st)
@@ -74,7 +72,7 @@ to_json(json &j, const SourceType &st)
       return "engset";
     case SourceType::Pascal:
       return "pascal";
-    // default:
+      // default:
       // ASSERT(true, "source type not supported");
       // return "Not supported";
     }
@@ -138,7 +136,7 @@ from_json(const json &j, Source &s)
 void
 to_json(json &j, const Group &g)
 {
-  j = {{"capacity", g.capacity},
+  j = {{"capacity", g.capacities},
        {"connected", g.connected},
        {"layer", g.layer},
        {"intensity_multiplier", g.intensity_multiplier},
@@ -148,7 +146,12 @@ to_json(json &j, const Group &g)
 void
 from_json(const json &j, Group &g)
 {
-  g.capacity = j.at("capacity");
+  auto &j_capacity = j.at("capacity");
+  if (j_capacity.is_array()) {
+    g.capacities = {j_capacity.get<std::vector<Capacity>>()};
+  } else {
+    g.capacities = {j_capacity.get<Capacity>()};
+  }
   g.layer = j.at("layer");
   g.intensity_multiplier = j.value("intensity_multiplier", Intensity{1.0L});
   g.connected = j.value("connected", std::vector<GroupName>{});
@@ -157,17 +160,14 @@ from_json(const json &j, Group &g)
   }
   if (j.find("traffic_classes") != j.end()) {
     g.traffic_classess_settings =
-        j.at("traffic_classes")
-            .get<std::unordered_map<TrafficClassId, TrafficClassSettings>>();
+        j.at("traffic_classes").get<std::unordered_map<TrafficClassId, TrafficClassSettings>>();
   }
 }
 
 void
 to_json(json &j, const CompressionRatio &c)
 {
-  j = {{"threshold", c.threshold},
-       {"size", c.size},
-       {"intensity_factor", c.intensity_factor}};
+  j = {{"threshold", c.threshold}, {"size", c.size}, {"intensity_factor", c.intensity_factor}};
 }
 void
 from_json(const json &j, CompressionRatio &c)
@@ -193,9 +193,9 @@ from_json(const json &j, TrafficClassSettings &c)
     c.compression_ratios = j["compression"].get<std::vector<CompressionRatio>>();
   }
   std::sort(
-      begin(c.compression_ratios),
-      end(c.compression_ratios),
-      [](const auto &cr1, const auto &cr2) { return cr1.threshold < cr2.threshold; });
+      begin(c.compression_ratios), end(c.compression_ratios), [](const auto &cr1, const auto &cr2) {
+        return cr1.threshold < cr2.threshold;
+      });
 
   if (j.find("block") != j.end()) {
     c.block = j["block"].get<bool>();
@@ -213,8 +213,7 @@ void
 from_json(const json &j, std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
 {
   for (const auto &tc_j : j.items()) {
-    tcs.emplace(
-        TrafficClassId{std::stoul(tc_j.key())}, tc_j.value().get<TrafficClassSettings>());
+    tcs.emplace(TrafficClassId{std::stoul(tc_j.key())}, tc_j.value().get<TrafficClassSettings>());
   }
 }
 
@@ -307,8 +306,7 @@ load_topology_config(const std::string &filename)
 }
 
 std::pair<Topology, nlohmann::json>
-parse_topology_config(
-    const std::string &filename, const std::vector<std::string> &append_filenames)
+parse_topology_config(const std::string &filename, const std::vector<std::string> &append_filenames)
 {
   auto main_scenario = load_topology_config(filename);
   for (const auto &append_filename : append_filenames) {

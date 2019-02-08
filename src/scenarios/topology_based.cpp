@@ -16,7 +16,7 @@ prepare_scenario_global_A(const Config::Topology &config, Intensity A)
   auto &topology = sim_settings.topology;
   for (const auto &[name, group] : config.groups) {
     auto &g =
-        topology.add_group(std::make_unique<Simulation::Group>(name, group.capacity));
+        topology.add_group(std::make_unique<Simulation::Group>(name, group.capacities[0]));
 
     g.set_overflow_policy(Simulation::make_overflow_policy(group.overflow_policy, g));
 
@@ -29,7 +29,7 @@ prepare_scenario_global_A(const Config::Topology &config, Intensity A)
       }
     }
 
-    V += group.capacity;
+    V += group.capacities[0];
   }
   for (const auto &[name, group] : config.groups) {
     for (const auto &connected_group : group.connected) {
@@ -67,7 +67,7 @@ prepare_scenario_local_group_A(const Config::Topology &config, Intensity A)
   auto &topology = sim_settings.topology;
   for (const auto &[name, config_group] : config.groups) {
     auto &group = topology.add_group(std::make_unique<Simulation::Group>(
-        name, config_group.capacity, config_group.layer));
+        name, config_group.capacities[0], config_group.layer));
     group.set_overflow_policy(
         Simulation::make_overflow_policy(config_group.overflow_policy, group));
 
@@ -81,7 +81,7 @@ prepare_scenario_local_group_A(const Config::Topology &config, Intensity A)
       }
     }
 
-    total_capacity += config_group.capacity;
+    total_capacity += config_group.capacities[0];
   }
   for (const auto &[name, config_group] : config.groups) {
     for (const auto &connected_group : config_group.connected) {
@@ -102,7 +102,7 @@ prepare_scenario_local_group_A(const Config::Topology &config, Intensity A)
     const auto &group = topology.get_group(source.attached);
     const auto intensity_multiplier = config.groups.at(group.name()).intensity_multiplier;
     Intensity offered_intensity =
-        A * intensity_multiplier * group.capacity_ * ratio / cfg_tc.size;
+        A * intensity_multiplier * group.total_capacity_ * ratio / cfg_tc.size;
     const auto &tc = topology.add_traffic_class(
         cfg_tc.id,
         offered_intensity,

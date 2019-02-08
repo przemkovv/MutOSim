@@ -1,24 +1,36 @@
 
 #include "group.h"
 
+#include "load_format.h"
 #include "logger.h"
 #include "overflow_policy/factory.h"
 #include "source_stream/source_stream.h"
-#include "load_format.h"
 
 #include <algorithm>
 #include <cmath>
-#include <gsl/gsl>
 #include <fmt/ostream.h>
+#include <gsl/gsl>
 
 namespace Simulation
 {
+std::vector<Capacity>
+operator-(const std::vector<Capacity> &capacities, const std::vector<Size> &sizes)
+{
+  std::vector<Capacity> free_capacities(capacities.size());
+  std::transform(
+      begin(capacities), end(capacities), begin(sizes), begin(free_capacities), [](auto x, auto y) {
+        return x - y;
+      });
+  return free_capacities;
+}
+
 Group::Group(GroupName name, Capacity capacity) : Group(name, capacity, 0)
 {
 }
 Group::Group(GroupName name, Capacity capacity, Layer layer)
   : name_(std::move(name)),
-    capacity_(capacity),
+    capacity_({capacity}),
+    size_(capacity_.size()),
     layer_(layer),
     overflow_policy_(make_overflow_policy("default", *this))
 {
@@ -92,7 +104,8 @@ Group::try_serve(Load load)
 {
   load.served_by.emplace_back(this);
 
-  if (auto [ok, compression] = can_serve(load.tc_id); ok) {
+  if (auto [ok, compression, bucket] = can_serve(load.tc_id); ok) {
+    std::ignore = bucket;
     IntensityFactor intensity_factor{1.0l};
     if (compression) {
       load.size = compression->size;
@@ -100,7 +113,8 @@ Group::try_serve(Load load)
       load.compression_ratio = compression;
     }
     debug_print("{} Start serving request: {}\n", *this, load);
-    size_ += load.size;
+    size_[bucket] += load.size;
+    load.bucket = bucket;
     set_end_time(load, intensity_factor);
 
     update_block_stat(load);
@@ -116,7 +130,7 @@ void
 Group::take_off(const Load &load)
 {
   debug_print("{} Request has been served: {}\n", *this, load);
-  size_ -= load.size;
+  size_[load.bucket] -= load.size;
   update_unblock_stat(load);
   stats_.served_by_tc[load.tc_id].serve(load);
 }
@@ -199,37 +213,45 @@ Group::unblock_recursive(TrafficClassId tc_id, const Load &load)
 {
   auto &block_stats = stats_.blocked_recursive_by_tc[tc_id];
   if (block_stats.try_unblock(load.end_time)) {
-    debug_print(
-        "{} Load: {}, Unblocking recursive bt={}\n", *this, load, block_stats.block_time);
+    debug_print("{} Load: {}, Unblocking recursive bt={}\n", *this, load, block_stats.block_time);
   }
 }
-std::pair<bool, CompressionRatio *>
+CanServeResult
 Group::can_serve(TrafficClassId tc_id)
 {
   return can_serve(traffic_classes_->at(tc_id));
 }
 
-std::pair<bool, CompressionRatio *>
+CanServeResult
 Group::can_serve(const TrafficClass &tc)
 {
   if (tcs_block_.find(tc.id) != end(tcs_block_)) {
-    return {false, nullptr};
+    return {false, nullptr, 0};
   }
   if (const auto tc_compression_it = tcs_compression_.find(tc.id);
       tc_compression_it != end(tcs_compression_)) {
-    if (const auto cr_it = tc_compression_it->second.lower_bound(Capacity{get(size_)});
-        cr_it != end(tc_compression_it->second)) {
-      return {size_ + cr_it->second.size <= capacity_, &cr_it->second};
+    for (size_t bucket = {0}; bucket < size_.size(); ++bucket) {
+      if (const auto cr_it = tc_compression_it->second.lower_bound(Capacity{get(size_[bucket])});
+          cr_it != end(tc_compression_it->second)) {
+        // TODO(PW): verify if the condition is correct with multiple buckets
+        return {size_[bucket] + cr_it->second.size <= capacity_[bucket], &cr_it->second, bucket};
+      }
     }
   }
-  return {size_ + tc.size <= capacity_, nullptr};
+  for (size_t bucket = {0}; bucket < size_.size(); ++bucket) {
+    if (size_[bucket] + tc.size <= capacity_[bucket]) {
+      return {true, nullptr, bucket};
+    }
+  }
+  return {false, nullptr, 0};
 }
 
-CanServeResult
+CanServeRecursiveResult
 Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 {
-  if (auto [ok, compression] = can_serve(tc); ok) {
+  if (auto [ok, compression, bucket] = can_serve(tc); ok) {
     std::ignore = compression;
+    std::ignore = bucket;
     return {true, true};
   }
   path.emplace_back(this);
@@ -251,8 +273,7 @@ bool
 Group::forward(Load load)
 {
   // TODO(PW): if the max path has been reached, pass the load to the next layer
-  if (load.drop ||
-      load.served_by.size() >= traffic_classes_->at(load.tc_id).max_path_length) {
+  if (load.drop || load.served_by.size() >= traffic_classes_->at(load.tc_id).max_path_length) {
     drop(load);
     return false;
   }
@@ -276,6 +297,5 @@ Group::get_stats(Duration duration)
 }
 
 //----------------------------------------------------------------------
-
 
 } // namespace Simulation

@@ -142,6 +142,7 @@ check_layer_type(const Simulation::Topology &topology, Layer layer)
   const auto &groups = topology.groups_per_layer.at(layer);
   // FullAvailability
   if (rng::all_of(groups, [](const auto &group) { return group->next_groups().size() <= 1; })) {
+    debug_println("[Analytical] Layer: {}, FullAvailability", layer);
     return LayerType::FullAvailability;
   }
 
@@ -162,11 +163,14 @@ check_layer_type(const Simulation::Topology &topology, Layer layer)
             groups | rng::view::transform([](const auto &group) { return group->capacity(); }) |
             rng::view::unique | rng::to_vector;
         capacities.size() == 1) {
+      debug_println("[Analytical] Layer: {}, DistributedEqualCapacities", layer);
       return LayerType::DistributedEqualCapacities;
     } else {
+      debug_println("[Analytical] Layer: {}, DistributedUnequalCapacities", layer);
       return LayerType::DistributedUnequalCapacities;
     }
   }
+  debug_println("[Analytical] Layer: {}, Unkown", layer);
   return LayerType::Unknown;
 }
 bool

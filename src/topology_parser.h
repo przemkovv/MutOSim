@@ -42,7 +42,7 @@ struct TrafficClassSettings {
 
 struct Group {
   GroupName name{};
-  Capacity capacity{};
+  std::vector<Capacity> capacities{};
   Layer layer{};
   Intensity intensity_multiplier{};
   std::optional<OverflowPolicyName> overflow_policy{};

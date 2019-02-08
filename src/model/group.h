@@ -7,6 +7,7 @@
 
 #include <map>
 #include <range/v3/algorithm/for_each.hpp>
+#include <range/v3/numeric.hpp>
 #include <vector>
 
 namespace Model
@@ -14,7 +15,8 @@ namespace Model
 struct Group {
 private:
   std::map<TrafficClassId, IncomingRequestStream> in_request_streams_{};
-  const Capacity V_;
+  const std::vector<Capacity> V_;
+  const Capacity total_V_ = ranges::accumulate(V_, Capacity{});
 
   mutable OutgoingRequestStreams out_request_streams_{};
   mutable bool need_recalculate_ = true;
@@ -26,6 +28,7 @@ public:
   const OutgoingRequestStreams &get_outgoing_request_streams() const;
 
   Group(Capacity V, KaufmanRobertsVariant kr_variant);
+  Group(std::vector<Capacity> V, KaufmanRobertsVariant kr_variant);
 
   template <typename RequestStream>
   void add_incoming_request_stream(const RequestStream &request_stream);
@@ -50,8 +53,7 @@ Group::add_incoming_request_stream(const RequestStream &in_rs)
       "supported.");
 
   // Formulas 3.17 and 3.18
-  if (auto [rs_it, inserted] = in_request_streams_.try_emplace(in_rs.tc.id, in_rs);
-      !inserted) {
+  if (auto [rs_it, inserted] = in_request_streams_.try_emplace(in_rs.tc.id, in_rs); !inserted) {
     rs_it->second += in_rs;
   }
   need_recalculate_ = true;
@@ -61,8 +63,7 @@ template <typename RequestStream>
 void
 Group::add_incoming_request_streams(const std::vector<RequestStream> &in_request_streams)
 {
-  ranges::for_each(in_request_streams, [this](const auto &rs) {
-    this->add_incoming_request_stream(rs);
-  });
+  ranges::for_each(
+      in_request_streams, [this](const auto &rs) { this->add_incoming_request_stream(rs); });
 }
 } // namespace Model

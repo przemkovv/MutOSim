@@ -18,15 +18,14 @@ Group::get_outgoing_request_streams() const
 
     const auto V = [&]() {
       if (kr_variant_ == KaufmanRobertsVariant::FixedCapacity) {
-        return CapacityF{V_};
+        return CapacityF{total_V_};
       } else {
         const auto peakedness = compute_collective_peakedness(in_request_streams);
-        return V_ / peakedness;
+        return total_V_ / peakedness;
       }
     }();
 
-    out_request_streams_ =
-        kaufman_roberts_blocking_probability(in_request_streams, V, kr_variant_);
+    out_request_streams_ = kaufman_roberts_blocking_probability(in_request_streams, V, kr_variant_);
 
     out_request_streams_ = compute_overflow_parameters(out_request_streams_, V);
 
@@ -35,8 +34,12 @@ Group::get_outgoing_request_streams() const
   return out_request_streams_;
 }
 
-Group::Group(Capacity V, KaufmanRobertsVariant kr_variant)
+Group::Group(std::vector<Capacity> V, KaufmanRobertsVariant kr_variant)
   : V_(V), kr_variant_(kr_variant)
+{
+}
+
+Group::Group(Capacity V, KaufmanRobertsVariant kr_variant) : V_({V}), kr_variant_(kr_variant)
 {
 }
 
