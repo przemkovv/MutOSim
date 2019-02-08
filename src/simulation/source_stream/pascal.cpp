@@ -2,9 +2,13 @@
 #include "pascal.h"
 
 #include "logger.h"
+#include "simulation/event_format.h"
+#include "simulation/load_format.h"
 #include "simulation/group.h"
+#include "simulation/source_stream/source_stream_format.h"
 #include "simulation/world.h"
 #include "types/types.h"
+#include "types/types_format.h"
 
 #include <optional>
 
@@ -20,8 +24,7 @@ template <typename M>
 std::optional<typename M::const_iterator>
 find_event(const M &map, const Event *event)
 {
-  auto it = find_if(
-      begin(map), end(map), [&event](const auto &p) { return p.second == event; });
+  auto it = find_if(begin(map), end(map), [&event](const auto &p) { return p.second == event; });
   if (it != map.end()) {
     return std::make_optional(it);
   }
@@ -90,10 +93,7 @@ PascalSourceStream::notify_on_request_accept(const LoadServiceRequestEvent *even
   linked_sources_count_++;
   linked_sources_.emplace(event->load.id, new_event.get());
   debug_print(
-      "{} [on accept] Add event {} linked to load id {}\n",
-      *this,
-      *new_event,
-      event->load.id);
+      "{} [on accept] Add event {} linked to load id {}\n", *this, *new_event, event->load.id);
 
   world_->schedule(std::move(new_event));
 }
@@ -161,8 +161,7 @@ std::unique_ptr<ProduceServiceRequestEvent>
 PascalSourceStream::create_produce_service_request(Time time)
 {
   Duration dt{exponential(world_->get_random_engine())};
-  return std::make_unique<ProduceServiceRequestEvent>(
-      world_->get_uuid(), time + dt, this);
+  return std::make_unique<ProduceServiceRequestEvent>(world_->get_uuid(), time + dt, this);
 }
 
 EventPtr

@@ -2,8 +2,10 @@
 #include "poisson.h"
 
 #include "simulation/group.h"
+#include "simulation/load_format.h"
+#include "simulation/source_stream/source_stream_format.h"
 #include "simulation/world.h"
-
+#include "types/types_format.h"
 
 namespace Simulation
 {

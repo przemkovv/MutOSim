@@ -12,6 +12,7 @@
 #include "stream_properties_format.h"
 #include "traffic_class.h"
 
+#include <fmt/ostream.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <range/v3/action/push_back.hpp>
@@ -25,7 +26,6 @@
 #include <range/v3/view/map.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/unique.hpp>
-#include <fmt/ostream.h>
 
 namespace rng = ranges;
 
@@ -101,8 +101,7 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
       std::ignore = group_name;
       for (const auto &next_group_name : model_group_ptr->next_groups()) {
         model_groups.at(next_group_name)
-            .add_incoming_request_streams(
-                model_group_ptr->get_outgoing_request_streams());
+            .add_incoming_request_streams(model_group_ptr->get_outgoing_request_streams());
       }
     }
   }
@@ -142,29 +141,26 @@ check_layer_type(const Simulation::Topology &topology, Layer layer)
 {
   const auto &groups = topology.groups_per_layer.at(layer);
   // FullAvailability
-  if (rng::all_of(
-          groups, [](const auto &group) { return group->next_groups().size() <= 1; })) {
+  if (rng::all_of(groups, [](const auto &group) { return group->next_groups().size() <= 1; })) {
     return LayerType::FullAvailability;
   }
 
-  auto groups_names =
-      groups | rng::view::transform([](const auto &group) { return group->name(); }) |
-      rng::to_vector | rng::action::sort;
+  auto groups_names = groups |
+                      rng::view::transform([](const auto &group) { return group->name(); }) |
+                      rng::to_vector | rng::action::sort;
 
   if (rng::all_of(groups, [&](const auto &group) {
         auto next_groups_names =
             group->next_groups() | rng::view::filter([layer](const auto &next_group) {
               return next_group->layer() == layer;
             }) |
-            rng::view::transform(
-                [](const auto &next_group) { return next_group->name(); }) |
+            rng::view::transform([](const auto &next_group) { return next_group->name(); }) |
             rng::to_vector | rng::action::push_back(group->name()) | rng::action::sort;
         return next_groups_names == groups_names;
       })) {
-    if (auto capacities = groups | rng::view::transform([](const auto &group) {
-                            return group->capacity();
-                          }) |
-                          rng::view::unique | rng::to_vector;
+    if (auto capacities =
+            groups | rng::view::transform([](const auto &group) { return group->capacity(); }) |
+            rng::view::unique | rng::to_vector;
         capacities.size() == 1) {
       return LayerType::DistributedEqualCapacities;
     } else {
@@ -177,8 +173,7 @@ bool
 check_model_prerequisites(const ScenarioSettings &scenario)
 {
   return rng::all_of(
-      scenario.topology.groups_per_layer | rng::view::keys,
-      [&](const auto &layer) -> bool {
+      scenario.topology.groups_per_layer | rng::view::keys, [&](const auto &layer) -> bool {
         return check_layer_type(scenario.topology, layer) != LayerType::Unknown;
       });
 }

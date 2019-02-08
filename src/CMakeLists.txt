@@ -107,6 +107,8 @@ target_sources(${TARGET_NAME} PRIVATE
 
   "${CMAKE_CURRENT_LIST_DIR}/types/types.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/types/types.h"
+  "${CMAKE_CURRENT_LIST_DIR}/types/types_format.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/types/types_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/types/common.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/types/common.h"
   "${CMAKE_CURRENT_LIST_DIR}/types/hash.cpp"

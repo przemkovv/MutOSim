@@ -5,12 +5,13 @@
 #include "load.h"
 #include "load_format.h"
 #include "logger.h"
+#include "simulation/event_format.h"
 #include "simulation/stats_format.h"
 #include "source_stream/source_stream.h"
 #include "source_stream/source_stream_format.h"
+#include "types/types_format.h"
 
 #include <nlohmann/json.hpp>
-#include <fmt/ostream.h>
 
 namespace Simulation
 {
@@ -35,7 +36,7 @@ World::init()
 bool
 World::next_iteration()
 {
-  debug_print("{} Time = {:-<80}\n", *this, time_);
+  debug_print("{} Time = {:*<80}\n", *this, time_);
 
   Time next_event{0};
   if (!events_.empty()) {

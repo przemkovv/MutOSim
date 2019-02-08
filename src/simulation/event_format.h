@@ -53,4 +53,47 @@ struct formatter<Simulation::Event> {
   // format_arg(f, format_str, static_cast<const Event &>(event));
 };
 
+template <>
+struct formatter<Simulation::ProduceServiceRequestEvent> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const Simulation::ProduceServiceRequestEvent &event, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", static_cast<const Simulation::Event &>(event));
+  }
+};
+template <>
+struct formatter<Simulation::LoadServiceEndEvent> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const Simulation::LoadServiceEndEvent &event, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", static_cast<const Simulation::Event &>(event));
+  }
+};
+template <>
+struct formatter<Simulation::LoadServiceRequestEvent> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const Simulation::LoadServiceRequestEvent &event, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", static_cast<const Simulation::Event &>(event));
+  }
+};
+
 } // namespace fmt

@@ -4,6 +4,7 @@
 #include "logger.h"
 #include "overflow_policy/factory.h"
 #include "source_stream/source_stream.h"
+#include "load_format.h"
 
 #include <algorithm>
 #include <cmath>
