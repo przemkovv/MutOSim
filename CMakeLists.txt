@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.13)
 
 project(MSMutONet)
 
@@ -73,7 +73,8 @@ include(ExternalProject)
 ExternalProject_Add(type_safe
     GIT_REPOSITORY https://github.com/foonathan/type_safe
     INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DBUILD_TESTING=OFF -DTYPE_SAFE_BUILD_TEST_EXAMPLE=OFF
+    GIT_TAG 4258afeecbc74f6b8ea7df9b4cff5b867b4aab4c
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DTYPE_SAFE_BUILD_TEST_EXAMPLE=OFF
     UPDATE_COMMAND ""
 )
 

@@ -12,7 +12,6 @@
 #include "stream_properties_format.h"
 #include "traffic_class.h"
 
-#include <fmt/ostream.h>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <range/v3/action/push_back.hpp>

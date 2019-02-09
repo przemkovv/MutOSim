@@ -3,10 +3,8 @@
 
 #include "simulation/group.h"
 #include "simulation/world.h"
-
 #include "source_stream_format.h"
-
-#include <fmt/ostream.h>
+#include "types/types_format.h"
 
 namespace Simulation
 {

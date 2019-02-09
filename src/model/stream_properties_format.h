@@ -3,6 +3,7 @@
 
 #include "stream_properties.h"
 
+#include "types/types_format.h"
 #include <fmt/format.h>
 
 namespace fmt

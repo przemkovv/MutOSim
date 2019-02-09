@@ -8,9 +8,8 @@
 #include "simulation/source_stream/pascal.h"
 #include "simulation/source_stream/poisson.h"
 #include "topology.h"
+#include "types/types_format.h"
 
-
-#include <fmt/ostream.h>
 
 //----------------------------------------------------------------------
 ScenarioSettings

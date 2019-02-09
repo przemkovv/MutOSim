@@ -27,6 +27,8 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/calculation.h"
   "${CMAKE_CURRENT_LIST_DIR}/cli_options.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/cli_options.h"
+  "${CMAKE_CURRENT_LIST_DIR}/cli_options_format.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/cli_options_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/config.h"
   "${CMAKE_CURRENT_LIST_DIR}/logger.h"
   "${CMAKE_CURRENT_LIST_DIR}/math_utils.cpp"

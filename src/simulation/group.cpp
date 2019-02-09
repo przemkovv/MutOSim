@@ -5,10 +5,10 @@
 #include "logger.h"
 #include "overflow_policy/factory.h"
 #include "source_stream/source_stream.h"
+#include "types/types_format.h"
 
 #include <algorithm>
 #include <cmath>
-#include <fmt/ostream.h>
 #include <gsl/gsl>
 
 namespace Simulation

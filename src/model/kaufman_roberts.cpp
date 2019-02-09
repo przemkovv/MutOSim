@@ -3,12 +3,12 @@
 
 #include "logger.h"
 #include "math_utils.h"
+#include "types/types_format.h"
 #include "stream_properties.h"
 #include "stream_properties_format.h"
 
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>
-#include <fmt/ostream.h>
 #include <range/v3/algorithm/for_each.hpp>
 #include <range/v3/numeric/accumulate.hpp>
 #include <range/v3/view/drop.hpp>

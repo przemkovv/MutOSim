@@ -1,12 +1,16 @@
 
 #include "cli_options.h"
 
+#include "cli_options_format.h"
+
 #include <boost/program_options.hpp>
+#include <fmt/format.h>
+#include <fmt/ranges.h>
 #include <iostream>
 
 namespace Model
 {
-std::istream &
+static std::istream &
 operator>>(std::istream &in, Model::AnalyticModel &model)
 {
   std::string token;
@@ -17,33 +21,13 @@ operator>>(std::istream &in, Model::AnalyticModel &model)
     model = Model::AnalyticModel::KaufmanRobertsFixedReqSize;
   } else {
     throw boost::program_options::validation_error(
-        boost::program_options::validation_error::invalid_option_value,
-        "Invalid AnalyticModel");
+        boost::program_options::validation_error::invalid_option_value, "Invalid AnalyticModel");
   }
   return in;
 }
-std::ostream &
-operator<<(std::ostream &out, const Model::AnalyticModel &model)
-{
-  switch (model) {
-  case Model::AnalyticModel::KaufmanRobertsFixedCapacity:
-    return out << "KRFixedCapacity";
-  case Model::AnalyticModel::KaufmanRobertsFixedReqSize:
-    return out << "KRFixedReqSize";
-  }
-  return out;
-}
 } // namespace Model
-std::ostream &
-operator<<(std::ostream &out, const AnalyticModels &models)
-{
-  for (const auto &model : models) {
-    out << model << "; ";
-  }
-  return out;
-}
 
-std::istream &
+static std::istream &
 operator>>(std::istream &in, Mode &mode)
 {
   std::string token;
@@ -58,24 +42,10 @@ operator>>(std::istream &in, Mode &mode)
   }
   return in;
 }
-std::ostream &
-operator<<(std::ostream &out, const Mode &mode)
-{
-  switch (mode) {
-  case Mode::Simulation:
-    return out << "simulation";
-  case Mode::Analytic:
-    return out << "analytic";
-  }
-  return out;
-}
-std::ostream &
+static std::ostream &
 operator<<(std::ostream &out, const Modes &modes)
 {
-  for (const auto &mode : modes) {
-    out << mode << "; ";
-  }
-  return out;
+  return out << fmt::format("{}", modes);
 }
 
 boost::program_options::options_description

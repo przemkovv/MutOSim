@@ -3,6 +3,7 @@
 
 #include "calculation.h"
 #include "cli_options.h"
+#include "cli_options_format.h"
 #include "logger.h"
 #include "model/analytical.h"
 #include "model/kaufman_roberts.h"
@@ -15,12 +16,13 @@
 #include "topology_parser.h"
 #include "traffic_class.h"
 #include "types/types.h"
+#include "types/types_format.h"
 #include "utils.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
 #include <fmt/format.h>
-#include <fmt/ostream.h>
+#include <fmt/ranges.h>
 #include <fstream>
 #include <functional>
 #include <iostream>

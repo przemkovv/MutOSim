@@ -4,7 +4,7 @@
 
 OUTPUT_DIR=tests/output
 ORIGIN_DIR=tests/origin
-ARGS="-m analytic --analytic_model=KRFixedReqSize --analytic_model=KRFixedCapacity -c1 --start 0.4 --stop 1.8 --step 0.1 -t 1000 --parallel=true -d $OUTPUT_DIR"
+ARGS="-m simulation -m analytic --analytic_model=KRFixedReqSize --analytic_model=KRFixedCapacity -c1 --start 0.4 --stop 1.8 --step 0.1 -t 1000 --parallel=true -r0  -d $OUTPUT_DIR"
 # ARGS="--start=1.1 --stop=1.2 --step=0.1 --count=1 --random=0 --duration=300000 --parallel=0 -d $OUTPUT_DIR -q 0"
 SCENARIOS_DIR=data/scenarios/analytical
 
@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 TIME_FORMAT="%U user %S system %E elapsed %P CPU"
 for SCENARIO in ${SCENARIOS[@]}; do
   echo -e "Scenario ${BLUE}$SCENARIO${NC}"
-  time -f "$TIME_FORMAT" -o $OUTPUT_DIR/${SCENARIO}_time build/bin/sim -f $SCENARIOS_DIR/$SCENARIO $ARGS -o $SCENARIO 2>&1 1> $OUTPUT_DIR/${SCENARIO}_log
+  time -f "$TIME_FORMAT" -o $OUTPUT_DIR/${SCENARIO}_time ../mutosim_build/bin/mutosim -f $SCENARIOS_DIR/$SCENARIO $ARGS -o $SCENARIO 2>&1 1> $OUTPUT_DIR/${SCENARIO}_log
   diff $OUTPUT_DIR/$SCENARIO $ORIGIN_DIR/$SCENARIO
   diffRetVal=$?
   if [ ! $diffRetVal -eq 0 ]; then
@@ -34,8 +34,8 @@ for SCENARIO in ${SCENARIOS[@]}; do
   echo -n "Time after:  "
   cat $ORIGIN_DIR/${SCENARIO}_time
 
-  if [ ! $diffRetVal  -eq 0 ]; then
-    exit 1
-  fi
+  # if [ ! $diffRetVal  -eq 0 ]; then
+    # exit 1
+  # fi
   echo ""
 done

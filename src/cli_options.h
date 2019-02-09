@@ -14,16 +14,6 @@ enum class Mode { Simulation, Analytic };
 using Modes = std::vector<Mode>;
 using AnalyticModels = std::vector<Model::AnalyticModel>;
 
-std::istream &operator>>(std::istream &in, Mode &mode);
-std::ostream &operator<<(std::ostream &out, const Mode &mode);
-std::ostream &operator<<(std::ostream &out, const Modes &modes);
-namespace Model
-{
-std::istream &operator>>(std::istream &in, Model::AnalyticModel &model);
-std::ostream &operator<<(std::ostream &out, const Model::AnalyticModel &model);
-} // namespace Model
-std::ostream &operator<<(std::ostream &out, const AnalyticModels &models);
-
 struct CLIOptions {
   bool help = false;
   bool use_random_seed = false;

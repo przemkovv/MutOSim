@@ -6,8 +6,9 @@
 #include "kaufman_roberts.h"
 #include "logger.h"
 #include "math_utils.h"
+#include "types/types_format.h"
+#include "model/stream_properties_format.h"
 
-#include <fmt/ostream.h>
 #include <iterator>
 #include <map>
 #include <range/v3/algorithm/for_each.hpp>

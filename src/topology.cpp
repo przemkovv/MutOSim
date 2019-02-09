@@ -3,8 +3,7 @@
 
 #include "simulation/group.h"
 #include "simulation/source_stream/source_stream.h"
-
-#include <fmt/ostream.h>
+#include "types/types_format.h"
 
 namespace Simulation
 {

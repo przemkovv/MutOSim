@@ -2,8 +2,7 @@
 #include "stream_properties.h"
 
 #include "logger.h"
-
-#include <fmt/ostream.h>
+#include "types/types_format.h"
 
 namespace Model
 {

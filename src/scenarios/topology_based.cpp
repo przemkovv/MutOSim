@@ -4,8 +4,7 @@
 #include "simulation/group.h"
 #include "simulation/overflow_policy/factory.h"
 #include "simulation/source_stream/factory.h"
-
-#include <fmt/ostream.h>
+#include "types/types_format.h"
 
 ScenarioSettings
 prepare_scenario_global_A(const Config::Topology &config, Intensity A)

@@ -2,25 +2,25 @@
 set tags=tags,./tags
 
 if hostname() == "legolas"
-  set makeprg=ninja\ -j3\ -C\ ../mutosim_build/
+  set makeprg=ninja\ -j3\ -C\ ../build/
 else
-  set makeprg=ninja\ -C\ ../mutosim_build/
+  set makeprg=ninja\ -C\ ../build/
 endif
 
-setlocal path=.,build/include,~/phd/vcpkg/installed/x64-linux/include,/usr/include,/usr/include/c++/8.1.1,src/,
+setlocal path=.,../build/include,~/phd/vcpkg/installed/x64-linux/include,/usr/include,/usr/include/c++/8.2.1,src/,
 
 set colorcolumn=101
 set fixendofline
 
-let g:neomake_cpp_clangcheck_args = ['-p=build/ -analyze']
-let g:neomake_cpp_clangtidy_args = ['-p=build/',
+let g:neomake_cpp_clangcheck_args = ['-p=../build/ -analyze']
+let g:neomake_cpp_clangtidy_args = ['-p=../build/',
       \ '--checks=*,-fuchsia-default-arguments,-fuchsia-overloaded-operator',
       \ '--header-filter="(?!pprint.hpp|?!json.hpp).*"',
       \ '--export-fixes=.clang-tidy-fixes']
 
 let g:neomake_cpp_enabled_makers =['clangtidy', 'clangcheck']
 
-let g:clang_compilation_database = "build/"
+let g:clang_compilation_database = "../build/"
 
 let $FZF_DEFAULT_COMMAND = 'ag --ignore data -g ""'
 

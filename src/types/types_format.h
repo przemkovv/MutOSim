@@ -101,6 +101,63 @@ struct formatter<TypesPrecision::Capacity<P, Tag>> {
     return format_to(ctx.begin(), "{}", get(value));
   }
 };
+template <typename P>
+struct formatter<TypesPrecision::Variance<P>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const TypesPrecision::Variance<P> &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", get(value));
+  }
+};
+template <typename P>
+struct formatter<TypesPrecision::MeanRequestNumber<P>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const TypesPrecision::MeanRequestNumber<P> &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", get(value));
+  }
+};
+template <typename P>
+struct formatter<TypesPrecision::Peakedness<P>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const TypesPrecision::Peakedness<P> &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", get(value));
+  }
+};
+template <typename P>
+struct formatter<TypesPrecision::MeanIntensity<P>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const TypesPrecision::MeanIntensity<P> &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", get(value));
+  }
+};
+
 template <typename P, typename Tag>
 struct formatter<TypesPrecision::Intensity<P, Tag>> {
   template <typename ParseContext>
@@ -126,6 +183,21 @@ struct formatter<TypesPrecision::Size<P, Tag>> {
 
   template <typename FormatContext>
   auto format(const TypesPrecision::Size<P, Tag> &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", get(value));
+  }
+};
+
+template <typename P>
+struct formatter<TypesPrecision::Probability<P>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const TypesPrecision::Probability<P> &value, FormatContext &ctx)
   {
     return format_to(ctx.begin(), "{}", get(value));
   }
