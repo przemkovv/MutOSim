@@ -5,8 +5,7 @@
 #include "simulation/source_stream/source_stream.h"
 #include "types/types_format.h"
 
-namespace Simulation
-{
+namespace Simulation {
 Group &
 Topology::add_group(std::unique_ptr<Group> group)
 {
@@ -38,33 +37,29 @@ Topology::attach_source_to_group(const SourceName &source, const GroupName &grou
 
 TrafficClass &
 Topology::add_traffic_class(
-    Intensity source_intensity,
-    Intensity serve_intensity,
-    Size size,
-    Length max_path_length)
+    Intensity source_intensity, Intensity serve_intensity, Size size, Length max_path_length)
 {
   auto tc_id = TrafficClassId{traffic_classes.size()};
 
-  return add_traffic_class(
-      tc_id, source_intensity, serve_intensity, size, max_path_length);
+  return add_traffic_class(tc_id, source_intensity, serve_intensity, size, max_path_length);
 }
 
 TrafficClass &
 Topology::add_traffic_class(
     TrafficClassId id,
-    Intensity source_intensity,
-    Intensity serve_intensity,
-    Size size,
-    Length max_path_length)
+    Intensity      source_intensity,
+    Intensity      serve_intensity,
+    Size           size,
+    Length         max_path_length)
 {
   auto [it, inserted] = traffic_classes.emplace(
       id, TrafficClass{id, source_intensity, serve_intensity, size, max_path_length});
 
   ASSERT(
-      inserted || (!inserted &&
-                   it->second ==
-                       TrafficClass{
-                           id, source_intensity, serve_intensity, size, max_path_length}),
+      inserted
+          || (!inserted
+              && it->second
+                     == TrafficClass{id, source_intensity, serve_intensity, size, max_path_length}),
       "[Topology] Traffic class with id {} already exists.",
       id);
   return it->second;
@@ -73,12 +68,14 @@ Topology::add_traffic_class(
 void
 Topology::set_world(World &world)
 {
-  for (auto &[name, group] : groups) {
+  for (auto &[name, group] : groups)
+  {
     std::ignore = name;
     group->set_world(world);
     group->set_traffic_classes(traffic_classes);
   }
-  for (auto &[name, source] : sources) {
+  for (auto &[name, source] : sources)
+  {
     std::ignore = name;
     source->set_world(world);
   }
@@ -86,9 +83,11 @@ Topology::set_world(World &world)
 std::optional<SourceStream *>
 Topology::find_source_by_tc_id(TrafficClassId id) const
 {
-  for (auto &[name, source] : sources) {
+  for (auto &[name, source] : sources)
+  {
     std::ignore = name;
-    if (source->tc_.id == id) {
+    if (source->tc_.id == id)
+    {
       return source.get();
     }
   }
@@ -98,7 +97,8 @@ std::optional<SourceId>
 Topology::get_source_id(const SourceName &name) const
 {
   auto it = sources.find(name);
-  if (it != sources.end()) {
+  if (it != sources.end())
+  {
     return it->second->id;
   }
   return {};

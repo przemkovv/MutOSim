@@ -15,16 +15,14 @@ struct CLIOptions;
 
 namespace fs = boost::filesystem;
 
-void print_state(const std::vector<bool> &states);
-nlohmann::json
-run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli);
+void           print_state(const std::vector<bool> &states);
+nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli);
 
 void load_scenarios_from_files(
-    std::vector<ScenarioSettings> &scenarios,
+    std::vector<ScenarioSettings> & scenarios,
     const std::vector<std::string> &scenario_files,
-    const CLIOptions &cli);
-void
-prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli);
+    const CLIOptions &              cli);
+void prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli);
 
 std::vector<std::string> find_all_scenario_files(const std::string &path);
 

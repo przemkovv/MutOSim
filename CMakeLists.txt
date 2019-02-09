@@ -46,6 +46,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     -Wno-padded
     -Wno-exit-time-destructors
     -fcolor-diagnostics
+    -fdiagnostics-show-template-tree
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC
@@ -61,6 +62,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     -Wpedantic
     -Wno-padded
     -Wno-return-type
+    -fdiagnostics-color=always
+    -fdiagnostics-show-template-tree
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++

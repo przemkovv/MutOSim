@@ -8,18 +8,22 @@
 #include <fmt/ranges.h>
 #include <iostream>
 
-namespace Model
-{
+namespace Model {
 static std::istream &
 operator>>(std::istream &in, Model::AnalyticModel &model)
 {
   std::string token;
   in >> token;
-  if (token == "KRFixedCapacity") {
+  if (token == "KRFixedCapacity")
+  {
     model = Model::AnalyticModel::KaufmanRobertsFixedCapacity;
-  } else if (token == "KRFixedReqSize") {
+  }
+  else if (token == "KRFixedReqSize")
+  {
     model = Model::AnalyticModel::KaufmanRobertsFixedReqSize;
-  } else {
+  }
+  else
+  {
     throw boost::program_options::validation_error(
         boost::program_options::validation_error::invalid_option_value, "Invalid AnalyticModel");
   }
@@ -32,11 +36,16 @@ operator>>(std::istream &in, Mode &mode)
 {
   std::string token;
   in >> token;
-  if (token == "simulation") {
+  if (token == "simulation")
+  {
     mode = Mode::Simulation;
-  } else if (token == "analytic") {
+  }
+  else if (token == "analytic")
+  {
     mode = Mode::Analytic;
-  } else {
+  }
+  else
+  {
     throw boost::program_options::validation_error(
         boost::program_options::validation_error::invalid_option_value, "Invalid Mode");
   }
@@ -118,26 +127,30 @@ parse_args(const boost::program_options::variables_map &vm)
   cli.modes = vm["mode"].as<Modes>();
 
   cli.analytic_models = [&vm]() -> AnalyticModels {
-    if (vm.count("analytic_model") > 0) {
+    if (vm.count("analytic_model") > 0)
+    {
       return vm["analytic_model"].as<AnalyticModels>();
     }
     return {};
   }();
 
   cli.append_scenario_files = [&vm]() -> std::vector<std::string> {
-    if (vm.count("append-scenario-files") > 0) {
+    if (vm.count("append-scenario-files") > 0)
+    {
       return vm["append-scenario-files"].as<std::vector<std::string>>();
     }
     return {};
   }();
   cli.scenario_files = [&vm]() -> std::vector<std::string> {
-    if (vm.count("scenario-file") > 0) {
+    if (vm.count("scenario-file") > 0)
+    {
       return vm["scenario-file"].as<std::vector<std::string>>();
     }
     return {};
   }();
   cli.scenarios_dirs = [&vm]() -> std::vector<std::string> {
-    if (vm.count("scenarios-dir") > 0) {
+    if (vm.count("scenarios-dir") > 0)
+    {
       return vm["scenarios-dir"].as<std::vector<std::string>>();
     }
     return {};

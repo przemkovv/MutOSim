@@ -8,18 +8,21 @@
 #include <range/v3/view/map.hpp>
 namespace rng = ranges;
 
-namespace Model
-{
+namespace Model {
 const OutgoingRequestStreams &
 Group::get_outgoing_request_streams() const
 {
-  if (need_recalculate_) {
+  if (need_recalculate_)
+  {
     IncomingRequestStreams in_request_streams = in_request_streams_ | rng::view::values;
 
     const auto V = [&]() {
-      if (kr_variant_ == KaufmanRobertsVariant::FixedCapacity) {
+      if (kr_variant_ == KaufmanRobertsVariant::FixedCapacity)
+      {
         return CapacityF{total_V_};
-      } else {
+      }
+      else
+      {
         const auto peakedness = compute_collective_peakedness(in_request_streams);
         return total_V_ / peakedness;
       }

@@ -6,47 +6,51 @@
 #include <string_view>
 
 namespace boost::program_options {
-  class options_description;
+class options_description;
 }
 
-namespace fmt
-{
+namespace fmt {
 template <>
-struct formatter<Mode> : formatter<std::string_view> {
+struct formatter<Mode> : formatter<std::string_view>
+{
   template <typename FormatContext>
   auto format(const Mode &t, FormatContext &ctx)
   {
     return formatter<std::string_view>::format(
         [](Mode value) {
-          switch (value) {
-          case Mode::Analytic:
-            return "simulation";
-          case Mode::Simulation:
-            return "analytic";
+          switch (value)
+          {
+            case Mode::Analytic:
+              return "simulation";
+            case Mode::Simulation:
+              return "analytic";
           }
         }(t),
         ctx);
   }
 };
 template <>
-struct formatter<Model::AnalyticModel> : formatter<std::string_view> {
+struct formatter<Model::AnalyticModel> : formatter<std::string_view>
+{
   template <typename FormatContext>
   auto format(const Model::AnalyticModel &t, FormatContext &ctx)
   {
     return formatter<std::string_view>::format(
         [](Model::AnalyticModel value) {
-          switch (value) {
-          case Model::AnalyticModel::KaufmanRobertsFixedCapacity:
-            return "KRFixedCapacity";
-          case Model::AnalyticModel::KaufmanRobertsFixedReqSize:
-            return "KRFixedReqSize";
+          switch (value)
+          {
+            case Model::AnalyticModel::KaufmanRobertsFixedCapacity:
+              return "KRFixedCapacity";
+            case Model::AnalyticModel::KaufmanRobertsFixedReqSize:
+              return "KRFixedReqSize";
           }
         }(t),
         ctx);
   }
 };
 template <>
-struct formatter<boost::program_options::options_description> {
+struct formatter<boost::program_options::options_description>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {

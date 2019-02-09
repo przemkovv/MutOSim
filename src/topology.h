@@ -10,35 +10,35 @@
 #include <unordered_map>
 #include <vector>
 
-namespace Simulation
-{
+namespace Simulation {
 struct Group;
 class World;
 class SourceStream;
 
-struct Topology {
+struct Topology
+{
   Uuid last_id = 0;
 
-  boost::container::flat_map<GroupName, std::unique_ptr<Group>> groups{};
+  boost::container::flat_map<GroupName, std::unique_ptr<Group>>         groups{};
   boost::container::flat_map<SourceName, std::unique_ptr<SourceStream>> sources{};
-  boost::container::flat_map<Layer, std::vector<Group*>> groups_per_layer{};
+  boost::container::flat_map<Layer, std::vector<Group *>>               groups_per_layer{};
 
   TrafficClasses traffic_classes{};
 
-  Group &add_group(std::unique_ptr<Group> group);
+  Group &       add_group(std::unique_ptr<Group> group);
   SourceStream &add_source(std::unique_ptr<SourceStream> source_stream);
   TrafficClass &add_traffic_class(
       Intensity source_intensity,
       Intensity serve_intensity,
-      Size size,
-      Length max_path_length = MaxPathLength);
+      Size      size,
+      Length    max_path_length = MaxPathLength);
 
   TrafficClass &add_traffic_class(
       TrafficClassId id,
-      Intensity source_intensity,
-      Intensity serve_intensity,
-      Size size,
-      Length max_path_length = MaxPathLength);
+      Intensity      source_intensity,
+      Intensity      serve_intensity,
+      Size           size,
+      Length         max_path_length = MaxPathLength);
 
   void connect_groups(const GroupName &from, const GroupName &to);
 
@@ -47,10 +47,10 @@ struct Topology {
   void set_world(World &world);
 
   std::optional<SourceStream *> find_source_by_tc_id(TrafficClassId id) const;
-  std::optional<SourceId> get_source_id(const SourceName &name) const;
+  std::optional<SourceId>       get_source_id(const SourceName &name) const;
 
-  Uuid get_uuid() { return ++last_id; }
+  Uuid                get_uuid() { return ++last_id; }
   const TrafficClass &get_traffic_class(TrafficClassId id) const;
-  const Group &get_group(const GroupName &group_name) const;
+  const Group &       get_group(const GroupName &group_name) const;
 };
 } // namespace Simulation

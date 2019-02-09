@@ -6,8 +6,8 @@
 #include "kaufman_roberts.h"
 #include "logger.h"
 #include "math_utils.h"
-#include "types/types_format.h"
 #include "model/stream_properties_format.h"
+#include "types/types_format.h"
 
 #include <iterator>
 #include <map>
@@ -21,23 +21,22 @@
 #include <range/v3/view/transform.hpp>
 
 namespace rng = ranges;
-namespace ranges
-{
-inline namespace v3
-{
+namespace ranges {
+inline namespace v3 {
 template <>
-struct difference_type<::Count> {
+struct difference_type<::Count>
+{
   using type = ::ts::underlying_type<::Count>;
 };
 template <>
-struct difference_type<::Capacity> {
+struct difference_type<::Capacity>
+{
   using type = ::ts::underlying_type<::Capacity>;
 };
 } // namespace v3
 } // namespace ranges
 
-namespace Model
-{
+namespace Model {
 //----------------------------------------------------------------------
 
 //----------------------------------------------------------------------
@@ -47,7 +46,8 @@ convert_to_incoming_streams(
 {
   // Formulas 3.17 and 3.18
   std::map<TrafficClassId, IncomingRequestStream> incoming_request_streams;
-  for (const auto &out_request_streams : out_request_streams_per_group) {
+  for (const auto &out_request_streams : out_request_streams_per_group)
+  {
     rng::for_each(out_request_streams, [&](const OutgoingRequestStream &out_rs) {
       auto [stream_it, inserted] =
           incoming_request_streams.emplace(out_rs.tc.id, IncomingRequestStream{});
@@ -103,53 +103,62 @@ compute_riordan_variance(
 CapacityF
 compute_fictitious_capacity_fit_carried_traffic(
     const OutgoingRequestStreams &out_request_streams,
-    CapacityF V,
-    TrafficClassId tc_id,
-    KaufmanRobertsVariant kr_variant)
+    CapacityF                     V,
+    TrafficClassId                tc_id,
+    KaufmanRobertsVariant         kr_variant)
 {
-  return V - rng::accumulate(
-                 out_request_streams | rng::view::filter([tc_id](const auto &rs) {
-                   return rs.tc.id != tc_id;
-                 }) | rng::view::transform([&](const auto &rs) {
-                   if (kr_variant == KaufmanRobertsVariant::FixedCapacity) {
-                     return rs.mean_request_number *
-                            (SizeRescale{rs.peakedness} * rs.tc.size);
-                   } else {
-                     return rs.mean_request_number * rs.tc.size;
-                   }
-                 }),
-                 CapacityF{0});
+  return V
+         - rng::accumulate(
+               out_request_streams | rng::view::filter([tc_id](const auto &rs) {
+                 return rs.tc.id != tc_id;
+               }) | rng::view::transform([&](const auto &rs) {
+                 if (kr_variant == KaufmanRobertsVariant::FixedCapacity)
+                 {
+                   return rs.mean_request_number * (SizeRescale{rs.peakedness} * rs.tc.size);
+                 }
+                 else
+                 {
+                   return rs.mean_request_number * rs.tc.size;
+                 }
+               }),
+               CapacityF{0});
 }
 //----------------------------------------------------------------------
 
 Probabilities
 kaufman_roberts_distribution(
-    const IncomingRequestStreams &in_request_streams,
-    Capacity V,
-    KaufmanRobertsVariant kr_variant)
+    const IncomingRequestStreams &in_request_streams, Capacity V, KaufmanRobertsVariant kr_variant)
 {
   Probabilities state(size_t(V) + 1, Probability{0});
   state[0] = Probability{1};
 
   rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
-    for (const auto &rs : in_request_streams) {
+    for (const auto &rs : in_request_streams)
+    {
       const auto tc_size = [&]() {
-        if (kr_variant == KaufmanRobertsVariant::FixedReqSize) {
+        if (kr_variant == KaufmanRobertsVariant::FixedReqSize)
+        {
           return SizeF{rs.tc.size};
-        } else {
+        }
+        else
+        {
           return SizeRescale{rs.peakedness} * rs.tc.size;
         }
       }();
       auto previous_state = Capacity{n - tc_size};
-      if (previous_state >= Capacity{0}) {
+      if (previous_state >= Capacity{0})
+      {
         Probability previous_state_value{0};
 
-        if (auto prec = get(n - tc_size); (false) && std::floor(prec) < prec) {
+        if (auto prec = get(n - tc_size); (false) && std::floor(prec) < prec)
+        {
           const auto fraction = prec - std::floor(prec);
           const auto s1 = state[size_t(previous_state)];
           const auto s2 = state[std::min(size_t(previous_state) + 1, size_t(V))];
           previous_state_value = Probability{Math::lerp(1 - fraction, get(s1), get(s2))};
-        } else {
+        }
+        else
+        {
           previous_state_value = state[size_t(previous_state)];
         }
 
@@ -165,29 +174,28 @@ kaufman_roberts_distribution(
 //----------------------------------------------------------------------
 OutgoingRequestStreams
 kaufman_roberts_blocking_probability(
-    const IncomingRequestStreams &in_request_streams,
-    CapacityF V,
-    KaufmanRobertsVariant kr_variant)
+    const IncomingRequestStreams &in_request_streams, CapacityF V, KaufmanRobertsVariant kr_variant)
 {
-  auto distribution =
-      kaufman_roberts_distribution(in_request_streams, Capacity{V}, kr_variant);
+  auto distribution = kaufman_roberts_distribution(in_request_streams, Capacity{V}, kr_variant);
   auto distribution2 =
       kaufman_roberts_distribution(in_request_streams, Capacity{V} + Size{1}, kr_variant);
   std::vector<OutgoingRequestStream> out_request_streams;
-  for (const auto &in_rs : in_request_streams) {
+  for (const auto &in_rs : in_request_streams)
+  {
     CapacityF n{V - in_rs.tc.size + Size{1}};
 
-    auto blocking_probability = rng::accumulate(
-        distribution | rng::view::drop(size_t(std::floor(get(n)))), Probability{0});
+    auto blocking_probability =
+        rng::accumulate(distribution | rng::view::drop(size_t(std::floor(get(n)))), Probability{0});
 
-    if (auto prec = get(n); (true) && std::floor(prec) < prec) {
+    if (auto prec = get(n); (true) && std::floor(prec) < prec)
+    {
       auto blocking_probability2 = rng::accumulate(
           distribution2 | rng::view::drop(size_t(std::ceil(get(n)))), Probability{0});
 
       auto interp = prec - std::floor(prec);
       // println("P1 {}\tP2 {}", blocking_probability, blocking_probability2);
-      blocking_probability = Probability{(1 - interp) * get(blocking_probability) +
-                                         interp * get(blocking_probability2)};
+      blocking_probability = Probability{(1 - interp) * get(blocking_probability)
+                                         + interp * get(blocking_probability2)};
       // println("n {}, interp {}\tP3 {}", n, interp, blocking_probability);
     }
 
@@ -206,7 +214,8 @@ kaufman_roberts_blocking_probability(
 OutgoingRequestStreams
 compute_overflow_parameters(OutgoingRequestStreams out_request_streams, CapacityF V)
 {
-  for (auto &rs : out_request_streams) {
+  for (auto &rs : out_request_streams)
+  {
     // TODO(PW): add CLI option for choosing fittin to carried traffic
     // rs.fictitous_capacity = compute_fictitious_capacity_fit_carried_traffic(
     // out_request_streams, V, rs.tc.id, KaufmanRobertsVariant::FixedReqSize);
@@ -216,15 +225,12 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
     // rs.fictitious_capacity,
     // extended_erlang_b(rs.fictitous_capacity, rs.intensity));
     auto fictitous_capacity = compute_fictitious_capacity_fit_blocking_probability(rs, V);
-    ASSERT(
-        fictitous_capacity.has_value(),
-        "Couldn't find fictitious capacity for stream {}.",
-        rs);
+    ASSERT(fictitous_capacity.has_value(), "Couldn't find fictitious capacity for stream {}.", rs);
 
     rs.fictitous_capacity = fictitous_capacity.value();
 
-    rs.variance = compute_riordan_variance(
-        rs.mean, rs.intensity, rs.fictitous_capacity, rs.tc.size);
+    rs.variance =
+        compute_riordan_variance(rs.mean, rs.intensity, rs.fictitous_capacity, rs.tc.size);
 
     ASSERT(
         get(rs.variance) >= 0,
@@ -244,16 +250,13 @@ Count
 combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
 {
   Count upper_limit{get(x) / (get(f) + 1)};
-  auto sum = rng::accumulate(
-      rng::view::closed_iota(Count{0}, upper_limit) |
-          rng::view::transform([&](Count iota) {
-            return Count{
-                (1 - 2 * (get(iota) % 2)) *
-                Math::n_over_k(get(resources_number), get(iota)) *
-                Math::n_over_k(
-                    get(x) + get(resources_number) - get(iota) * (get(f) + 1) - 1,
-                    get(resources_number) - 1)};
-          }),
+  auto  sum = rng::accumulate(
+      rng::view::closed_iota(Count{0}, upper_limit) | rng::view::transform([&](Count iota) {
+        return Count{(1 - 2 * (get(iota) % 2)) * Math::n_over_k(get(resources_number), get(iota))
+                     * Math::n_over_k(
+                           get(x) + get(resources_number) - get(iota) * (get(f) + 1) - 1,
+                           get(resources_number) - 1)};
+      }),
       Count{0});
 
   return Count{sum};
@@ -270,7 +273,6 @@ combinatorial_arrangement_number_unequal_resources(
 
   std::ignore = component_types_number;
 
-
   return Count{0};
 }
 
@@ -280,8 +282,7 @@ Probability
 conditional_transition_probability(
     Capacity n, Capacity V, Count resources_number, Capacity f, Size t)
 {
-  auto nominator =
-      combinatorial_arrangement_number(V - n, resources_number, Capacity{get(t) - 1});
+  auto nominator = combinatorial_arrangement_number(V - n, resources_number, Capacity{get(t) - 1});
   auto denominator = combinatorial_arrangement_number(V - n, resources_number, f);
   return {Probability{1} - Probability{nominator / denominator}};
 }

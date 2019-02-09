@@ -21,13 +21,13 @@ namespace Simulation
 struct CanServeRecursiveResult {
   bool recursively;
   bool local;
-  operator bool() { return recursively || local; }
+       operator bool() { return recursively || local; }
 };
 
 struct CanServeResult {
-  bool can_serve;
+  bool              can_serve;
   CompressionRatio *compression_ratio;
-  size_t bucket;
+  size_t            bucket;
 };
 
 using CompressionRatios =
@@ -37,29 +37,29 @@ std::vector<Capacity>
 operator-(const std::vector<Capacity> &capacities, const std::vector<Size> &sizes);
 
 struct Group {
-  GroupId id{};
-  const GroupName name_;
+  GroupId               id{};
+  const GroupName       name_;
   std::vector<Capacity> capacity_;
-  Capacity total_capacity_ = ranges::accumulate(capacity_, Capacity{});
-  std::vector<Size> size_{};
-  Layer layer_;
+  Capacity              total_capacity_ = ranges::accumulate(capacity_, Capacity{});
+  std::vector<Size>     size_{};
+  Layer                 layer_;
 
   GroupStatistics stats_{};
 
-  World *world_ = nullptr;
-  const TrafficClasses *traffic_classes_{};
-  std::vector<Group *> next_groups_{};
+  World *                         world_ = nullptr;
+  const TrafficClasses *          traffic_classes_{};
+  std::vector<Group *>            next_groups_{};
   std::unique_ptr<OverflowPolicy> overflow_policy_;
 
   boost::container::flat_map<TrafficClassId, CompressionRatios> tcs_compression_{};
-  std::unordered_set<TrafficClassId> tcs_block_{};
+  std::unordered_set<TrafficClassId>                            tcs_block_{};
 
   std::exponential_distribution<time_type<>> exponential{};
 
-  void set_world(World &world);
-  void set_traffic_classes(const TrafficClasses &traffic_classes);
-  void set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
-  void add_next_group(Group &group);
+  void                        set_world(World &world);
+  void                        set_traffic_classes(const TrafficClasses &traffic_classes);
+  void                        set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy);
+  void                        add_next_group(Group &group);
   const std::vector<Group *> &next_groups() { return next_groups_; }
 
   void add_compression_ratio(
@@ -72,10 +72,12 @@ struct Group {
 
   std::vector<Capacity> free_capacity() { return capacity_ - size_; }
   std::vector<Capacity> capacity() { return capacity_; }
-  Layer layer() { return layer_; }
-  CanServeResult can_serve(const TrafficClass &tc);
-  CanServeResult can_serve(TrafficClassId tc_id);
+  Layer                 layer() { return layer_; }
+
+  CanServeResult          can_serve(const TrafficClass &tc);
+  CanServeResult          can_serve(TrafficClassId tc_id);
   CanServeRecursiveResult can_serve_recursive(const TrafficClass &tc, Path &path);
+
   void block_recursive(TrafficClassId tc_id, const Load &load);
   void unblock_recursive(TrafficClassId tc_id, const Load &load);
   void block(TrafficClassId tc_id, const Load &load);
@@ -94,7 +96,7 @@ struct Group {
 
   void notify_on_request_service_end(LoadServiceEndEvent *event);
 
-  Stats get_stats(Duration duration);
+  Stats            get_stats(Duration duration);
   const GroupName &name() const { return name_; }
 };
 

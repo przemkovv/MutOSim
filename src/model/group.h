@@ -10,17 +10,17 @@
 #include <range/v3/numeric.hpp>
 #include <vector>
 
-namespace Model
+namespace Model {
+struct Group
 {
-struct Group {
 private:
   std::map<TrafficClassId, IncomingRequestStream> in_request_streams_{};
-  const std::vector<Capacity> V_;
-  const Capacity total_V_ = ranges::accumulate(V_, Capacity{});
+  const std::vector<Capacity>                     V_;
+  const Capacity                                  total_V_ = ranges::accumulate(V_, Capacity{});
 
   mutable OutgoingRequestStreams out_request_streams_{};
-  mutable bool need_recalculate_ = true;
-  const KaufmanRobertsVariant kr_variant_;
+  mutable bool                   need_recalculate_ = true;
+  const KaufmanRobertsVariant    kr_variant_;
 
   std::vector<GroupName> next_groups_names_{};
 
@@ -47,13 +47,15 @@ void
 Group::add_incoming_request_stream(const RequestStream &in_rs)
 {
   static_assert(
-      std::is_same_v<RequestStream, IncomingRequestStream> ||
-          std::is_same_v<RequestStream, OutgoingRequestStream>,
+      std::is_same_v<
+          RequestStream,
+          IncomingRequestStream> || std::is_same_v<RequestStream, OutgoingRequestStream>,
       "Only IncomingRequestStream and OutgoingRequestStream request stream types are "
       "supported.");
 
   // Formulas 3.17 and 3.18
-  if (auto [rs_it, inserted] = in_request_streams_.try_emplace(in_rs.tc.id, in_rs); !inserted) {
+  if (auto [rs_it, inserted] = in_request_streams_.try_emplace(in_rs.tc.id, in_rs); !inserted)
+  {
     rs_it->second += in_rs;
   }
   need_recalculate_ = true;

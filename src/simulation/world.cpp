@@ -13,8 +13,8 @@
 
 #include <nlohmann/json.hpp>
 
-namespace Simulation
-{
+namespace Simulation {
+
 World::World(uint64_t seed, Duration duration) : seed_(seed), duration_(duration)
 {
   // print("[World] {:=^100}\n", " New world ");
@@ -23,11 +23,13 @@ World::World(uint64_t seed, Duration duration) : seed_(seed), duration_(duration
 void
 World::init()
 {
-  for (auto &[name, source] : topology_->sources) {
+  for (auto &[name, source] : topology_->sources)
+  {
     std::ignore = name;
     source->init();
   }
-  for (const auto &[id, tc] : topology_->traffic_classes) {
+  for (const auto &[id, tc] : topology_->traffic_classes)
+  {
     std::ignore = id;
     blocked_by_size.emplace(tc.size, BlockStats{});
   }
@@ -39,7 +41,8 @@ World::next_iteration()
   debug_print("{} Time = {:*<80}\n", *this, time_);
 
   Time next_event{0};
-  if (!events_.empty()) {
+  if (!events_.empty())
+  {
     next_event = events_.top()->time;
   }
 
@@ -47,8 +50,10 @@ World::next_iteration()
 
   time_ = std::max(next_event, time_);
 
-  if (time_ > finish_time_) {
-    for (auto &[name, source] : topology_->sources) {
+  if (time_ > finish_time_)
+  {
+    for (auto &[name, source] : topology_->sources)
+    {
       std::ignore = name;
       source->pause();
     }
@@ -61,13 +66,17 @@ World::next_iteration()
 void
 World::process_event()
 {
-  while (!events_.empty() && events_.top()->time <= time_) {
+  while (!events_.empty() && events_.top()->time <= time_)
+  {
     auto &event = events_.top();
     current_time_ = event->time;
-    if (!event->skip) {
+    if (!event->skip)
+    {
       debug_print("{} Processing event {}\n", *this, *event);
       event->process();
-    } else {
+    }
+    else
+    {
       debug_print("{} Event {} is not processed\n", *this, *event);
       event->skip_notify();
     }
@@ -90,11 +99,13 @@ World::get_random_engine()
 nlohmann::json &
 World::append_stats(nlohmann::json &j)
 {
-  for (auto &[name, group] : topology_->groups) {
+  for (auto &[name, group] : topology_->groups)
+  {
     auto &j_group = j[ts::get(name)];
 
     const auto &group_stats = group->get_stats(Duration{get_time()});
-    for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
+    for (auto &[tc_id, stats] : group_stats.by_traffic_class)
+    {
       auto &j_tc = j_group[std::to_string(ts::get(tc_id))];
 
       j_tc["served"].push_back(ts::get(stats.lost_served_stats.served.count));
@@ -127,11 +138,13 @@ World::print_stats()
 {
   print("{} Time = {}\n", *this, time_);
   print("{} In queue left {} events\n", *this, events_.size());
-  for (auto &[name, group] : topology_->groups) {
+  for (auto &[name, group] : topology_->groups)
+  {
     std::ignore = name;
     const auto &group_stats = group->get_stats(Duration{get_time()});
     print("{} {}: {}\n", *this, *group, group_stats);
-    for (auto &[tc_id, stats] : group_stats.by_traffic_class) {
+    for (auto &[tc_id, stats] : group_stats.by_traffic_class)
+    {
       print(
           "{} {} {}: {}: {}\n",
           *this,
@@ -142,7 +155,8 @@ World::print_stats()
     }
   }
 
-  for (auto &[source_id, source] : topology_->sources) {
+  for (auto &[source_id, source] : topology_->sources)
+  {
     std::ignore = source_id;
     source->print_stats();
   }
@@ -152,14 +166,17 @@ void
 World::run(bool quiet)
 {
   long double stats_freq = 0.25L;
-  int i = 1;
-  while (next_iteration()) {
-    if (!quiet && get_progress() > stats_freq * i) {
+  int         i = 1;
+  while (next_iteration())
+  {
+    if (!quiet && get_progress() > stats_freq * i)
+    {
       print_stats();
       ++i;
     }
   }
-  if (!quiet) {
+  if (!quiet)
+  {
     print_stats();
   }
 }

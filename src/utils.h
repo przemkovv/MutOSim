@@ -40,8 +40,7 @@ template <typename GroupsContainer, typename Layer>
 auto
 count_same_layer_groups(const GroupsContainer &path, Layer layer)
 {
-  return rng::count_if(
-      path, [layer](const auto &group_ptr) { return group_ptr->layer_ == layer; });
+  return rng::count_if(path, [layer](const auto &group_ptr) { return group_ptr->layer_ == layer; });
 }
 
 nlohmann::json concatenate(nlohmann::json target, const nlohmann::json &patch);
