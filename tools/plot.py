@@ -328,7 +328,8 @@ def main():
                             marker=next(markerscycle))
 
                 set_style(ax)
-                ax.set_title("{} ({}\n{})".format(group_name, scenario["name"], scenario_file))
+                ax.set_title("{} ({}\n{})".format(
+                    group_name, scenario["name"], scenario_file))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
@@ -354,12 +355,12 @@ def main():
                         #  for serie in data_y])
                     ax.set_xlim(x_min, x_max)
                     #  pprint((len(tc_data_x), tc_data_x,
-                            #  len([statistics.mean(serie) for serie in data_y]),
-                            #  [statistics.mean(serie) for serie in data_y]))
+                    #  len([statistics.mean(serie) for serie in data_y]),
+                    #  [statistics.mean(serie) for serie in data_y]))
 
                     series_means = [statistics.mean(serie) for serie in data_y]
                     for i in range(0, len(tc_data_x) - len(series_means)):
-                        series_means.insert(0,0)
+                        series_means.insert(0, 0)
                     ax.plot(tc_data_x,
                             series_means,
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
@@ -372,7 +373,7 @@ def main():
                 #  scenario["groups"][group_name]["capacity"],
                 if title_suffix == None:
                     ax.set_title("{} {}\n({})"
-                                .format(group_name, scenario["name"] , scenario_file))
+                                 .format(group_name, scenario["name"], scenario_file))
                 else:
                     ax.set_title("{} {}" .format(group_name, title_suffix))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
@@ -421,15 +422,13 @@ def main():
                     data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
                     #  pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x'])))
                     #  ax.plot(tc_data_x,
-                    pprint((len(data_x), len(data_x[0]), data_x))
-                    pprint((len(plot_data), plot_data))
+                    #  pprint((len(data_x), len(data_x[0]), data_x))
+                    #  pprint((len(plot_data), plot_data))
                     for i in range(0, len(data_x[0]) - len(plot_data)):
-                        plot_data.insert(0,0)
-                    pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x']), label))
-                    pprint(("ZIP", list(zip(data_x[0], k1_data_y_means, k2_data_y_means))))
-                    pprint(plot_data)
-
-
+                        plot_data.insert(0, 0)
+                    #  pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x']), label))
+                    #  pprint(("ZIP", list(zip(data_x[0], k1_data_y_means, k2_data_y_means))))
+                    #  pprint(plot_data)
 
                     ax.set_xlim(x_min, x_max)
 
@@ -501,7 +500,7 @@ def main():
                     #  pprint((len(data_x), len(data_x[0]), data_x))
                     #  pprint((len(plot_data), plot_data))
                     for i in range(0, len(data_x[0]) - len(plot_data)):
-                        plot_data.insert(0,0)
+                        plot_data.insert(0, 0)
                     ax.set_xlim(x_min, x_max)
 
                     ax.plot(np.average(data_x, axis=0),
@@ -619,21 +618,22 @@ def main():
                     k2_sum = [
                         x+y for x, y in itertools.zip_longest(k2_sum, k2_data_y_means, fillvalue=0)]
 
-            plot_data = [x/y*100 if y != 0 else 0 for x,
-                         y in zip(k1_sum, k2_sum)]
+                plot_data = [x/y*100 if y != 0 else 0 for x,
+                            y in zip(k1_sum, k2_sum)]
 
-            def clean(s):
-                return s.replace("data/journal/", "").replace("data/journal2/", "").replace(".json", "")
-            label = "{} - {}".format(clean(k1), clean(k2)
-                                     ) if not p_name else p_name
-            data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
-            #  ax.plot(tc_data_x,
-            #  pprint(np.average(data_x, axis=0))
-            ax.set_xlim(x_min, x_max)
-            ax.plot(np.average(data_x, axis=0),
-                    plot_data,
-                    label=label,
-                    marker=next(markerscycle))
+                def clean(s):
+                    return s.replace("data/journal/", "").replace("data/journal2/", "").replace("data/scenarios/simulator_publication/", "").replace(".json", "")
+                label = "{} - {} ".format(clean(k1), clean(k2)
+                                        ) if p_name is None else p_name
+                label = "{}{}".format(label, group_name)
+                data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
+                #  ax.plot(tc_data_x,
+                #  pprint(np.average(data_x, axis=0))
+                ax.set_xlim(x_min, x_max)
+                ax.plot(np.average(data_x, axis=0),
+                        plot_data,
+                        label=label,
+                        marker=next(markerscycle))
 
             set_style(ax)
             if title_suffix:
@@ -657,7 +657,7 @@ def main():
         output_dir = args["--output-dir"]
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
-        output_file = title +"."+ args["--format"]
+        output_file = title + "." + args["--format"]
         output_file = path.join(output_dir, output_file)
         fig.set_size_inches(float(args["--width"]), float(args["--height"]))
         fig.savefig(output_file, transparent=True)
