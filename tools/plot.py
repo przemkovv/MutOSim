@@ -24,6 +24,8 @@ Usage:
             [--groups GROUPS]
             [--tc TCs]
             [--title-suffix TITLE_SUFFIX]
+            [--no-pair-suffix]
+            [--print-all]
     plot.py -h | --help
 
 Arguments:
@@ -56,6 +58,8 @@ Options:
     --width W                   width of generated image [default: 32]
     --height H                  height of generated image [default: 18]
     --pairs PAIRS               list of scenario pairs for relative plots
+    --no-pair-suffix            skip automatic suffix for pairs
+    --print-all                 print all scenarios with ids
     -g GROUPS, --groups=GROUPS  groups that have to be plotted
     --title-suffix=TITLE_SUFFIX title suffix [default: ""]
     --tc=TCs                    filter TCs [default: None]
@@ -258,8 +262,9 @@ def main():
     plots_number_x = int(args["-x"])
     plots_number_y = int(args["-y"])
 
-    print("All scenarios:")
-    pprint(list(enumerate(data.keys())))
+    if args['--print-all']:
+        print("All scenarios:")
+        pprint(list(enumerate(data.keys())))
 
     if args["-i"] == "-1":
         filtered_data = data
@@ -625,7 +630,8 @@ def main():
                     return s.replace("data/journal/", "").replace("data/journal2/", "").replace("data/scenarios/simulator_publication/", "").replace(".json", "")
                 label = "{} - {} ".format(clean(k1), clean(k2)
                                         ) if p_name is None else p_name
-                label = "{}{}".format(label, group_name)
+                if not args['--no-pair-suffix']:
+                    label = "{}{}".format(label, group_name)
                 data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
                 #  ax.plot(tc_data_x,
                 #  pprint(np.average(data_x, axis=0))

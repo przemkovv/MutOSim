@@ -6,3 +6,4 @@ tags.*
 data/results/
 .ropeproject
 .gdb_history
+.ccls-cache
