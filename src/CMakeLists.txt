@@ -17,7 +17,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF
-  INTERPROCEDURAL_OPTIMIZATION TRUE)
+  INTERPROCEDURAL_OPTIMIZATION FALSE)
 
 add_custom_target(run COMMAND time ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET_NAME}
   COMMENT "Run with ${CMAKE_BUILD_TYPE} configuration")
@@ -62,6 +62,8 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties.h"
   "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties_format.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties_format.h"
+  "${CMAKE_CURRENT_LIST_DIR}/model/test.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/model/test.h"
 
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/simple.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/simple.h"

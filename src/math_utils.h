@@ -69,6 +69,13 @@ product(int64_t from, int64_t to)
 
 int64_t n_over_k(const int64_t n, const int64_t k);
 
+template <typename StrongType>
+StrongType
+n_over_k(const StrongType n, const StrongType k)
+{
+  return StrongType{n_over_k(static_cast<int64_t>(get(n)), static_cast<int64_t>(get(k)))};
+}
+
 template <typename C>
 auto
 normalize_L1(C &container) -> std::remove_reference_t<decltype(*begin(container))>

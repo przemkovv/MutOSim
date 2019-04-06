@@ -24,6 +24,8 @@ struct formatter<Mode> : formatter<std::string_view>
               return "simulation";
             case Mode::Simulation:
               return "analytic";
+            case Mode::Test:
+              return "test";
           }
         }(t),
         ctx);

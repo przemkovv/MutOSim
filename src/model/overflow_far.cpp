@@ -9,6 +9,7 @@
 #include "model/stream_properties_format.h"
 #include "types/types_format.h"
 
+#include <iostream>
 #include <iterator>
 #include <map>
 #include <range/v3/algorithm/for_each.hpp>
@@ -257,12 +258,20 @@ Count
 combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
 {
   Count upper_limit{get(x) / (get(f) + 1)};
-  auto  sum = rng::accumulate(
+  if (upper_limit > resources_number)
+  {
+    return Count{0};
+  }
+  auto sum = rng::accumulate(
       rng::view::closed_iota(Count{0}, upper_limit) | rng::view::transform([&](Count iota) {
-        return Count{(1 - 2 * (get(iota) % 2)) * Math::n_over_k(get(resources_number), get(iota))
-                     * Math::n_over_k(
-                         get(x) + get(resources_number) - get(iota) * (get(f) + 1) - 1,
-                         get(resources_number) - 1)};
+        auto factor1 = (1 - 2 * (get(iota) % 2));
+        // println("iota {}, f1 {}", iota, factor1);
+        std::cout.flush();
+        auto factor2 = Math::n_over_k(resources_number, iota);
+        auto factor3 = Math::n_over_k(
+            Count{get(x) + get(resources_number) - get(iota) * (get(f) + 1) - 1},
+            resources_number - Count{1});
+        return Count{factor1 * get(factor2) * get(factor3)};
       }),
       Count{0});
 
@@ -272,7 +281,7 @@ combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
 // Formula 3.38
 Count
 combinatorial_arrangement_number_unequal_resources(
-    Capacity /*x*/,
+    Capacity /*x*/, // number of free allocation units
     std::vector<Count> components_numbers,
     std::vector<Capacity> /*components_capacities*/)
 {
@@ -294,8 +303,10 @@ conditional_transition_probability(
     Size     t)
 {
   auto nominator = combinatorial_arrangement_number(V - n, resources_number, Capacity{get(t) - 1});
+  println("nom = {}", nominator);
   auto denominator = combinatorial_arrangement_number(V - n, resources_number, f);
-  return {Probability{1} - Probability{nominator / denominator}};
+  println("denom = {}", denominator);
+  return {Probability{1} - Probability{get(nominator / denominator)}};
 }
 
 } // namespace Model

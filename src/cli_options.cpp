@@ -31,6 +31,7 @@ operator>>(std::istream &in, Model::AnalyticModel &model)
 }
 } // namespace Model
 
+[[maybe_unused]]
 static std::istream &
 operator>>(std::istream &in, Mode &mode)
 {
@@ -44,6 +45,10 @@ operator>>(std::istream &in, Mode &mode)
   {
     mode = Mode::Analytic;
   }
+  else if (token == "test")
+  {
+    mode = Mode::Test;
+  }
   else
   {
     throw boost::program_options::validation_error(
@@ -51,6 +56,7 @@ operator>>(std::istream &in, Mode &mode)
   }
   return in;
 }
+[[maybe_unused]]
 static std::ostream &
 operator<<(std::ostream &out, const Modes &modes)
 {

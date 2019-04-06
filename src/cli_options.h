@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-enum class Mode { Simulation, Analytic };
+enum class Mode { Simulation, Analytic, Test };
 
 using Modes = std::vector<Mode>;
 using AnalyticModels = std::vector<Model::AnalyticModel>;

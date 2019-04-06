@@ -57,4 +57,5 @@ Count combinatorial_arrangement_number_unequal_resources(
     std::vector<Count> components_numbers,
     std::vector<Capacity> /*components_capacities*/);
 
+
 } // namespace Model

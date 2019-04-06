@@ -18,6 +18,7 @@
 #include "types/types.h"
 #include "types/types_format.h"
 #include "utils.h"
+#include "model/test.h"
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
@@ -94,6 +95,10 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
       case Mode::Analytic:
       {
         Model::analytical_computations(scenarios[i]);
+        break;
+      }
+      case Mode::Test:
+      {
         break;
       }
     }
@@ -361,22 +366,27 @@ main(int argc, char *argv[])
     return 0;
   }
   println("Modes: {}", cli.modes);
+
+  if (contains(cli.modes, Mode::Test)){
+    Model::test();
+    return 0;
+      }
   if (contains(cli.modes, Mode::Analytic))
   {
     println("Analytic models: {}", cli.analytic_models);
   }
 
   if (!std::all_of(begin(cli.scenario_files), end(cli.scenario_files), [](const std::string &file) {
-        namespace fs = boost::filesystem;
-        if (auto path = fs::path{file}; exists(path))
-        {
-          return true;
-        }
-        else
-        {
-          println("[Main] Scenario file {} doesn't exists.", path);
-          return false;
-        }
+    namespace fs = boost::filesystem;
+    if (auto path = fs::path{file}; exists(path))
+    {
+      return true;
+    }
+    else
+    {
+      println("[Main] Scenario file {} doesn't exists.", path);
+      return false;
+    }
       }))
   {
     return ENOENT;
