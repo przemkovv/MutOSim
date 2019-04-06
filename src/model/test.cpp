@@ -2,7 +2,6 @@
 #include "test.h"
 
 #include "erlang_formula.h"
-#include "kaufman_roberts.h"
 #include "logger.h"
 #include "math_utils.h"
 #include "model/stream_properties_format.h"
@@ -106,7 +105,6 @@ test3()
 
   for (Capacity n{1}; n <= V; ++n)
   {
-    // rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
     const auto tc_size = t;
     auto       previous_state = Capacity{n - tc_size};
     if (previous_state >= Capacity{0})
@@ -142,11 +140,33 @@ test3()
 }
 
 void
+test4()
+{
+  auto tc = TrafficClass{TrafficClassId{1}, Intensity{0.5}, Intensity{0.5}, Size{2}, Length{5}};
+  IncomingRequestStream  irs{tc};
+  IncomingRequestStreams irss{irs};
+  Resource               res{Capacity{8}};
+  // Resource               res{{
+      // {Count{1}, Capacity{8}},
+      // {Count{1}, Capacity{3}},
+      // {Count{1}, Capacity{3}},
+      // {Count{1}, Capacity{3}},
+  // }};
+
+  auto s1 = kaufman_roberts_distribution(irss, res, KaufmanRobertsVariant::FixedReqSize);
+  // auto s2 = kaufman_roberts_distribution(irss, res.V(), KaufmanRobertsVariant::FixedReqSize);
+  println("S1: {}", s1);
+  // println("S2: {}", s2);
+  // println("S1==S2: {}", s1 == s2);
+}
+
+void
 test()
 {
   // test1();
-  test2();
-  test3();
+  // test2();
+  // test3();
+  test4();
 }
 
 } // namespace Model

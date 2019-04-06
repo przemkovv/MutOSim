@@ -100,10 +100,9 @@ struct Size : ts::strong_typedef<Size<Prec, UseFloat>, count_t<Prec, UseFloat>>,
   constexpr bool operator==(const Capacity<Prec> &c) { return ts::get(*this) == ts::get(c); }
   constexpr bool operator<=(const Capacity<Prec> &c) { return ts::get(*this) <= ts::get(c); }
   constexpr bool operator>(const Capacity<Prec> &c) { return ts::get(*this) > ts::get(c); }
-  explicit       operator Size<Prec, use_float_tag>()
+  explicit       operator Size<Prec, use_int_tag>() const
   {
-    return Size<Prec, use_float_tag>{
-        static_cast<count_t<Prec, use_float_tag>>(std::ceil(get(*this)))};
+    return Size<Prec, use_int_tag>{static_cast<count_t<Prec, use_int_tag>>(std::ceil(get(*this)))};
   }
 };
 
@@ -290,18 +289,26 @@ constexpr auto operator*(const Count<Prec> &count, const Intensity<Prec> &intens
 {
   return ts::get(count) * ts::get(intensity);
 }
+
 template <typename Prec = mediump>
 constexpr auto
 operator/(const Intensity<Prec> &intensity, const Count<Prec> &count)
 {
   return Intensity<Prec>{ts::get(intensity) / ts::get(count)};
 }
+
 template <typename Prec = mediump>
 constexpr auto
 operator/(const Count<Prec> &c1, const Count<Prec> &c2)
 {
   return Ratio<Prec>{static_cast<ratio_t<Prec>>(ts::get(c1))
                      / static_cast<ratio_t<Prec>>(ts::get(c2))};
+}
+
+template <typename Prec, typename CapacityUseFloat>
+constexpr auto operator*(const Count<Prec> &count, const Capacity<Prec, CapacityUseFloat> &c)
+{
+  return Capacity<Prec, CapacityUseFloat>{get(c) * get(count)};
 }
 
 //----------------------------------------------------------------------

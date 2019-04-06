@@ -12,9 +12,28 @@
 namespace Model {
 using Probabilities = std::vector<Probability>;
 
+struct ResourceComponent
+{
+  Count    number; // v_s
+  Capacity v;      // f_s
+  Capacity V() const;
+};
+
+struct Resource
+{
+  std::vector<ResourceComponent> components;
+
+  Resource(Capacity capacity) : Resource({{Count{1}, capacity}}) {}
+  Resource(Count count, Capacity capacity) : Resource({{count, capacity}}) {}
+  Resource(std::initializer_list<ResourceComponent> initializer_list) : components(initializer_list)
+  {
+  }
+  Capacity V() const;
+};
+
 Probabilities kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
-    Capacity                      V,
+    Resource                      resource,
     KaufmanRobertsVariant         kr_variant);
 
 OutgoingRequestStreams kaufman_roberts_blocking_probability(
@@ -52,10 +71,13 @@ Probability conditional_transition_probability(
     Count    resources_number,
     Capacity f,
     Size     t);
+
+Probability
+conditional_transition_probability(Capacity n, const ResourceComponent &component, Size t);
+
 Count combinatorial_arrangement_number_unequal_resources(
     Capacity /*x*/,
     std::vector<Count> components_numbers,
     std::vector<Capacity> /*components_capacities*/);
-
 
 } // namespace Model

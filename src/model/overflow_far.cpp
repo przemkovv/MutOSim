@@ -3,7 +3,6 @@
 #include "overflow_far.h"
 
 #include "erlang_formula.h"
-#include "kaufman_roberts.h"
 #include "logger.h"
 #include "math_utils.h"
 #include "model/stream_properties_format.h"
@@ -39,6 +38,21 @@ struct difference_type<::Capacity>
 
 namespace Model {
 //----------------------------------------------------------------------
+//
+Capacity
+ResourceComponent::V() const
+{
+  return number * v;
+}
+
+Capacity
+Resource::V() const
+{
+  return rng::accumulate(
+      components, Capacity{0}, [](const Capacity &V, const ResourceComponent &rc) {
+        return V + rc.V();
+      });
+}
 
 //----------------------------------------------------------------------
 IncomingRequestStreams
@@ -132,9 +146,10 @@ compute_fictitious_capacity_fit_carried_traffic(
 Probabilities
 kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
-    Capacity                      V,
+    Resource                      resource,
     KaufmanRobertsVariant         kr_variant)
 {
+  const auto    V = resource.V();
   Probabilities state(size_t(V) + 1, Probability{0});
   state[0] = Probability{1};
 
@@ -167,8 +182,14 @@ kaufman_roberts_distribution(
         {
           previous_state_value = state[size_t(previous_state)];
         }
+        ASSERT(resource.components.size() == 1, "Support only for multiple equal components.");
+        auto &component = resource.components[0];
+        auto  chi =
+            component.number > Count{1}
+                ? conditional_transition_probability(previous_state, component, Size(tc_size))
+                : Probability{1};
 
-        state[size_t(n)] += rs.intensity * tc_size * previous_state_value;
+        state[size_t(n)] += rs.intensity * tc_size * chi * previous_state_value;
       }
     }
     state[size_t(n)] /= n;
@@ -184,9 +205,10 @@ kaufman_roberts_blocking_probability(
     CapacityF                     V,
     KaufmanRobertsVariant         kr_variant)
 {
-  auto distribution = kaufman_roberts_distribution(in_request_streams, Capacity{V}, kr_variant);
+  auto distribution =
+      kaufman_roberts_distribution(in_request_streams, Resource{Capacity{V}}, kr_variant);
   auto distribution2 =
-      kaufman_roberts_distribution(in_request_streams, Capacity{V} + Size{1}, kr_variant);
+      kaufman_roberts_distribution(in_request_streams, Resource{Capacity{V} + Size{1}}, kr_variant);
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams)
   {
@@ -303,10 +325,17 @@ conditional_transition_probability(
     Size     t)
 {
   auto nominator = combinatorial_arrangement_number(V - n, resources_number, Capacity{get(t) - 1});
-  println("nom = {}", nominator);
   auto denominator = combinatorial_arrangement_number(V - n, resources_number, f);
-  println("denom = {}", denominator);
-  return {Probability{1} - Probability{get(nominator / denominator)}};
+  return Probability{1} - Probability{nominator / denominator};
+}
+
+Probability
+conditional_transition_probability(Capacity n, const ResourceComponent &component, Size t)
+{
+  auto V = component.V();
+  auto nominator = combinatorial_arrangement_number(V - n, component.number, Capacity{get(t) - 1});
+  auto denominator = combinatorial_arrangement_number(V - n, component.number, component.v);
+  return Probability{1} - Probability{nominator / denominator};
 }
 
 } // namespace Model

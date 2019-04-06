@@ -54,8 +54,6 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/model/group.h"
   "${CMAKE_CURRENT_LIST_DIR}/model/erlang_formula.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/erlang_formula.h"
-  "${CMAKE_CURRENT_LIST_DIR}/model/kaufman_roberts.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/model/kaufman_roberts.h"
   "${CMAKE_CURRENT_LIST_DIR}/model/overflow_far.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/overflow_far.h"
   "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties.cpp"
