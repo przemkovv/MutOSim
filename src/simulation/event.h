@@ -6,8 +6,7 @@
 
 #include <memory>
 
-namespace Simulation
-{
+namespace Simulation {
 struct Event;
 using EventPtr = std::unique_ptr<Event>;
 
@@ -15,11 +14,12 @@ enum class EventType { LoadServiceRequest, LoadServiceEnd, LoadProduce, None };
 
 //----------------------------------------------------------------------
 
-struct Event {
+struct Event
+{
   EventType type;
-  Uuid id;
-  Time time;
-  bool skip = false;
+  Uuid      id;
+  Time      time;
+  bool      skip = false;
 
   Event(EventType type_, Uuid id_, Time time_);
   void clear_type();
@@ -33,7 +33,8 @@ struct Event {
 
 //----------------------------------------------------------------------
 
-struct LoadServiceRequestEvent : public Event {
+struct LoadServiceRequestEvent : public Event
+{
   Load load;
 
   LoadServiceRequestEvent(Uuid id, Load load_);
@@ -44,7 +45,8 @@ struct LoadServiceRequestEvent : public Event {
 
 //----------------------------------------------------------------------
 
-struct LoadServiceEndEvent : public Event {
+struct LoadServiceEndEvent : public Event
+{
   Load load;
 
   LoadServiceEndEvent(Uuid id, Load load_);
@@ -55,7 +57,8 @@ struct LoadServiceEndEvent : public Event {
 
 //----------------------------------------------------------------------
 
-struct ProduceServiceRequestEvent : public Event {
+struct ProduceServiceRequestEvent : public Event
+{
   SourceStream *source_stream;
 
   ProduceServiceRequestEvent(Uuid id, Time time_, SourceStream *source_stream_);
@@ -73,14 +76,16 @@ class by_time
 public:
   bool operator()(const EventPtr &e1, const EventPtr &e2) const
   {
-    if (e1->time != e2->time) {
+    if (e1->time != e2->time)
+    {
       return e1->time > e2->time;
     }
     return e1->id < e1->id;
   }
   bool operator()(const Event &e1, const Event &e2) const
   {
-    if (e1.time != e2.time) {
+    if (e1.time != e2.time)
+    {
       return e1.time > e2.time;
     }
     return e1.id < e2.id;

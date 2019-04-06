@@ -4,14 +4,13 @@
 
 #include <fmt/format.h>
 
-namespace Simulation
-{
+namespace Simulation {
 } // namespace Simulation
 
-namespace fmt
-{
+namespace fmt {
 template <>
-struct formatter<Simulation::EventType> {
+struct formatter<Simulation::EventType>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -22,22 +21,24 @@ struct formatter<Simulation::EventType> {
   auto format(const Simulation::EventType &type, FormatContext &ctx)
   {
     return format_to(ctx.begin(), [type]() {
-      switch (type) {
-      case Simulation::EventType::LoadServiceRequest:
-        return "LoadServiceRequest";
-      case Simulation::EventType::LoadServiceEnd:
-        return "LoadServiceEnd";
-      case Simulation::EventType::LoadProduce:
-        return "LoadProduce";
-      case Simulation::EventType::None:
-        return "None";
+      switch (type)
+      {
+        case Simulation::EventType::LoadServiceRequest:
+          return "LoadServiceRequest";
+        case Simulation::EventType::LoadServiceEnd:
+          return "LoadServiceEnd";
+        case Simulation::EventType::LoadProduce:
+          return "LoadProduce";
+        case Simulation::EventType::None:
+          return "None";
       }
     }());
   }
 };
 
 template <>
-struct formatter<Simulation::Event> {
+struct formatter<Simulation::Event>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -54,7 +55,8 @@ struct formatter<Simulation::Event> {
 };
 
 template <>
-struct formatter<Simulation::ProduceServiceRequestEvent> {
+struct formatter<Simulation::ProduceServiceRequestEvent>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -68,7 +70,8 @@ struct formatter<Simulation::ProduceServiceRequestEvent> {
   }
 };
 template <>
-struct formatter<Simulation::LoadServiceEndEvent> {
+struct formatter<Simulation::LoadServiceEndEvent>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -82,7 +85,8 @@ struct formatter<Simulation::LoadServiceEndEvent> {
   }
 };
 template <>
-struct formatter<Simulation::LoadServiceRequestEvent> {
+struct formatter<Simulation::LoadServiceRequestEvent>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {

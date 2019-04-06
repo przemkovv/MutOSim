@@ -5,8 +5,7 @@
 #include <optional>
 #include <string_view>
 
-namespace Simulation
-{
+namespace Simulation {
 struct Group;
 
 class OverflowPolicy;

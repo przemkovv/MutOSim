@@ -8,10 +8,10 @@
 
 #include <fmt/format.h>
 
-namespace fmt
-{
+namespace fmt {
 template <>
-struct formatter<Simulation::SourceStream> {
+struct formatter<Simulation::SourceStream>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -26,7 +26,8 @@ struct formatter<Simulation::SourceStream> {
 };
 
 template <>
-struct formatter<Simulation::EngsetSourceStream> {
+struct formatter<Simulation::EngsetSourceStream>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -49,7 +50,8 @@ struct formatter<Simulation::EngsetSourceStream> {
 };
 
 template <>
-struct formatter<Simulation::PascalSourceStream> {
+struct formatter<Simulation::PascalSourceStream>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -74,7 +76,8 @@ struct formatter<Simulation::PascalSourceStream> {
 };
 
 template <>
-struct formatter<Simulation::PoissonSourceStream> {
+struct formatter<Simulation::PoissonSourceStream>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {

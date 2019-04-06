@@ -4,10 +4,10 @@
 
 #include <fmt/format.h>
 
-namespace fmt
-{
+namespace fmt {
 template <>
-struct formatter<GroupName> {
+struct formatter<GroupName>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -22,7 +22,8 @@ struct formatter<GroupName> {
 };
 
 template <>
-struct formatter<TrafficClassId> {
+struct formatter<TrafficClassId>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -36,7 +37,8 @@ struct formatter<TrafficClassId> {
   }
 };
 template <>
-struct formatter<LoadId> {
+struct formatter<LoadId>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -50,7 +52,8 @@ struct formatter<LoadId> {
   }
 };
 template <>
-struct formatter<SourceId> {
+struct formatter<SourceId>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -64,7 +67,8 @@ struct formatter<SourceId> {
   }
 };
 template <>
-struct formatter<SourceName> {
+struct formatter<SourceName>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -79,7 +83,8 @@ struct formatter<SourceName> {
 };
 template <typename P>
 struct formatter<TypesPrecision::Time<P>>
-  : formatter<typename ts::underlying_type<TypesPrecision::Time<P>>> {
+  : formatter<typename ts::underlying_type<TypesPrecision::Time<P>>>
+{
   template <typename FormatContext>
   auto format(const TypesPrecision::Time<P> &t, FormatContext &ctx)
   {
@@ -88,7 +93,8 @@ struct formatter<TypesPrecision::Time<P>>
 };
 
 template <typename P, typename Tag>
-struct formatter<TypesPrecision::Capacity<P, Tag>> {
+struct formatter<TypesPrecision::Capacity<P, Tag>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -102,7 +108,8 @@ struct formatter<TypesPrecision::Capacity<P, Tag>> {
   }
 };
 template <typename P>
-struct formatter<TypesPrecision::Variance<P>> {
+struct formatter<TypesPrecision::Variance<P>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -116,7 +123,8 @@ struct formatter<TypesPrecision::Variance<P>> {
   }
 };
 template <typename P>
-struct formatter<TypesPrecision::MeanRequestNumber<P>> {
+struct formatter<TypesPrecision::MeanRequestNumber<P>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -130,7 +138,8 @@ struct formatter<TypesPrecision::MeanRequestNumber<P>> {
   }
 };
 template <typename P>
-struct formatter<TypesPrecision::Peakedness<P>> {
+struct formatter<TypesPrecision::Peakedness<P>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -144,7 +153,8 @@ struct formatter<TypesPrecision::Peakedness<P>> {
   }
 };
 template <typename P>
-struct formatter<TypesPrecision::MeanIntensity<P>> {
+struct formatter<TypesPrecision::MeanIntensity<P>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -159,7 +169,8 @@ struct formatter<TypesPrecision::MeanIntensity<P>> {
 };
 
 template <typename P, typename Tag>
-struct formatter<TypesPrecision::Intensity<P, Tag>> {
+struct formatter<TypesPrecision::Intensity<P, Tag>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -174,7 +185,8 @@ struct formatter<TypesPrecision::Intensity<P, Tag>> {
 };
 
 template <typename P, typename Tag>
-struct formatter<TypesPrecision::Size<P, Tag>> {
+struct formatter<TypesPrecision::Size<P, Tag>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -189,7 +201,8 @@ struct formatter<TypesPrecision::Size<P, Tag>> {
 };
 
 template <typename P>
-struct formatter<TypesPrecision::Probability<P>> {
+struct formatter<TypesPrecision::Probability<P>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -204,7 +217,8 @@ struct formatter<TypesPrecision::Probability<P>> {
 };
 
 template <typename P>
-struct formatter<TypesPrecision::Duration<P>> {
+struct formatter<TypesPrecision::Duration<P>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -218,7 +232,8 @@ struct formatter<TypesPrecision::Duration<P>> {
   }
 };
 template <typename P>
-struct formatter<TypesPrecision::Count<P>> {
+struct formatter<TypesPrecision::Count<P>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -233,4 +248,3 @@ struct formatter<TypesPrecision::Count<P>> {
 };
 
 } // namespace fmt
-

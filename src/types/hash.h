@@ -3,14 +3,14 @@
 
 #include "types/types.h"
 
-#include <type_safe/strong_typedef.hpp>
 #include <functional>
+#include <type_safe/strong_typedef.hpp>
 
-namespace std
-{
+namespace std {
 /// Hash specialization for [GroupName].
 template <>
-struct hash<GroupName> {
+struct hash<GroupName>
+{
   std::size_t operator()(const GroupName &i) const noexcept
   {
     using T = ts::underlying_type<GroupName>;
@@ -19,7 +19,8 @@ struct hash<GroupName> {
 };
 /// Hash specialization for [SourceName].
 template <>
-struct hash<SourceName> {
+struct hash<SourceName>
+{
   std::size_t operator()(const SourceName &i) const noexcept
   {
     using T = ts::underlying_type<SourceName>;
@@ -28,7 +29,8 @@ struct hash<SourceName> {
 };
 /// Hash specialization for [TrafficClassId].
 template <>
-struct hash<TrafficClassId> {
+struct hash<TrafficClassId>
+{
   std::size_t operator()(const TrafficClassId &i) const noexcept
   {
     using T = ts::underlying_type<TrafficClassId>;
@@ -37,7 +39,8 @@ struct hash<TrafficClassId> {
 };
 /// Hash specialization for [LoadId].
 template <>
-struct hash<LoadId> {
+struct hash<LoadId>
+{
   std::size_t operator()(const LoadId &i) const noexcept
   {
     using T = ts::underlying_type<LoadId>;
@@ -46,7 +49,8 @@ struct hash<LoadId> {
 };
 /// Hash specialization for [SourceId].
 template <>
-struct hash<SourceId> {
+struct hash<SourceId>
+{
   std::size_t operator()(const SourceId &i) const noexcept
   {
     using T = ts::underlying_type<SourceId>;
@@ -55,7 +59,8 @@ struct hash<SourceId> {
 };
 /// Hash specialization for [Size].
 template <>
-struct hash<Size> {
+struct hash<Size>
+{
   std::size_t operator()(const Size &i) const noexcept
   {
     using T = ts::underlying_type<Size>;
@@ -64,7 +69,8 @@ struct hash<Size> {
 };
 /// Hash specialization for [Capacity].
 template <>
-struct hash<Capacity> {
+struct hash<Capacity>
+{
   std::size_t operator()(const Capacity &i) const noexcept
   {
     using T = ts::underlying_type<Capacity>;

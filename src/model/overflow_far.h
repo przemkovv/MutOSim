@@ -13,7 +13,9 @@ namespace Model {
 using Probabilities = std::vector<Probability>;
 
 Probabilities kaufman_roberts_distribution(
-    const IncomingRequestStreams &in_request_streams, Capacity V, KaufmanRobertsVariant kr_variant);
+    const IncomingRequestStreams &in_request_streams,
+    Capacity                      V,
+    KaufmanRobertsVariant         kr_variant);
 
 OutgoingRequestStreams kaufman_roberts_blocking_probability(
     const IncomingRequestStreams &in_request_streams,
@@ -31,7 +33,10 @@ IncomingRequestStreams convert_to_incoming_streams(
 Peakedness compute_collective_peakedness(const IncomingRequestStreams &in_request_streams);
 
 Variance compute_riordan_variance(
-    MeanIntensity mean, Intensity intensity, CapacityF fictitous_capacity, SizeF tc_size);
+    MeanIntensity mean,
+    Intensity     intensity,
+    CapacityF     fictitous_capacity,
+    SizeF         tc_size);
 
 CapacityF compute_fictitious_capacity_fit_carried_traffic(
     const OutgoingRequestStreams &request_streams,
@@ -42,7 +47,11 @@ CapacityF compute_fictitious_capacity_fit_carried_traffic(
 Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 
 Probability conditional_transition_probability(
-    Capacity n, Capacity V, Count resources_number, Capacity f, Size t);
+    Capacity n,
+    Capacity V,
+    Count    resources_number,
+    Capacity f,
+    Size     t);
 Count combinatorial_arrangement_number_unequal_resources(
     Capacity /*x*/,
     std::vector<Count> components_numbers,

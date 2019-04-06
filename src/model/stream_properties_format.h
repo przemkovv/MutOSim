@@ -2,14 +2,14 @@
 #pragma once
 
 #include "stream_properties.h"
-
 #include "types/types_format.h"
+
 #include <fmt/format.h>
 
-namespace fmt
-{
+namespace fmt {
 template <>
-struct formatter<Model::OutgoingRequestStream> {
+struct formatter<Model::OutgoingRequestStream>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -34,7 +34,8 @@ struct formatter<Model::OutgoingRequestStream> {
   }
 };
 template <>
-struct formatter<Model::IncomingRequestStream> {
+struct formatter<Model::IncomingRequestStream>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -56,7 +57,8 @@ struct formatter<Model::IncomingRequestStream> {
 };
 
 template <typename T>
-struct formatter<std::vector<T>> {
+struct formatter<std::vector<T>>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -67,9 +69,11 @@ struct formatter<std::vector<T>> {
   auto format(const std::vector<T> &vec, FormatContext &ctx)
   {
     format_to(ctx.out(), "S({}) [", std::size(vec));
-    for (const auto &x : vec) {
+    for (const auto &x : vec)
+    {
       auto s = fmt::format("{}, ", x);
-      if (s.size() > 16) {
+      if (s.size() > 16)
+      {
         format_to(ctx.out(), "\n");
       }
       format_to(ctx.out(), s);

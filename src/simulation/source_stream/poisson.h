@@ -4,8 +4,7 @@
 
 #include <random>
 
-namespace Simulation
-{
+namespace Simulation {
 class PoissonSourceStream : public SourceStream
 
 {
@@ -21,4 +20,3 @@ public:
 };
 
 } // namespace Simulation
-

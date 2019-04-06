@@ -80,7 +80,10 @@ Group::set_overflow_policy(std::unique_ptr<OverflowPolicy> overflow_policy)
 
 void
 Group::add_compression_ratio(
-    TrafficClassId tc_id, Capacity threshold, Size size, IntensityFactor intensity_factor)
+    TrafficClassId  tc_id,
+    Capacity        threshold,
+    Size            size,
+    IntensityFactor intensity_factor)
 {
   auto &crs = tcs_compression_[tc_id];
   crs.emplace(threshold, CompressionRatio{size, intensity_factor});

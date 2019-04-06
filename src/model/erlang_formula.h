@@ -12,4 +12,5 @@ float_hp erlang_b_inv(float_hp V, float_hp A);
 float_hp extended_erlang_b(float_hp V, float_hp A);
 
 std::optional<CapacityF> compute_fictitious_capacity_fit_blocking_probability(
-    const Model::OutgoingRequestStream &rs, CapacityF V);
+    const Model::OutgoingRequestStream &rs,
+    CapacityF                           V);

@@ -65,7 +65,8 @@ template <typename RequestStream>
 void
 Group::add_incoming_request_streams(const std::vector<RequestStream> &in_request_streams)
 {
-  ranges::for_each(
-      in_request_streams, [this](const auto &rs) { this->add_incoming_request_stream(rs); });
+  ranges::for_each(in_request_streams, [this](const auto &rs) {
+    this->add_incoming_request_stream(rs);
+  });
 }
 } // namespace Model

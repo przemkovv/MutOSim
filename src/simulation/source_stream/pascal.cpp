@@ -3,8 +3,8 @@
 
 #include "logger.h"
 #include "simulation/event_format.h"
-#include "simulation/load_format.h"
 #include "simulation/group.h"
+#include "simulation/load_format.h"
 #include "simulation/source_stream/source_stream_format.h"
 #include "simulation/world.h"
 #include "types/types.h"
@@ -12,10 +12,11 @@
 
 #include <optional>
 
-namespace Simulation
-{
+namespace Simulation {
 PascalSourceStream::PascalSourceStream(
-    const SourceName &name, const TrafficClass &tc, Count sources_number)
+    const SourceName &  name,
+    const TrafficClass &tc,
+    Count               sources_number)
   : SourceStream(name, tc), sources_number_(sources_number)
 {
 }
@@ -25,7 +26,8 @@ std::optional<typename M::const_iterator>
 find_event(const M &map, const Event *event)
 {
   auto it = find_if(begin(map), end(map), [&event](const auto &p) { return p.second == event; });
-  if (it != map.end()) {
+  if (it != map.end())
+  {
     return std::make_optional(it);
   }
   return {};
@@ -41,7 +43,8 @@ PascalSourceStream::notify_on_request_service_start(const LoadServiceRequestEven
   auto new_event = create_produce_service_request(event->time);
   debug_print("{} on service start {}\n", *this, *new_event);
 
-  if (auto it = find_event(linked_sources_, event); it.has_value()) {
+  if (auto it = find_event(linked_sources_, event); it.has_value())
+  {
     debug_print("{} INCEPTION!!! {}\n", *this, *event);
     linked_sources_count_++;
     linked_sources_.emplace(it.value()->first, new_event.get());
@@ -58,8 +61,8 @@ void
 PascalSourceStream::notify_on_request_drop(const LoadServiceRequestEvent *event)
 {
   debug_print("{} Load has been dropped {}\n", *this, event->load);
-  if (auto it = find_event(linked_sources_, event);
-      it) { // the event is already linked to another request
+  if (auto it = find_event(linked_sources_, event); it)
+  { // the event is already linked to another request
 
     debug_print(
         "{} [on drop] Remove event {} linked to load id {}\n",
@@ -76,7 +79,8 @@ PascalSourceStream::notify_on_request_accept(const LoadServiceRequestEvent *even
 {
   active_sources_++;
   debug_print("{} Load has been accepted {}\n", *this, event->load);
-  if (auto it = find_event(linked_sources_, event); it.has_value()) {
+  if (auto it = find_event(linked_sources_, event); it.has_value())
+  {
     debug_print("{} INCEPTION!!! {}\n", *this, *event);
     debug_print(
         "{} [on drop] Remove event {} linked to load id {}\n",
@@ -107,7 +111,8 @@ PascalSourceStream::notify_on_request_service_end(const LoadServiceEndEvent *eve
   // Remove scheduled new service request linked to the just ended service
   for (auto linked_event_it = linked_event_range_it.first;
        linked_event_it != linked_event_range_it.second;
-       ++linked_event_it) {
+       ++linked_event_it)
+  {
     linked_sources_count_--;
     debug_print(
         "{} [on service end] Remove event {} linked to {}, load id {}\n",
@@ -127,8 +132,8 @@ PascalSourceStream::notify_on_produce(const ProduceServiceRequestEvent *event)
   auto new_event = create_request(event->time);
   debug_print("{} on produce {}\n", *this, *new_event);
 
-  if (auto it = find_event(linked_sources_, event);
-      it.has_value()) { // the event is already linked to another request
+  if (auto it = find_event(linked_sources_, event); it.has_value())
+  { // the event is already linked to another request
 
     linked_sources_.emplace(it.value()->first, new_event.get());
     debug_print(
@@ -152,7 +157,8 @@ PascalSourceStream::notify_on_produce(const ProduceServiceRequestEvent *event)
 void
 PascalSourceStream::init()
 {
-  for (auto i = Count(0); i < sources_number_; ++i) {
+  for (auto i = Count(0); i < sources_number_; ++i)
+  {
     world_->schedule(create_produce_service_request(world_->get_time()));
   }
 }
@@ -167,7 +173,8 @@ PascalSourceStream::create_produce_service_request(Time time)
 EventPtr
 PascalSourceStream::create_request(Time time)
 {
-  if (pause_) {
+  if (pause_)
+  {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
   }
 

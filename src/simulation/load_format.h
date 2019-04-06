@@ -2,12 +2,13 @@
 #pragma once
 
 #include "load.h"
+
 #include <fmt/format.h>
 
-namespace fmt
-{
+namespace fmt {
 template <>
-struct formatter<Simulation::Load> {
+struct formatter<Simulation::Load>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
@@ -17,14 +18,13 @@ struct formatter<Simulation::Load> {
   template <typename FormatContext>
   auto format(const Simulation::Load &load, FormatContext &ctx)
   {
-    if (load.end_time < Time{0}) {
+    if (load.end_time < Time{0})
+    {
       return format_to(
-          ctx.begin(),
-          "[Load: id={}, size={} st={}]",
-          load.id,
-          load.size,
-          load.send_time);
-    } else {
+          ctx.begin(), "[Load: id={}, size={} st={}]", load.id, load.size, load.send_time);
+    }
+    else
+    {
       return format_to(
           ctx.begin(),
           "[Load: id={}, size={}, st={}, dt={}]",

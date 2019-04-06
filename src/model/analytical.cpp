@@ -28,8 +28,7 @@
 
 namespace rng = ranges;
 
-namespace Model
-{
+namespace Model {
 void
 analytical_computations_hardcoded()
 {
@@ -68,10 +67,11 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
 
   using ModelGroups = std::map<GroupName, Model::Group>;
   using ModelGroupsPtr = std::map<GroupName, Model::Group *>;
-  ModelGroups model_groups;
+  ModelGroups                     model_groups;
   std::map<Layer, ModelGroupsPtr> model_groups_layers;
 
-  for (const auto &[group_name, group] : topology.groups) {
+  for (const auto &[group_name, group] : topology.groups)
+  {
     ASSERT(
         layers_types.at(group->layer()) == LayerType::FullAvailability,
         "The current model doesn't support forwarding traffic to more than one next "
@@ -81,24 +81,29 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
         model_groups.emplace(group_name, Model::Group{group->capacity(), kr_variant});
     std::ignore = inserted;
 
-    for (const auto &next_group : group->next_groups()) {
+    for (const auto &next_group : group->next_groups())
+    {
       model_group_it->second.add_next_group(next_group->name());
     }
     model_groups_layers[group->layer()].emplace(group_name, &model_group_it->second);
   }
 
-  for (const auto &[source_name, source_stream] : topology.sources) {
+  for (const auto &[source_name, source_stream] : topology.sources)
+  {
     std::ignore = source_name;
     const auto &target_group = source_stream->get_target_group().name();
     model_groups.at(target_group)
         .add_incoming_request_stream(IncomingRequestStream{source_stream->tc_});
   }
 
-  for (const auto &[layer, model_groups_ptrs] : model_groups_layers) {
+  for (const auto &[layer, model_groups_ptrs] : model_groups_layers)
+  {
     std::ignore = layer;
-    for (const auto &[group_name, model_group_ptr] : model_groups_ptrs) {
+    for (const auto &[group_name, model_group_ptr] : model_groups_ptrs)
+    {
       std::ignore = group_name;
-      for (const auto &next_group_name : model_group_ptr->next_groups()) {
+      for (const auto &next_group_name : model_group_ptr->next_groups())
+      {
         model_groups.at(next_group_name)
             .add_incoming_request_streams(model_group_ptr->get_outgoing_request_streams());
       }
@@ -106,12 +111,15 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
   }
 
   auto &stats = scenario.stats;
-  for (const auto &[layer, model_groups_ptrs] : model_groups_layers) {
-    for (const auto &[group_name, model_group_ptr] : model_groups_ptrs) {
+  for (const auto &[layer, model_groups_ptrs] : model_groups_layers)
+  {
+    for (const auto &[group_name, model_group_ptr] : model_groups_ptrs)
+    {
       auto &group_stats = stats[get(group_name)];
       debug_println("Layer {}, Group {}: ", layer, group_name);
       debug_println("{}", model_group_ptr->get_outgoing_request_streams());
-      for (const auto &out_stream : model_group_ptr->get_outgoing_request_streams()) {
+      for (const auto &out_stream : model_group_ptr->get_outgoing_request_streams())
+      {
         auto &j_tc = group_stats[std::to_string(get(out_stream.tc.id))];
         j_tc["P_block"].push_back(stat_t<>{out_stream.blocking_probability});
         j_tc["peakedness"].push_back(stat_t<>{out_stream.peakedness});
@@ -125,13 +133,14 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
 void
 analytical_computations(ScenarioSettings &scenario_settings)
 {
-  switch (scenario_settings.analytic_model) {
-  case AnalyticModel::KaufmanRobertsFixedReqSize:
-    analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedReqSize);
-    return;
-  case AnalyticModel::KaufmanRobertsFixedCapacity:
-    analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedCapacity);
-    return;
+  switch (scenario_settings.analytic_model)
+  {
+    case AnalyticModel::KaufmanRobertsFixedReqSize:
+      analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedReqSize);
+      return;
+    case AnalyticModel::KaufmanRobertsFixedCapacity:
+      analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedCapacity);
+      return;
   }
 }
 
@@ -140,31 +149,35 @@ check_layer_type(const Simulation::Topology &topology, Layer layer)
 {
   const auto &groups = topology.groups_per_layer.at(layer);
   // FullAvailability
-  if (rng::all_of(groups, [](const auto &group) { return group->next_groups().size() <= 1; })) {
+  if (rng::all_of(groups, [](const auto &group) { return group->next_groups().size() <= 1; }))
+  {
     debug_println("[Analytical] Layer: {}, FullAvailability", layer);
     return LayerType::FullAvailability;
   }
 
-  auto groups_names = groups |
-                      rng::view::transform([](const auto &group) { return group->name(); }) |
-                      rng::to_vector | rng::action::sort;
+  auto groups_names = groups | rng::view::transform([](const auto &group) { return group->name(); })
+                      | rng::to_vector | rng::action::sort;
 
   if (rng::all_of(groups, [&](const auto &group) {
         auto next_groups_names =
             group->next_groups() | rng::view::filter([layer](const auto &next_group) {
               return next_group->layer() == layer;
-            }) |
-            rng::view::transform([](const auto &next_group) { return next_group->name(); }) |
-            rng::to_vector | rng::action::push_back(group->name()) | rng::action::sort;
+            })
+            | rng::view::transform([](const auto &next_group) { return next_group->name(); })
+            | rng::to_vector | rng::action::push_back(group->name()) | rng::action::sort;
         return next_groups_names == groups_names;
-      })) {
+      }))
+  {
     if (auto capacities =
-            groups | rng::view::transform([](const auto &group) { return group->capacity(); }) |
-            rng::view::unique | rng::to_vector;
-        capacities.size() == 1) {
+            groups | rng::view::transform([](const auto &group) { return group->capacity(); })
+            | rng::view::unique | rng::to_vector;
+        capacities.size() == 1)
+    {
       debug_println("[Analytical] Layer: {}, DistributedEqualCapacities", layer);
       return LayerType::DistributedEqualCapacities;
-    } else {
+    }
+    else
+    {
       debug_println("[Analytical] Layer: {}, DistributedUnequalCapacities", layer);
       return LayerType::DistributedUnequalCapacities;
     }
@@ -185,7 +198,8 @@ boost::container::flat_map<Layer, LayerType>
 determine_layers_types(const Simulation::Topology &topology)
 {
   boost::container::flat_map<Layer, LayerType> layers_types;
-  for (const auto &[layer, groups] : topology.groups_per_layer) {
+  for (const auto &[layer, groups] : topology.groups_per_layer)
+  {
     std::ignore = groups;
     layers_types.emplace(layer, check_layer_type(topology, layer));
   }

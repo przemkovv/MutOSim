@@ -5,8 +5,7 @@
 
 #include <vector>
 
-namespace Model
-{
+namespace Model {
 using Probabilities = std::vector<Probability>;
 
 Probabilities kaufman_roberts_distribution(Intensity A, Size tc_size, Capacity V);

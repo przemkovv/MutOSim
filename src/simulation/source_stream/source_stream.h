@@ -6,16 +6,15 @@
 
 #include <fmt/format.h>
 #include <memory>
-namespace Simulation
-{
+namespace Simulation {
 class World;
 struct Group;
 
 class SourceStream
 {
 public:
-  const SourceName name_;
-  SourceId id{0};
+  const SourceName   name_;
+  SourceId           id{0};
   const TrafficClass tc_;
 
 protected:
@@ -23,7 +22,7 @@ protected:
 
   Group *target_group_ = nullptr;
 
-  bool pause_ = false;
+  bool     pause_ = false;
   uint64_t loads_produced_{0};
 
   Load create_load(Time time, Size size);
@@ -37,7 +36,7 @@ public:
   virtual void notify_on_produce(const ProduceServiceRequestEvent *event);
   virtual void notify_on_skip_processing(const Event *event);
 
-  virtual Size get_load_size() const { return tc_.size; }
+  virtual Size      get_load_size() const { return tc_.size; }
   virtual Intensity get_intensity() const { return tc_.serve_intensity; }
 
   SourceStream(const SourceName &name, const TrafficClass &tc);
@@ -50,7 +49,7 @@ public:
   void pause() { pause_ = true; }
 
   const SourceName &get_name() { return name_; }
-  const Group &get_target_group() { return *target_group_; }
+  const Group &     get_target_group() { return *target_group_; }
 
   void print_stats();
 
@@ -59,4 +58,3 @@ public:
 };
 
 } // namespace Simulation
-

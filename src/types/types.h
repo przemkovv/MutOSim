@@ -32,7 +32,8 @@ using MeanRequestNumber = TypesPrecision::MeanRequestNumber<mediump>;
 struct GroupName : ts::strong_typedef<GroupName, name_t>,
                    ts::strong_typedef_op::equality_comparison<GroupName>,
                    ts::strong_typedef_op::relational_comparison<GroupName>,
-                   ts::strong_typedef_op::output_operator<GroupName> {
+                   ts::strong_typedef_op::output_operator<GroupName>
+{
   using strong_typedef::strong_typedef;
   GroupName operator+(std::string_view str) { return GroupName(ts::get(*this) + name_t(str)); }
 };
@@ -40,30 +41,34 @@ struct GroupName : ts::strong_typedef<GroupName, name_t>,
 struct SourceName : ts::strong_typedef<SourceName, name_t>,
                     ts::strong_typedef_op::equality_comparison<SourceName>,
                     ts::strong_typedef_op::relational_comparison<SourceName>,
-                    ts::strong_typedef_op::output_operator<SourceName> {
+                    ts::strong_typedef_op::output_operator<SourceName>
+{
   using strong_typedef::strong_typedef;
 };
 
 struct GroupId : ts::strong_typedef<GroupId, uuid_t>,
                  ts::strong_typedef_op::equality_comparison<GroupId>,
-                 ts::strong_typedef_op::output_operator<GroupId> {
+                 ts::strong_typedef_op::output_operator<GroupId>
+{
   using strong_typedef::strong_typedef;
 };
 struct SourceId : ts::strong_typedef<SourceId, uuid_t>,
                   ts::strong_typedef_op::equality_comparison<SourceId>,
-                  ts::strong_typedef_op::output_operator<SourceId> {
+                  ts::strong_typedef_op::output_operator<SourceId>
+{
   using strong_typedef::strong_typedef;
 };
 struct LoadId : ts::strong_typedef<LoadId, uuid_t>,
                 ts::strong_typedef_op::equality_comparison<LoadId>,
-                ts::strong_typedef_op::output_operator<LoadId> {
+                ts::strong_typedef_op::output_operator<LoadId>
+{
   using strong_typedef::strong_typedef;
 };
 
 struct TrafficClassId : ts::strong_typedef<TrafficClassId, uuid_t>,
                         ts::strong_typedef_op::equality_comparison<TrafficClassId>,
                         ts::strong_typedef_op::relational_comparison<TrafficClassId>,
-                        ts::strong_typedef_op::output_operator<TrafficClassId> {
+                        ts::strong_typedef_op::output_operator<TrafficClassId>
+{
   using strong_typedef::strong_typedef;
 };
-

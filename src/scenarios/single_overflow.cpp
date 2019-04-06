@@ -12,14 +12,14 @@
 ScenarioSettings
 single_overflow_poisson(const Intensity lambda, const Capacity V)
 {
-  auto serve_intensity = Intensity(1.0L);
-  auto size = Size(1);
+  auto             serve_intensity = Intensity(1.0L);
+  auto             size = Size(1);
   ScenarioSettings sim_settings{"Single overflow Poisson"};
 
-  auto &topology = sim_settings.topology;
-  auto &tc1 = topology.add_traffic_class(lambda, serve_intensity, size);
-  GroupName g1{"G1"};
-  GroupName g2{"G2"};
+  auto &     topology = sim_settings.topology;
+  auto &     tc1 = topology.add_traffic_class(lambda, serve_intensity, size);
+  GroupName  g1{"G1"};
+  GroupName  g2{"G2"};
   SourceName s1{"Spo1"};
   topology.add_group(std::make_unique<Simulation::Group>(g1, V));
   topology.add_group(std::make_unique<Simulation::Group>(g2, V));
@@ -34,20 +34,21 @@ single_overflow_poisson(const Intensity lambda, const Capacity V)
 //----------------------------------------------------------------------
 ScenarioSettings
 single_overflow_poisson(
-    Intensity A,
-    std::vector<Capacity> primary_Vs,
+    Intensity                      A,
+    std::vector<Capacity>          primary_Vs,
     std::vector<std::vector<Size>> size_per_class_per_source,
-    Capacity secondary_V)
+    Capacity                       secondary_V)
 {
-  auto serve_intensity = Intensity(1.0L);
+  auto             serve_intensity = Intensity(1.0L);
   ScenarioSettings sim_settings{"Single overflow Poisson"};
 
   auto &topology = sim_settings.topology;
 
-  std::vector<GroupName> group_names;
+  std::vector<GroupName>  group_names;
   std::vector<SourceName> source_names;
 
-  for (auto group_number = 0u; group_number < primary_Vs.size(); ++group_number) {
+  for (auto group_number = 0u; group_number < primary_Vs.size(); ++group_number)
+  {
     GroupName gn{fmt::format("G{}", group_number)};
     topology.add_group(std::make_unique<Simulation::Group>(gn, primary_Vs[group_number]));
     group_names.emplace_back(std::move(gn));
@@ -56,12 +57,12 @@ single_overflow_poisson(
   GroupName gvo{"GVo"};
   topology.add_group(std::make_unique<Simulation::Group>(gvo, secondary_V));
 
-  for (auto source_number = 0u; source_number < size_per_class_per_source.size();
-       ++source_number) {
-    for (auto class_number = 0u;
-         class_number < size_per_class_per_source[source_number].size();
-         ++class_number) {
-      Size t = size_per_class_per_source[source_number][class_number];
+  for (auto source_number = 0u; source_number < size_per_class_per_source.size(); ++source_number)
+  {
+    for (auto class_number = 0u; class_number < size_per_class_per_source[source_number].size();
+         ++class_number)
+    {
+      Size  t = size_per_class_per_source[source_number][class_number];
       auto &tc = topology.add_traffic_class(A / t, serve_intensity, t);
 
       SourceName sn{fmt::format("S{}{}", class_number, source_number)};
@@ -71,7 +72,8 @@ single_overflow_poisson(
     }
   }
 
-  for (const auto &group_name : group_names) {
+  for (const auto &group_name : group_names)
+  {
     topology.connect_groups(group_name, gvo);
   }
 
@@ -82,14 +84,14 @@ single_overflow_poisson(
 ScenarioSettings
 single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
 {
-  auto serve_intensity = Intensity(1.0L);
-  auto size = Size(1);
+  auto             serve_intensity = Intensity(1.0L);
+  auto             size = Size(1);
   ScenarioSettings sim_settings{"Single overflow Engset"};
 
-  auto &topology = sim_settings.topology;
-  auto &tc = topology.add_traffic_class(gamma, serve_intensity, size);
-  GroupName g1{"G1"};
-  GroupName g2{"G2"};
+  auto &     topology = sim_settings.topology;
+  auto &     tc = topology.add_traffic_class(gamma, serve_intensity, size);
+  GroupName  g1{"G1"};
+  GroupName  g2{"G2"};
   SourceName s1{"Spo1"};
   topology.add_group(std::make_unique<Simulation::Group>(g1, V));
   topology.add_group(std::make_unique<Simulation::Group>(g2, V));
@@ -105,7 +107,7 @@ single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
 ScenarioSettings
 multiple_sources_single_overflow()
 {
-  auto serve_intensity = Intensity(1.0L);
+  auto       serve_intensity = Intensity(1.0L);
   const auto lambda = Intensity(3);
   const auto N = Count(2);
   // const auto gamma = lambda / N;
@@ -121,8 +123,8 @@ multiple_sources_single_overflow()
   auto &tc1 = topology.add_traffic_class(lambda, serve_intensity, size1);
   auto &tc2 = topology.add_traffic_class(lambda, serve_intensity, size2);
 
-  GroupName g1{"G1"};
-  GroupName g2{"G2"};
+  GroupName  g1{"G1"};
+  GroupName  g2{"G2"};
   SourceName s1{"SPo1"};
   SourceName s2{"SEn2"};
   topology.add_group(std::make_unique<Simulation::Group>(g1, V));

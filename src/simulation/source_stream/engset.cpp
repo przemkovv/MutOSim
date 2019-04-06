@@ -6,10 +6,11 @@
 #include "source_stream_format.h"
 #include "types/types_format.h"
 
-namespace Simulation
-{
+namespace Simulation {
 EngsetSourceStream::EngsetSourceStream(
-    const SourceName &name, const TrafficClass &tc, Count sources_number)
+    const SourceName &  name,
+    const TrafficClass &tc,
+    Count               sources_number)
   : SourceStream(name, tc), sources_number_(sources_number)
 {
 }
@@ -26,7 +27,8 @@ EngsetSourceStream::notify_on_request_service_end(const LoadServiceEndEvent *eve
   active_sources_--;
   debug_print("{} Load has been served {}\n", *this, event->load);
 
-  if (active_sources_ < Count(0)) {
+  if (active_sources_ < Count(0))
+  {
     print("{} Number of active sources is less than zero. Load {}\n", *this, event->load);
     std::abort();
   }
@@ -51,7 +53,8 @@ EngsetSourceStream::notify_on_request_drop(const LoadServiceRequestEvent *event)
 void
 EngsetSourceStream::init()
 {
-  for (auto i = Count(0); i < sources_number_; ++i) {
+  for (auto i = Count(0); i < sources_number_; ++i)
+  {
     world_->schedule(create_produce_service_request(world_->get_time()));
   }
 }
@@ -60,14 +63,14 @@ std::unique_ptr<ProduceServiceRequestEvent>
 EngsetSourceStream::create_produce_service_request(Time time)
 {
   Duration dt{exponential(world_->get_random_engine())};
-  return std::make_unique<ProduceServiceRequestEvent>(
-      world_->get_uuid(), time + dt, this);
+  return std::make_unique<ProduceServiceRequestEvent>(world_->get_uuid(), time + dt, this);
 }
 
 EventPtr
 EngsetSourceStream::create_request(Time time)
 {
-  if (pause_) {
+  if (pause_)
+  {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
   }
 

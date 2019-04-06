@@ -6,10 +6,8 @@
 #include "source_stream_format.h"
 #include "types/types_format.h"
 
-namespace Simulation
-{
-SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc)
-  : name_(name), tc_(tc)
+namespace Simulation {
+SourceStream::SourceStream(const SourceName &name, const TrafficClass &tc) : name_(name), tc_(tc)
 {
 }
 Load

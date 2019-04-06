@@ -1,7 +1,6 @@
 #include "stats.h"
 
-namespace Simulation
-{
+namespace Simulation {
 //----------------------------------------------------------------------
 
 LoadStats
@@ -38,7 +37,8 @@ operator+=(LostServedStats &s1, const LostServedStats &s2)
 bool
 BlockStats::try_block(const Time &time)
 {
-  if (!is_blocked) {
+  if (!is_blocked)
+  {
     is_blocked = true;
     start_of_block = time;
     return true;
@@ -49,7 +49,8 @@ BlockStats::try_block(const Time &time)
 bool
 BlockStats::try_unblock(const Time &time)
 {
-  if (is_blocked) {
+  if (is_blocked)
+  {
     is_blocked = false;
     block_time += time - start_of_block;
     return true;
@@ -63,16 +64,16 @@ GroupStatistics::get_stats(Duration sim_duration)
 {
   Stats stats;
 
-  for (auto &[tc_id, load_stats] : served_by_tc) {
+  for (auto &[tc_id, load_stats] : served_by_tc)
+  {
     std::ignore = load_stats;
     auto &serve_stats = served_by_tc[tc_id];
     if (serve_stats.lost.count == Count{0} && serve_stats.served.count == Count{0})
       continue;
-    stats.by_traffic_class[tc_id] = {
-        {serve_stats.lost, serve_stats.served, serve_stats.forwarded},
-        blocked_by_tc[tc_id].block_time,
-        blocked_recursive_by_tc[tc_id].block_time,
-        sim_duration};
+    stats.by_traffic_class[tc_id] = {{serve_stats.lost, serve_stats.served, serve_stats.forwarded},
+                                     blocked_by_tc[tc_id].block_time,
+                                     blocked_recursive_by_tc[tc_id].block_time,
+                                     sim_duration};
     stats.total += serve_stats;
   }
   return stats;

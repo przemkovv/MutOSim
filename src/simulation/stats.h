@@ -8,37 +8,41 @@
 #include <map>
 #include <unordered_map>
 
-namespace Simulation
+namespace Simulation {
+struct LoadStats
 {
-struct LoadStats {
   Count count;
-  Size size;
+  Size  size;
 };
 
 //----------------------------------------------------------------------
-struct BlockStats {
+struct BlockStats
+{
   Duration block_time{0};
-  Time start_of_block{0};
-  bool is_blocked = false;
+  Time     start_of_block{0};
+  bool     is_blocked = false;
 
   bool try_block(const Time &time);
   bool try_unblock(const Time &time);
 };
 //----------------------------------------------------------------------
 
-struct LostServedStats {
+struct LostServedStats
+{
   LoadStats lost{};
   LoadStats served{};
   LoadStats forwarded{};
 
   void serve(const Load &load)
   {
-    if (load.compression_ratio == nullptr) {
+    if (load.compression_ratio == nullptr)
+    {
       served.size += load.size;
-    } else {
+    }
+    else
+    {
       // TODO(PW): make it more accurate (casting to int)
-      served.size +=
-          load.compression_ratio->size / load.compression_ratio->intensity_factor;
+      served.size += load.compression_ratio->size / load.compression_ratio->intensity_factor;
     }
     served.count++;
   }
@@ -55,11 +59,12 @@ struct LostServedStats {
 };
 //----------------------------------------------------------------------
 
-struct TrafficClassStats {
+struct TrafficClassStats
+{
   LostServedStats lost_served_stats{};
-  Duration block_time{};
-  Duration block_recursive_time{};
-  Duration simulation_time{};
+  Duration        block_time{};
+  Duration        block_recursive_time{};
+  Duration        simulation_time{};
 
   double loss_ratio() const
   {
@@ -94,24 +99,26 @@ struct TrafficClassStats {
 };
 
 //----------------------------------------------------------------------
-struct Stats {
-  LostServedStats total{};
+struct Stats
+{
+  LostServedStats                             total{};
   std::map<TrafficClassId, TrafficClassStats> by_traffic_class{};
 };
 
 //----------------------------------------------------------------------
-struct GroupStatistics {
+struct GroupStatistics
+{
   boost::container::flat_map<TrafficClassId, LostServedStats> served_by_tc;
-  boost::container::flat_map<TrafficClassId, BlockStats> blocked_by_tc;
-  boost::container::flat_map<TrafficClassId, BlockStats> blocked_recursive_by_tc;
+  boost::container::flat_map<TrafficClassId, BlockStats>      blocked_by_tc;
+  boost::container::flat_map<TrafficClassId, BlockStats>      blocked_recursive_by_tc;
 
   Stats get_stats(Duration sim_duration);
 };
 
 //----------------------------------------------------------------------
-LoadStats operator+(const LoadStats &s1, const LoadStats &s2);
-LoadStats &operator+=(LoadStats &s1, const LoadStats &s2);
-LostServedStats operator+(const LostServedStats &s1, const LostServedStats &s2);
+LoadStats        operator+(const LoadStats &s1, const LoadStats &s2);
+LoadStats &      operator+=(LoadStats &s1, const LoadStats &s2);
+LostServedStats  operator+(const LostServedStats &s1, const LostServedStats &s2);
 LostServedStats &operator+=(LostServedStats &s1, const LostServedStats &s2);
 
 } // namespace Simulation

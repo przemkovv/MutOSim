@@ -37,7 +37,10 @@ Topology::attach_source_to_group(const SourceName &source, const GroupName &grou
 
 TrafficClass &
 Topology::add_traffic_class(
-    Intensity source_intensity, Intensity serve_intensity, Size size, Length max_path_length)
+    Intensity source_intensity,
+    Intensity serve_intensity,
+    Size      size,
+    Length    max_path_length)
 {
   auto tc_id = TrafficClassId{traffic_classes.size()};
 

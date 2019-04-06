@@ -3,8 +3,7 @@
 #include "group.h"
 #include "source_stream/source_stream.h"
 
-namespace Simulation
-{
+namespace Simulation {
 //----------------------------------------------------------------------
 
 Event::Event(EventType type_, Uuid id_, Time time_) : type(type_), id(id_), time(time_)
@@ -44,9 +43,12 @@ LoadServiceRequestEvent::process()
 {
   load.produced_by->notify_on_request_service_start(this);
 
-  if (load.target_group->try_serve(load)) {
+  if (load.target_group->try_serve(load))
+  {
     load.produced_by->notify_on_request_accept(this);
-  } else {
+  }
+  else
+  {
     load.produced_by->notify_on_request_drop(this);
   }
 }
@@ -59,7 +61,9 @@ LoadServiceRequestEvent::skip_notify()
 //----------------------------------------------------------------------
 
 ProduceServiceRequestEvent::ProduceServiceRequestEvent(
-    Uuid id_, Time time_, SourceStream *source_stream_)
+    Uuid          id_,
+    Time          time_,
+    SourceStream *source_stream_)
   : Event(EventType::LoadProduce, id_, time_), source_stream(source_stream_)
 {
 }

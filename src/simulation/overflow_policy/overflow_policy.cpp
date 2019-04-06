@@ -8,8 +8,7 @@
 
 #include <type_traits>
 
-namespace Simulation
-{
+namespace Simulation {
 OverflowPolicy::OverflowPolicy(Group &group) : group_(&group)
 {
 }
@@ -31,7 +30,8 @@ std::array<int, MaxLayersNumber>
 OverflowPolicy::count_layers_usage(const Path &path) const
 {
   std::array<int, MaxLayersNumber> layers_usage_counter{0};
-  for (const auto &group : path) {
+  for (const auto &group : path)
+  {
     layers_usage_counter[group->layer_]++;
   }
   return layers_usage_counter;
@@ -39,7 +39,7 @@ OverflowPolicy::count_layers_usage(const Path &path) const
 std::vector<Group *>
 OverflowPolicy::get_available_groups(const Load &load, Layer layer)
 {
-  const auto layers_usage = count_layers_usage(load.served_by);
+  const auto           layers_usage = count_layers_usage(load.served_by);
   std::vector<Group *> available_groups;
 
   available_groups.reserve(group_->next_groups_.size());
@@ -48,9 +48,8 @@ OverflowPolicy::get_available_groups(const Load &load, Layer layer)
       end(group_->next_groups_),
       back_inserter(available_groups),
       [&](const auto &group) {
-        return layers_usage[group->layer_] < overflows_per_layer &&
-               group->layer_ == layer && group->can_serve(load.tc_id).can_serve &&
-               !contains(load.served_by, group);
+        return layers_usage[group->layer_] < overflows_per_layer && group->layer_ == layer
+               && group->can_serve(load.tc_id).can_serve && !contains(load.served_by, group);
       });
   return available_groups;
 }
@@ -68,7 +67,8 @@ OverflowPolicy::fallback_policy()
       back_inserter(available_groups),
       [current_layer](const auto &group) { return group->layer_ > current_layer; });
 
-  if (!available_groups.empty()) {
+  if (!available_groups.empty())
+  {
     return pick_random(begin(available_groups), end(available_groups));
   }
   return {};
@@ -85,10 +85,13 @@ NoOverflow::find_next_group(const Load & /* load */)
 std::optional<Group *>
 FirstAvailable::find_next_group(const Load &load)
 {
-  for (const auto &next_group : group_->next_groups_) {
-    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) ==
-        std::end(load.served_by)) {
-      if (auto [is_served, compression, bucket] = next_group->can_serve(load.tc_id); is_served) {
+  for (const auto &next_group : group_->next_groups_)
+  {
+    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group)
+        == std::end(load.served_by))
+    {
+      if (auto [is_served, compression, bucket] = next_group->can_serve(load.tc_id); is_served)
+      {
         std::ignore = compression;
         return next_group;
       }
@@ -101,9 +104,11 @@ FirstAvailable::find_next_group(const Load &load)
 std::optional<Group *>
 AlwaysFirst::find_next_group(const Load &load)
 {
-  for (const auto &next_group : group_->next_groups_) {
-    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) ==
-        std::end(load.served_by)) {
+  for (const auto &next_group : group_->next_groups_)
+  {
+    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group)
+        == std::end(load.served_by))
+    {
       return next_group;
     }
   }
@@ -114,9 +119,11 @@ AlwaysFirst::find_next_group(const Load &load)
 std::optional<Group *>
 OverflowPolicy::find_next_group(const Load &load)
 {
-  for (const auto &next_group : group_->next_groups_) {
-    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group) ==
-        std::end(load.served_by)) {
+  for (const auto &next_group : group_->next_groups_)
+  {
+    if (std::find(std::begin(load.served_by), std::end(load.served_by), next_group)
+        == std::end(load.served_by))
+    {
       return next_group;
     }
   }
@@ -129,8 +136,10 @@ RandomAvailable::find_next_group(const Load &load)
 {
   auto available_groups = get_available_groups(load, group_->layer_);
 
-  if (!available_groups.empty()) {
-    if (available_groups.size() == 1) {
+  if (!available_groups.empty())
+  {
+    if (available_groups.size() == 1)
+    {
       return available_groups.front();
     }
 
@@ -144,7 +153,8 @@ HighestFreeCapacity::find_next_group(const Load &load)
 {
   auto available_groups = get_available_groups(load, group_->layer_);
 
-  if (!available_groups.empty()) {
+  if (!available_groups.empty())
+  {
     sort(
         begin(available_groups),
         end(available_groups),
@@ -153,8 +163,8 @@ HighestFreeCapacity::find_next_group(const Load &load)
         });
 
     auto &g1 = available_groups.front();
-    auto end_of_equal_groups_it = std::find_if_not(
-        next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
+    auto  end_of_equal_groups_it =
+        std::find_if_not(next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
           return g1->free_capacity() == g2->free_capacity();
         });
 
@@ -168,7 +178,8 @@ LowestFreeCapacity::find_next_group(const Load &load)
 {
   auto available_groups = get_available_groups(load, group_->layer_);
 
-  if (!available_groups.empty()) {
+  if (!available_groups.empty())
+  {
     sort(
         begin(available_groups),
         end(available_groups),
@@ -177,8 +188,8 @@ LowestFreeCapacity::find_next_group(const Load &load)
         });
 
     auto &g1 = available_groups.front();
-    auto end_of_equal_groups_it = std::find_if_not(
-        next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
+    auto  end_of_equal_groups_it =
+        std::find_if_not(next(begin(available_groups)), end(available_groups), [g1](auto &g2) {
           return g1->free_capacity() == g2->free_capacity();
         });
     return pick_random(begin(available_groups), end_of_equal_groups_it);

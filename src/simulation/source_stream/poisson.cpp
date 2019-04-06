@@ -7,8 +7,7 @@
 #include "simulation/world.h"
 #include "types/types_format.h"
 
-namespace Simulation
-{
+namespace Simulation {
 PoissonSourceStream::PoissonSourceStream(const SourceName &name, const TrafficClass &tc)
   : SourceStream(name, tc)
 {
@@ -29,11 +28,12 @@ PoissonSourceStream::init()
 EventPtr
 PoissonSourceStream::create_request(Time time)
 {
-  if (pause_) {
+  if (pause_)
+  {
     return std::make_unique<Event>(EventType::None, world_->get_uuid(), time);
   }
   Duration dt{exponential(world_->get_random_engine())};
-  auto load = create_load(time + dt, tc_.size);
+  auto     load = create_load(time + dt, tc_.size);
   debug_print("{} Produced: {}\n", *this, load);
 
   return std::make_unique<LoadServiceRequestEvent>(world_->get_uuid(), load);

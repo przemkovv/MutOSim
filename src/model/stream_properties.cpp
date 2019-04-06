@@ -4,12 +4,11 @@
 #include "logger.h"
 #include "types/types_format.h"
 
-namespace Model
-{
+namespace Model {
 OutgoingRequestStream::OutgoingRequestStream(
     const TrafficClass &tc_,
-    const Probability &blocking_probability_,
-    const Intensity &intensity_)
+    const Probability & blocking_probability_,
+    const Intensity &   intensity_)
   : tc(tc_),
     blocking_probability(blocking_probability_),
     intensity(intensity_),
@@ -86,4 +85,3 @@ IncomingRequestStream::IncomingRequestStream(const TrafficClass &source_tc)
 } // namespace Model
 
 //----------------------------------------------------------------------
-

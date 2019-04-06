@@ -1,7 +1,6 @@
 #pragma once
 
-namespace Model
-{
+namespace Model {
 enum class AnalyticModel { KaufmanRobertsFixedCapacity, KaufmanRobertsFixedReqSize };
 enum class KaufmanRobertsVariant { FixedCapacity, FixedReqSize };
 

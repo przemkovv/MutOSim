@@ -6,8 +6,7 @@
 #include <gsl/gsl>
 #include <optional>
 
-namespace Simulation
-{
+namespace Simulation {
 struct Group;
 struct Load;
 class World;
@@ -30,11 +29,11 @@ protected:
   World *world_ = nullptr;
 
   // TODO(PW): extract it to scenario settings
-  static constexpr int overflows_per_layer = 2;
+  static constexpr int             overflows_per_layer = 2;
   std::array<int, MaxLayersNumber> count_layers_usage(const Path &path) const;
 
   std::optional<Group *> fallback_policy();
-  std::vector<Group *> get_available_groups(const Load &load, Layer layer);
+  std::vector<Group *>   get_available_groups(const Load &load, Layer layer);
 
   template <typename BeginIt, typename EndIt>
   Group *pick_random(BeginIt &&begin, EndIt &&end);
@@ -45,7 +44,7 @@ public:
   OverflowPolicy &operator=(const OverflowPolicy &) = delete;
 
   virtual std::optional<Group *> find_next_group(const Load &load);
-  void set_world(World &world);
+  void                           set_world(World &world);
   virtual ~OverflowPolicy() = default;
 };
 

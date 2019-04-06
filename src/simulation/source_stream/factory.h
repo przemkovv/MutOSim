@@ -6,8 +6,7 @@
 
 #include <memory>
 
-namespace Simulation
-{
-std::unique_ptr<SourceStream> create_stream(
-    Config::SourceType type, const Config::Source &source, const TrafficClass &tc);
+namespace Simulation {
+std::unique_ptr<SourceStream>
+create_stream(Config::SourceType type, const Config::Source &source, const TrafficClass &tc);
 }

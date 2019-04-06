@@ -5,8 +5,7 @@
 #include <fmt/format.h>
 #include <random>
 
-namespace Simulation
-{
+namespace Simulation {
 class EngsetSourceStream : public SourceStream
 {
   Count sources_number_;
@@ -29,9 +28,7 @@ public:
   void notify_on_request_accept(const LoadServiceRequestEvent *event) override;
   void notify_on_request_drop(const LoadServiceRequestEvent *event) override;
 
-  EngsetSourceStream(
-      const SourceName &name, const TrafficClass &tc, Count sources_number);
+  EngsetSourceStream(const SourceName &name, const TrafficClass &tc, Count sources_number);
 };
 
 } // namespace Simulation
-

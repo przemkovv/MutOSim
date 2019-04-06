@@ -69,7 +69,8 @@ public:
 
 namespace fmt {
 template <>
-struct formatter<Simulation::World> {
+struct formatter<Simulation::World>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {

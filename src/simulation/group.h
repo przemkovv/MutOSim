@@ -16,15 +16,16 @@
 #include <unordered_set>
 #include <vector>
 
-namespace Simulation
+namespace Simulation {
+struct CanServeRecursiveResult
 {
-struct CanServeRecursiveResult {
   bool recursively;
   bool local;
        operator bool() { return recursively || local; }
 };
 
-struct CanServeResult {
+struct CanServeResult
+{
   bool              can_serve;
   CompressionRatio *compression_ratio;
   size_t            bucket;
@@ -36,7 +37,8 @@ using CompressionRatios =
 std::vector<Capacity>
 operator-(const std::vector<Capacity> &capacities, const std::vector<Size> &sizes);
 
-struct Group {
+struct Group
+{
   GroupId               id{};
   const GroupName       name_;
   std::vector<Capacity> capacity_;
@@ -63,7 +65,10 @@ struct Group {
   const std::vector<Group *> &next_groups() { return next_groups_; }
 
   void add_compression_ratio(
-      TrafficClassId tc_id, Capacity threshold, Size size, IntensityFactor intensity_factor);
+      TrafficClassId  tc_id,
+      Capacity        threshold,
+      Size            size,
+      IntensityFactor intensity_factor);
   void block_traffic_class(TrafficClassId tc_id);
 
   void set_end_time(Load &load, IntensityFactor intensity_factor);
@@ -102,10 +107,10 @@ struct Group {
 
 } // namespace Simulation
 
-namespace fmt
-{
+namespace fmt {
 template <>
-struct formatter<Simulation::Group> {
+struct formatter<Simulation::Group>
+{
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
   {
