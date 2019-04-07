@@ -1,6 +1,7 @@
 
 #include "test.h"
 
+#include "analytical.h"
 #include "erlang_formula.h"
 #include "logger.h"
 #include "math_utils.h"
@@ -33,7 +34,7 @@ test1()
 
     println(
         "combinatorial_arrangement_number = {}",
-        combinatorial_arrangement_number(x, resources_number, f));
+        combinatorial_arrangement_number(x, ResourceComponent{resources_number, f}));
   }
   {
     Capacity x{5};
@@ -45,7 +46,7 @@ test1()
 
     println(
         "combinatorial_arrangement_number = {}",
-        combinatorial_arrangement_number(x, resources_number, f));
+        combinatorial_arrangement_number(x, ResourceComponent{resources_number, f}));
   }
   {
     Capacity x{5};
@@ -57,7 +58,7 @@ test1()
 
     println(
         "combinatorial_arrangement_number = {}",
-        combinatorial_arrangement_number(x, resources_number, f));
+        combinatorial_arrangement_number(x, ResourceComponent{resources_number, f}));
   }
 }
 
@@ -83,7 +84,7 @@ test2()
 
       println(
           "conditional_transition_probability = {}",
-          conditional_transition_probability(n, V, resources_number, f, t));
+          conditional_transition_probability(n, ResourceComponent{resources_number, f}, t));
     } catch (const std::exception &ex)
     {
       println(ex.what());
@@ -125,8 +126,8 @@ test3()
 
       try
       {
-        auto chi =
-            conditional_transition_probability(previous_state, V, resources_number, f, Size{2});
+        auto chi = conditional_transition_probability(
+            previous_state, ResourceComponent{resources_number, f}, Size{2});
         state[size_t(n)] += Intensity{1} * tc_size * chi * previous_state_value;
       } catch (const std::exception &ex)
       {
@@ -147,13 +148,13 @@ test4()
   IncomingRequestStreams irss{irs};
   Resource               res{Capacity{8}};
   // Resource               res{{
-      // {Count{1}, Capacity{8}},
-      // {Count{1}, Capacity{3}},
-      // {Count{1}, Capacity{3}},
-      // {Count{1}, Capacity{3}},
+  // {Count{1}, Capacity{8}},
+  // {Count{1}, Capacity{3}},
+  // {Count{1}, Capacity{3}},
+  // {Count{1}, Capacity{3}},
   // }};
 
-  auto s1 = kaufman_roberts_distribution(irss, res, KaufmanRobertsVariant::FixedReqSize);
+  auto s1 = kaufman_roberts_distribution(irss, res, Size{0}, KaufmanRobertsVariant::FixedReqSize);
   // auto s2 = kaufman_roberts_distribution(irss, res.V(), KaufmanRobertsVariant::FixedReqSize);
   println("S1: {}", s1);
   // println("S2: {}", s2);
@@ -161,12 +162,18 @@ test4()
 }
 
 void
+test5()
+{
+  analytical_computations_hardcoded();
+  analytical_computations_hardcoded_components();
+}
+void
 test()
 {
   // test1();
   // test2();
   // test3();
-  test4();
+  test5();
 }
 
 } // namespace Model

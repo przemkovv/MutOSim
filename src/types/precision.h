@@ -73,7 +73,7 @@ struct Capacity : ts::strong_typedef<Capacity<Prec, UseFloat>, count_t<Prec, Use
   {
   }
 
-  explicit operator Capacity<Prec, use_int_tag>()
+  explicit operator Capacity<Prec, use_int_tag>() const
   {
     return Capacity<Prec, use_int_tag>{static_cast<count_t<Prec>>(get(*this))};
   }

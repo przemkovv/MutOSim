@@ -62,6 +62,8 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/model/stream_properties_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/model/test.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/model/test.h"
+  "${CMAKE_CURRENT_LIST_DIR}/model/resource.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/model/resource.h"
 
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/simple.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/simple.h"

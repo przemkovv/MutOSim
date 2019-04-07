@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common.h"
+#include "resource.h"
 #include "stream_properties.h"
 #include "types/types.h"
 
@@ -15,8 +16,8 @@ struct Group
 {
 private:
   std::map<TrafficClassId, IncomingRequestStream> in_request_streams_{};
-  const std::vector<Capacity>                     V_;
-  const Capacity                                  total_V_ = ranges::accumulate(V_, Capacity{});
+  const Resource<>                                  resource_;
+  const Capacity                                  total_V_ = resource_.V();
 
   mutable OutgoingRequestStreams out_request_streams_{};
   mutable bool                   need_recalculate_ = true;
@@ -29,6 +30,7 @@ public:
 
   Group(Capacity V, KaufmanRobertsVariant kr_variant);
   Group(std::vector<Capacity> V, KaufmanRobertsVariant kr_variant);
+  Group(Resource<> resource, KaufmanRobertsVariant kr_variant);
 
   template <typename RequestStream>
   void add_incoming_request_stream(const RequestStream &request_stream);

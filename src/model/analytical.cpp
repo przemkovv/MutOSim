@@ -29,6 +29,8 @@
 namespace rng = ranges;
 
 namespace Model {
+
+//----------------------------------------------------------------------
 void
 analytical_computations_hardcoded()
 {
@@ -39,20 +41,46 @@ analytical_computations_hardcoded()
       TrafficClass{TrafficClassId{2}, Intensity{10.0L}, Intensity{1.0L}, Size{2}, {}});
   traffic_classes1.emplace_back(
       TrafficClass{TrafficClassId{3}, Intensity{3.33333L}, Intensity{1.0L}, Size{6}, {}});
-  Model::Group g1{Capacity{60}, KaufmanRobertsVariant::FixedReqSize};
-  Model::Group g2{Capacity{60}, KaufmanRobertsVariant::FixedReqSize};
-  Model::Group g3{Capacity{60}, KaufmanRobertsVariant::FixedReqSize};
+  Model::Group g1{{Capacity{60}}, KaufmanRobertsVariant::FixedCapacity};
+  Model::Group g2{{Capacity{60}}, KaufmanRobertsVariant::FixedCapacity};
+  Model::Group g3{{Capacity{60}}, KaufmanRobertsVariant::FixedCapacity};
   g1.add_incoming_request_streams(traffic_classes1);
   g2.add_incoming_request_streams(traffic_classes1);
   g3.add_incoming_request_streams(traffic_classes1);
 
-  Model::Group g0{Capacity{42}, KaufmanRobertsVariant::FixedReqSize};
+  Model::Group g0{Capacity{42}, KaufmanRobertsVariant::FixedCapacity};
   g0.add_incoming_request_streams(g1.get_outgoing_request_streams());
   g0.add_incoming_request_streams(g2.get_outgoing_request_streams());
   g0.add_incoming_request_streams(g3.get_outgoing_request_streams());
 
+  println("{}", g1.get_outgoing_request_streams());
   println("{}", g0.get_outgoing_request_streams());
 }
+
+//----------------------------------------------------------------------
+void
+analytical_computations_hardcoded_components()
+{
+  IncomingRequestStreams traffic_classes1;
+  traffic_classes1.emplace_back(
+      TrafficClass{TrafficClassId{1}, Intensity{20.0L}, Intensity{1.0L}, Size{1}, {}});
+  traffic_classes1.emplace_back(
+      TrafficClass{TrafficClassId{2}, Intensity{10.0L}, Intensity{1.0L}, Size{2}, {}});
+  traffic_classes1.emplace_back(
+      TrafficClass{TrafficClassId{3}, Intensity{3.33333L}, Intensity{1.0L}, Size{6}, {}});
+  Model::Group g1{{Count{3}, Capacity{60}}, KaufmanRobertsVariant::FixedCapacity};
+  g1.add_incoming_request_streams(traffic_classes1);
+  g1.add_incoming_request_streams(traffic_classes1);
+  g1.add_incoming_request_streams(traffic_classes1);
+
+  Model::Group g0{Capacity{42}, KaufmanRobertsVariant::FixedCapacity};
+  g0.add_incoming_request_streams(g1.get_outgoing_request_streams());
+
+  println("{}", g1.get_outgoing_request_streams());
+  println("{}", g0.get_outgoing_request_streams());
+}
+
+//----------------------------------------------------------------------
 void
 analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_variant)
 {
@@ -130,6 +158,7 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
     }
   }
 }
+//----------------------------------------------------------------------
 void
 analytical_computations(ScenarioSettings &scenario_settings)
 {
@@ -144,6 +173,7 @@ analytical_computations(ScenarioSettings &scenario_settings)
   }
 }
 
+//----------------------------------------------------------------------
 LayerType
 check_layer_type(const Simulation::Topology &topology, Layer layer)
 {
@@ -185,6 +215,8 @@ check_layer_type(const Simulation::Topology &topology, Layer layer)
   debug_println("[Analytical] Layer: {}, Unkown", layer);
   return LayerType::Unknown;
 }
+
+//----------------------------------------------------------------------
 bool
 check_model_prerequisites(const ScenarioSettings &scenario)
 {
@@ -193,6 +225,7 @@ check_model_prerequisites(const ScenarioSettings &scenario)
         return check_layer_type(scenario.topology, layer) != LayerType::Unknown;
       });
 }
+//----------------------------------------------------------------------
 
 boost::container::flat_map<Layer, LayerType>
 determine_layers_types(const Simulation::Topology &topology)

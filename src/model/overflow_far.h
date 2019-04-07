@@ -1,6 +1,7 @@
 #pragma once
 
 #include "model/common.h"
+#include "resource.h"
 #include "stream_properties.h"
 #include "stream_properties_format.h"
 #include "traffic_class.h"
@@ -12,33 +13,15 @@
 namespace Model {
 using Probabilities = std::vector<Probability>;
 
-struct ResourceComponent
-{
-  Count    number; // v_s
-  Capacity v;      // f_s
-  Capacity V() const;
-};
-
-struct Resource
-{
-  std::vector<ResourceComponent> components;
-
-  Resource(Capacity capacity) : Resource({{Count{1}, capacity}}) {}
-  Resource(Count count, Capacity capacity) : Resource({{count, capacity}}) {}
-  Resource(std::initializer_list<ResourceComponent> initializer_list) : components(initializer_list)
-  {
-  }
-  Capacity V() const;
-};
-
 Probabilities kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
-    Resource                      resource,
+    Resource<>                    resource,
+    Size                          offset,
     KaufmanRobertsVariant         kr_variant);
 
 OutgoingRequestStreams kaufman_roberts_blocking_probability(
     const IncomingRequestStreams &in_request_streams,
-    CapacityF                     V,
+    Resource<CapacityF>           resource,
     KaufmanRobertsVariant         kr_variant);
 
 OutgoingRequestStreams
@@ -63,17 +46,11 @@ CapacityF compute_fictitious_capacity_fit_carried_traffic(
     TrafficClassId                tc_id,
     KaufmanRobertsVariant         kr_variant);
 
-Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
-
-Probability conditional_transition_probability(
-    Capacity n,
-    Capacity V,
-    Count    resources_number,
-    Capacity f,
-    Size     t);
+// Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
+Count combinatorial_arrangement_number(Capacity x, const ResourceComponent<> &component);
 
 Probability
-conditional_transition_probability(Capacity n, const ResourceComponent &component, Size t);
+conditional_transition_probability(Capacity n, const ResourceComponent<> &component, Size t);
 
 Count combinatorial_arrangement_number_unequal_resources(
     Capacity /*x*/,

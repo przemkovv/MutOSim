@@ -22,18 +22,12 @@ struct formatter<GroupName>
 };
 
 template <>
-struct formatter<TrafficClassId>
+struct formatter<TrafficClassId> : formatter<uuid_t>
 {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext &ctx)
-  {
-    return ctx.begin();
-  }
-
   template <typename FormatContext>
   auto format(const TrafficClassId &id, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(id));
+    return formatter<uuid_t>::format(get(id), ctx);
   }
 };
 template <>
@@ -169,18 +163,12 @@ struct formatter<TypesPrecision::MeanIntensity<P>>
 };
 
 template <typename P, typename Tag>
-struct formatter<TypesPrecision::Intensity<P, Tag>>
+struct formatter<TypesPrecision::Intensity<P, Tag>> : formatter<intensity_t<P, Tag>>
 {
-  template <typename ParseContext>
-  constexpr auto parse(ParseContext &ctx)
-  {
-    return ctx.begin();
-  }
-
   template <typename FormatContext>
   auto format(const TypesPrecision::Intensity<P, Tag> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return formatter<intensity_t<P, Tag>>::format(get(value), ctx);
   }
 };
 

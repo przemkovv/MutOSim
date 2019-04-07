@@ -39,20 +39,6 @@ struct difference_type<::Capacity>
 namespace Model {
 //----------------------------------------------------------------------
 //
-Capacity
-ResourceComponent::V() const
-{
-  return number * v;
-}
-
-Capacity
-Resource::V() const
-{
-  return rng::accumulate(
-      components, Capacity{0}, [](const Capacity &V, const ResourceComponent &rc) {
-        return V + rc.V();
-      });
-}
 
 //----------------------------------------------------------------------
 IncomingRequestStreams
@@ -146,10 +132,11 @@ compute_fictitious_capacity_fit_carried_traffic(
 Probabilities
 kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
-    Resource                      resource,
+    Resource<>                    resource,
+    Size                          offset,
     KaufmanRobertsVariant         kr_variant)
 {
-  const auto    V = resource.V();
+  const auto    V = resource.V() + offset;
   Probabilities state(size_t(V) + 1, Probability{0});
   state[0] = Probability{1};
 
@@ -202,13 +189,14 @@ kaufman_roberts_distribution(
 OutgoingRequestStreams
 kaufman_roberts_blocking_probability(
     const IncomingRequestStreams &in_request_streams,
-    CapacityF                     V,
+    Resource<CapacityF>           resource,
     KaufmanRobertsVariant         kr_variant)
 {
-  auto distribution =
-      kaufman_roberts_distribution(in_request_streams, Resource{Capacity{V}}, kr_variant);
+  CapacityF V = resource.V();
+  auto      distribution =
+      kaufman_roberts_distribution(in_request_streams, Resource<>{resource}, Size{0}, kr_variant);
   auto distribution2 =
-      kaufman_roberts_distribution(in_request_streams, Resource{Capacity{V} + Size{1}}, kr_variant);
+      kaufman_roberts_distribution(in_request_streams, Resource<>{resource}, Size{1}, kr_variant);
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams)
   {
@@ -277,10 +265,10 @@ compute_overflow_parameters(OutgoingRequestStreams out_request_streams, Capacity
 //----------------------------------------------------------------------
 // Formula (3.35)
 Count
-combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
+combinatorial_arrangement_number(Capacity x, const ResourceComponent<> &component)
 {
-  Count upper_limit{get(x) / (get(f) + 1)};
-  if (upper_limit > resources_number)
+  Count upper_limit{get(x) / (get(component.v) + 1)};
+  if (upper_limit > component.number)
   {
     return Count{0};
   }
@@ -289,10 +277,10 @@ combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f)
         auto factor1 = (1 - 2 * (get(iota) % 2));
         // println("iota {}, f1 {}", iota, factor1);
         std::cout.flush();
-        auto factor2 = Math::n_over_k(resources_number, iota);
+        auto factor2 = Math::n_over_k(component.number, iota);
         auto factor3 = Math::n_over_k(
-            Count{get(x) + get(resources_number) - get(iota) * (get(f) + 1) - 1},
-            resources_number - Count{1});
+            Count{get(x) + get(component.number) - get(iota) * (get(component.v) + 1) - 1},
+            component.number - Count{1});
         return Count{factor1 * get(factor2) * get(factor3)};
       }),
       Count{0});
@@ -317,24 +305,12 @@ combinatorial_arrangement_number_unequal_resources(
 //----------------------------------------------------------------------
 // Formula (3.34)
 Probability
-conditional_transition_probability(
-    Capacity n,
-    Capacity V,
-    Count    resources_number,
-    Capacity f,
-    Size     t)
-{
-  auto nominator = combinatorial_arrangement_number(V - n, resources_number, Capacity{get(t) - 1});
-  auto denominator = combinatorial_arrangement_number(V - n, resources_number, f);
-  return Probability{1} - Probability{nominator / denominator};
-}
-
-Probability
-conditional_transition_probability(Capacity n, const ResourceComponent &component, Size t)
+conditional_transition_probability(Capacity n, const ResourceComponent<> &component, Size t)
 {
   auto V = component.V();
-  auto nominator = combinatorial_arrangement_number(V - n, component.number, Capacity{get(t) - 1});
-  auto denominator = combinatorial_arrangement_number(V - n, component.number, component.v);
+  auto nominator =
+      combinatorial_arrangement_number(V - n, {component.number, Capacity{get(t) - 1}});
+  auto denominator = combinatorial_arrangement_number(V - n, component);
   return Probability{1} - Probability{nominator / denominator};
 }
 
