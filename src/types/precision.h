@@ -305,6 +305,12 @@ operator/(const Count<Prec> &c1, const Count<Prec> &c2)
                      / static_cast<ratio_t<Prec>>(ts::get(c2))};
 }
 
+template <typename Prec>
+constexpr auto operator*(const Count<Prec> &count, const Count<Prec> &count2)
+{
+  return Count<Prec>{get(count2) * get(count)};
+}
+
 template <typename Prec, typename CapacityUseFloat>
 constexpr auto operator*(const Count<Prec> &count, const Capacity<Prec, CapacityUseFloat> &c)
 {

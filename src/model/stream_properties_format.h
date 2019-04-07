@@ -78,6 +78,7 @@ struct formatter<std::vector<T>>
       }
       format_to(ctx.out(), s);
     }
+    format_to(ctx.out(), "]");
     return ctx.out();
   }
 };

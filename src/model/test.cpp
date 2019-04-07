@@ -143,22 +143,24 @@ test3()
 void
 test4()
 {
-  auto tc = TrafficClass{TrafficClassId{1}, Intensity{0.5}, Intensity{0.5}, Size{2}, Length{5}};
+  auto tc = TrafficClass{TrafficClassId{1}, Intensity{0.5}, Intensity{0.5}, Size{3}, Length{5}};
   IncomingRequestStream  irs{tc};
   IncomingRequestStreams irss{irs};
-  Resource               res{Capacity{8}};
-  // Resource               res{{
-  // {Count{1}, Capacity{8}},
-  // {Count{1}, Capacity{3}},
-  // {Count{1}, Capacity{3}},
-  // {Count{1}, Capacity{3}},
-  // }};
+  // Resource               res{Capacity{8}};
+  Resource res{{
+      {Count{1}, Capacity{8}},
+      {Count{1}, Capacity{12}},
+      {Count{1}, Capacity{4}},
+  }};
+  Resource res2{{
+      {Count{3}, Capacity{8}},
+  }};
 
   auto s1 = kaufman_roberts_distribution(irss, res, Size{0}, KaufmanRobertsVariant::FixedReqSize);
-  // auto s2 = kaufman_roberts_distribution(irss, res.V(), KaufmanRobertsVariant::FixedReqSize);
+  auto s2 = kaufman_roberts_distribution(irss, res2, Size{0}, KaufmanRobertsVariant::FixedReqSize);
   println("S1: {}", s1);
-  // println("S2: {}", s2);
-  // println("S1==S2: {}", s1 == s2);
+  println("S2: {}", s2);
+  println("S1==S2: {}", s1 == s2);
 }
 
 void
@@ -168,12 +170,71 @@ test5()
   analytical_computations_hardcoded_components();
 }
 void
+test6()
+{
+  {
+    Resource<> resource{
+        {Count{1}, Capacity{8}},
+        {Count{1}, Capacity{8}},
+        {Count{1}, Capacity{8}},
+    };
+    Resource<> resource2{
+        {Count{3}, Capacity{8}},
+    };
+    Capacity x{7};
+    println("x = {}", x);
+
+    println(
+        "combinatorial_arrangement_number = {}",
+        combinatorial_arrangement_number(x, resource2.components[0]));
+    println(
+        "combinatorial_arrangement_number_unequal_resources = {}",
+        combinatorial_arrangement_number_unequal_resources(x, resource));
+  }
+}
+[[maybe_unused]] static void
+test7()
+{
+  Resource<> resource{
+      {Count{1}, Capacity{8}},
+      {Count{1}, Capacity{8}},
+      {Count{1}, Capacity{8}},
+  };
+  ResourceComponent<> component{Count{3}, Capacity{8}};
+  Capacity            V{resource.V()};
+  for (Capacity n{0}; n <= V; ++n)
+  {
+    try
+    {
+      // Capacity n{5};
+      // Capacity V{5};
+      Size t{7};
+      println("n = {}", n);
+      // println("V = {}", V);
+      // println("t_c,s = {}", t);
+      std::cout.flush();
+
+      println(
+          "conditional_transition_probability = {}",
+          conditional_transition_probability(n, component, t));
+      println(
+          "conditional_transition_probability_not_equal = {}",
+          conditional_transition_probability(n, resource, t));
+    } catch (const std::exception &ex)
+    {
+      println(ex.what());
+    }
+  }
+}
+
+void
 test()
 {
   // test1();
   // test2();
   // test3();
-  test5();
+  test4();
+  // test7();
 }
 
 } // namespace Model

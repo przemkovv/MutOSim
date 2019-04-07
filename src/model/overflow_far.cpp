@@ -169,12 +169,19 @@ kaufman_roberts_distribution(
         {
           previous_state_value = state[size_t(previous_state)];
         }
-        ASSERT(resource.components.size() == 1, "Support only for multiple equal components.");
-        auto &component = resource.components[0];
-        auto  chi =
-            component.number > Count{1}
-                ? conditional_transition_probability(previous_state, component, Size(tc_size))
-                : Probability{1};
+        const auto chi = [&] {
+          if (resource.components.size() == 1)
+          {
+            auto &component = resource.components.front();
+            return component.number > Count{1} ? conditional_transition_probability(
+                       previous_state, component, Size(tc_size))
+                                               : Probability{1};
+          }
+          else
+          {
+            return conditional_transition_probability(previous_state, resource, Size(tc_size));
+          }
+        }();
 
         state[size_t(n)] += rs.intensity * tc_size * chi * previous_state_value;
       }
@@ -287,19 +294,77 @@ combinatorial_arrangement_number(Capacity x, const ResourceComponent<> &componen
 
   return Count{sum};
 }
+
+//----------------------------------------------------------------------
+
+struct NCounter
+{
+  const int64_t        N;
+  const int64_t        S;
+  std::vector<int64_t> value;
+  int64_t              sum_ = 0;
+
+  NCounter(int64_t N, int64_t S) : N(N), S(S), value(N) {}
+
+  NCounter &operator++()
+  {
+    for (int64_t i = 0; i < N; ++i)
+    {
+      if (value[i] < S)
+      {
+        value[i]++;
+        sum_++;
+        break;
+      }
+      else
+      {
+        sum_ -= value[i];
+        value[i] = 0;
+      }
+    }
+    return *this;
+  }
+
+  int64_t sum() { return sum_; }
+};
+
 //----------------------------------------------------------------------
 // Formula 3.38
 Count
 combinatorial_arrangement_number_unequal_resources(
-    Capacity /*x*/, // number of free allocation units
-    std::vector<Count> components_numbers,
-    std::vector<Capacity> /*components_capacities*/)
+    Capacity   x, // number of free allocation units
+    Resource<> resource)
 {
-  const auto component_types_number = components_numbers.size(); // chi_s
+  const auto component_types_number = static_cast<int64_t>(resource.components.size()) - 1; // chi_s
+  const auto &components = resource.components;
 
-  std::ignore = component_types_number;
+  int64_t stop_condition = component_types_number * get(x);
 
-  return Count{0};
+  std::vector<std::vector<int64_t>> all_coefficients;
+  NCounter                          counter(component_types_number, get(x));
+  while (counter.sum() < stop_condition)
+  {
+    if (counter.sum() <= get(x))
+    {
+      all_coefficients.push_back(counter.value);
+      all_coefficients.back().push_back(get(x) - counter.sum());
+    }
+    ++counter;
+  }
+
+  Count sum{0};
+  for (const auto &coefficients : all_coefficients)
+  {
+    Count factor{1};
+    for (uint64_t i = 0; i < coefficients.size(); ++i)
+    {
+      factor = factor * combinatorial_arrangement_number(Capacity{coefficients[i]}, components[i]);
+      // println("{} {} Factor {}", coefficients, i, factor);
+    }
+    sum += factor;
+  }
+
+  return sum;
 }
 
 //----------------------------------------------------------------------
@@ -311,6 +376,27 @@ conditional_transition_probability(Capacity n, const ResourceComponent<> &compon
   auto nominator =
       combinatorial_arrangement_number(V - n, {component.number, Capacity{get(t) - 1}});
   auto denominator = combinatorial_arrangement_number(V - n, component);
+  // println("nom: {}, denom: {}", nominator, denominator);
+  return Probability{1} - Probability{nominator / denominator};
+}
+//----------------------------------------------------------------------
+// Formula (3.37)
+Probability
+conditional_transition_probability(Capacity n, const Resource<> &resource, Size t)
+{
+  auto V = resource.V();
+  if (n == V)
+  {
+    return Probability{0};
+  }
+  auto nominator_resource = resource;
+  for (auto &component : nominator_resource.components)
+  {
+    component.v = Capacity{get(t) - 1};
+  }
+  auto nominator = combinatorial_arrangement_number_unequal_resources(V - n, nominator_resource);
+  auto denominator = combinatorial_arrangement_number_unequal_resources(V - n, resource);
+  // println("nom: {}, denom: {}", nominator, denominator);
   return Probability{1} - Probability{nominator / denominator};
 }
 
