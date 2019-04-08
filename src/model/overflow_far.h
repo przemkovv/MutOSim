@@ -15,7 +15,7 @@ using Probabilities = std::vector<Probability>;
 
 Probabilities kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
-    Resource<>                    resource,
+    Resource<CapacityF>           resource,
     Size                          offset,
     KaufmanRobertsVariant         kr_variant);
 
@@ -47,12 +47,16 @@ CapacityF compute_fictitious_capacity_fit_carried_traffic(
     KaufmanRobertsVariant         kr_variant);
 
 // Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
-Count combinatorial_arrangement_number(Capacity x, const ResourceComponent<> &component);
+template <typename C>
+Count combinatorial_arrangement_number(Capacity x, const ResourceComponent<C> &component);
 
+template <typename C>
 Probability
-conditional_transition_probability(Capacity n, const ResourceComponent<> &component, Size t);
+conditional_transition_probability(Capacity n, const ResourceComponent<C> &component, Size t);
 
-Count       combinatorial_arrangement_number_unequal_resources(Capacity x, Resource<> resource);
-Probability conditional_transition_probability(Capacity n, const Resource<> &resource, Size t);
+template <typename C>
+Count combinatorial_arrangement_number_unequal_resources(Capacity x, Resource<C> resource);
+template <typename C>
+Probability conditional_transition_probability(Capacity n, const Resource<C> &resource, Size t);
 
 } // namespace Model

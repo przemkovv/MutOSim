@@ -98,7 +98,7 @@ prepare_options_description()
     ("mode,m", po::value<Modes>()->multitoken()
                                  ->default_value(Modes{Mode::Simulation})
                                  ->zero_tokens(),
-                        "Selects mode in which run simulation:\n"
+                        "Selects mode in which run simulator:\n"
                         " - analytic\n"
                         " - simulation\n"
                         "Parameter can be repeated")
@@ -126,9 +126,9 @@ parse_args(const boost::program_options::variables_map &vm)
   cli.output_dir = vm["output-dir"].as<std::string>();
   cli.parallel = vm["parallel"].as<bool>();
   cli.duration = Duration{vm["duration"].as<time_type<>>()};
-  cli.A_start = Intensity{vm["start"].as<intensity_t<>>()};
-  cli.A_stop = Intensity{vm["stop"].as<intensity_t<>>()};
-  cli.A_step = Intensity{vm["step"].as<intensity_t<>>()};
+  cli.A_start = Simulation::Intensity{vm["start"].as<intensity_t<>>()};
+  cli.A_stop = Simulation::Intensity{vm["stop"].as<intensity_t<>>()};
+  cli.A_step = Simulation::Intensity{vm["step"].as<intensity_t<>>()};
   cli.count = vm["count"].as<int>();
   cli.modes = vm["mode"].as<Modes>();
 

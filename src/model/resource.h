@@ -3,6 +3,7 @@
 
 #include "types/types.h"
 
+#include <range/v3/algorithm/find_if.hpp>
 #include <range/v3/numeric/accumulate.hpp>
 #include <range/v3/to_container.hpp>
 #include <range/v3/view/transform.hpp>
@@ -36,8 +37,9 @@ ResourceComponent(Count, C)->ResourceComponent<C>;
 template <typename C = Capacity>
 struct Resource
 {
-  std::vector<ResourceComponent<C>> components;
+  std::vector<ResourceComponent<C>> components{};
 
+  Resource() = default;
   Resource(C capacity) : Resource({{Count{1}, capacity}}) {}
   Resource(Count count, C capacity) : Resource({{count, capacity}}) {}
   Resource(std::vector<ResourceComponent<C>> resourceComponents)
@@ -64,9 +66,10 @@ struct Resource
 
   C V() const
   {
-    return ranges::accumulate(components, C{0}, [](const C &V, const ResourceComponent<C> &rc) {
-      return V + rc.V();
-    });
+    return ranges::accumulate(
+        components, C{0}, [](const C &V, const ResourceComponent<C> &rc) {
+          return V + rc.V();
+        });
   }
   template <typename C2>
   operator Resource<C2>() const
@@ -77,14 +80,30 @@ struct Resource
         })
         | ranges::to_vector);
   }
+
+  void add_component(C capacity, Count number = Count{1})
+  {
+    if (auto it = ranges::find_if(
+            components,
+            [&](const auto &component) { return component.v == capacity; });
+        it != end(components))
+    {
+      it->number += number;
+    }
+    else
+    {
+      components.emplace_back(ResourceComponent<C>{number, capacity});
+    }
+  }
 };
 
 template <typename C>
 Resource<CapacityF>
 operator/(const Resource<C> &resource, Peakedness peakedness)
 {
-  return {resource.components
-          | ranges::view::transform([&](auto component) { return component / peakedness; })};
+  return {resource.components | ranges::view::transform([&](auto component) {
+            return component / peakedness;
+          })};
 }
 
 } // namespace Model

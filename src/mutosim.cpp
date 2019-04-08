@@ -82,7 +82,7 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 #endif
   for (auto i = 0ul; i < scenarios.size(); ++i)
   {
-    // println("Scenario: {}, file: {}", scenarios[i].name, scenarios[i].filename);
+    debug_println(fg(fmt::color::green), "Scenario: {}, file: {}", scenarios[i].name, scenarios[i].filename);
     nlohmann::json analytical_stats;
     switch (scenarios[i].mode)
     {
@@ -161,6 +161,7 @@ load_scenarios_from_files(
 {
   for (const auto &scenario_file : scenario_files)
   {
+    debug_println(fg(fmt::color::yellow), "Parsing '{}' file.", scenario_file);
     const auto [topology, topology_json] =
         Config::parse_topology_config(scenario_file, cli.append_scenario_files);
     // Config::dump(topology);
@@ -211,7 +212,7 @@ load_scenarios_from_files(
           {
             filename = fmt::format("{};{}", scenario_file, join(appended_filenames, ";"));
           }
-          scenario.filename = filename + fmt::format(";analytic;{}", model);
+          scenario.filename = fmt::format("{};analytic;{}", filename, model);
           scenario.json = topology_json;
           scenarios.emplace_back(std::move(scenario));
         }
@@ -224,6 +225,10 @@ load_scenarios_from_files(
 void
 prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 {
+  using Simulation::Intensity;
+  using Simulation::Capacity;
+  using Simulation::Count;
+
   if ((false))
   {
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step)

@@ -10,6 +10,9 @@
 #include <unordered_map>
 
 using nlohmann::json;
+using Simulation::Intensity;
+using Simulation::IntensityFactor;
+using Simulation::Capacity;
 
 namespace std {
 template <typename T>

@@ -71,7 +71,6 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/single_overflow.h"
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/topology_based.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/scenarios/topology_based.h"
-  "${CMAKE_CURRENT_LIST_DIR}/scenarios/simple.cpp"
 
   "${CMAKE_CURRENT_LIST_DIR}/simulation/world.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/world.h"
@@ -79,7 +78,6 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/simulation/stats_format.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/stats_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/stats.h"
-  "${CMAKE_CURRENT_LIST_DIR}/simulation/world.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/group.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/group.h"
   "${CMAKE_CURRENT_LIST_DIR}/simulation/load.cpp"
@@ -122,3 +120,4 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/types/parser.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/types/parser.h"
   )
+cotire(${TARGET_NAME})

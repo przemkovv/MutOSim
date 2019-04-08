@@ -14,9 +14,9 @@ class World;
 
 struct ScenarioSettings
 {
-  Name      name;
-  Intensity A{0};
-  Intensity a{0};
+  Name                  name;
+  Simulation::Intensity A{0};
+  Simulation::Intensity a{0};
 
   std::string filename = "";
 

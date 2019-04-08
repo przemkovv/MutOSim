@@ -21,7 +21,7 @@ struct formatter<Model::OutgoingRequestStream>
   {
     return format_to(
         ctx.begin(),
-        "[OutgoingRequestStream] {} P_block={}, V={}, A={}, R={}, sigma^2={}, Z={}, "
+        "[OutgoingRequestStream] {} P_block={}, V_fict={}, A={}, R={}, sigma^2={}, Z={}, "
         "Y={}",
         rs.tc,
         rs.blocking_probability,
@@ -53,6 +53,33 @@ struct formatter<Model::IncomingRequestStream>
         rs.variance,
         rs.peakedness,
         rs.intensity);
+  }
+};
+
+template <typename K, typename V>
+struct formatter<std::map<K, V>>
+{
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const std::map<K, V> &m, FormatContext &ctx)
+  {
+    format_to(ctx.out(), "S({}) [", std::size(m));
+    for (const auto &[k,v] : m)
+    {
+      auto s = fmt::format("('{}': '{}'), ", k, v);
+      if (s.size() > 16)
+      {
+        format_to(ctx.out(), "\n");
+      }
+      format_to(ctx.out(), s);
+    }
+    format_to(ctx.out(), "]");
+    return ctx.out();
   }
 };
 

@@ -63,7 +63,8 @@ Topology::add_traffic_class(
           || (!inserted
               && it->second
                      == TrafficClass{id, source_intensity, serve_intensity, size, max_path_length}),
-      "[Topology] Traffic class with id {} already exists.",
+      "[{}] [Topology] Traffic class with id {} already exists.",
+      location(),
       id);
   return it->second;
 }

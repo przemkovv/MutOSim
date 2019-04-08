@@ -13,13 +13,17 @@
 
 namespace Simulation {
 std::vector<Capacity>
-operator-(const std::vector<Capacity> &capacities, const std::vector<Size> &sizes)
+operator-(
+    const std::vector<Capacity> &capacities,
+    const std::vector<Size> &    sizes)
 {
   std::vector<Capacity> free_capacities(capacities.size());
   std::transform(
-      begin(capacities), end(capacities), begin(sizes), begin(free_capacities), [](auto x, auto y) {
-        return x - y;
-      });
+      begin(capacities),
+      end(capacities),
+      begin(sizes),
+      begin(free_capacities),
+      [](auto x, auto y) { return x - y; });
   return free_capacities;
 }
 
@@ -52,8 +56,9 @@ void
 Group::set_end_time(Load &load, IntensityFactor intensity_factor)
 {
   const auto &tcs = *traffic_classes_;
-  const auto  serve_intensity = intensity_factor * tcs.at(load.tc_id).serve_intensity;
-  auto        params = decltype(exponential)::param_type(ts::get(serve_intensity));
+  const auto  serve_intensity =
+      intensity_factor * tcs.at(load.tc_id).serve_intensity;
+  auto params = decltype(exponential)::param_type(ts::get(serve_intensity));
   exponential.param(params);
 
   Duration t_serv{exponential(world_->get_random_engine())};
@@ -123,7 +128,8 @@ Group::try_serve(Load load)
 
     update_block_stat(load);
 
-    world_->schedule(std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
+    world_->schedule(
+        std::make_unique<LoadServiceEndEvent>(world_->get_uuid(), load));
     return true;
   }
   debug_print("{} Forwarding request: {}\n", *this, load);
@@ -151,7 +157,8 @@ Group::update_unblock_stat(const Load &load)
   for (const auto &[tc_id, tc] : *traffic_classes_)
   {
     std::ignore = tc_id;
-    Path path; // = load.path; // NOTE(PW): should be considered length of the current
+    Path path; // = load.path; // NOTE(PW): should be considered length of the
+               // current
     if (auto [recursive, local] = can_serve_recursive(tc, path); local)
     {
       unblock_recursive(tc.id, load);
@@ -170,8 +177,10 @@ Group::update_block_stat(const Load &load)
   for (const auto &[tc_id, tc] : *traffic_classes_)
   {
     std::ignore = tc_id;
-    Path path; // = load.path; // NOTE(PW): should be considered length of the current
-    if (auto [recursive, local] = can_serve_recursive(tc, path); !local && recursive)
+    Path path; // = load.path; // NOTE(PW): should be considered length of the
+               // current
+    if (auto [recursive, local] = can_serve_recursive(tc, path);
+        !local && recursive)
     {
       block(tc.id, load);
     }
@@ -204,7 +213,11 @@ Group::unblock(TrafficClassId tc_id, const Load &load)
   auto &block_stats = stats_.blocked_by_tc[tc_id];
   if (block_stats.try_unblock(load.end_time))
   {
-    debug_print("{} Load: {}, Unblocking bt={}\n", *this, load, block_stats.block_time);
+    debug_print(
+        "{} Load: {}, Unblocking bt={}\n",
+        *this,
+        load,
+        block_stats.block_time);
   }
 }
 
@@ -229,7 +242,11 @@ Group::unblock_recursive(TrafficClassId tc_id, const Load &load)
   auto &block_stats = stats_.blocked_recursive_by_tc[tc_id];
   if (block_stats.try_unblock(load.end_time))
   {
-    debug_print("{} Load: {}, Unblocking recursive bt={}\n", *this, load, block_stats.block_time);
+    debug_print(
+        "{} Load: {}, Unblocking recursive bt={}\n",
+        *this,
+        load,
+        block_stats.block_time);
   }
 }
 CanServeResult
@@ -250,11 +267,14 @@ Group::can_serve(const TrafficClass &tc)
   {
     for (size_t bucket = {0}; bucket < size_.size(); ++bucket)
     {
-      if (const auto cr_it = tc_compression_it->second.lower_bound(Capacity{get(size_[bucket])});
+      if (const auto cr_it = tc_compression_it->second.lower_bound(
+              Capacity{get(size_[bucket])});
           cr_it != end(tc_compression_it->second))
       {
         // TODO(PW): verify if the condition is correct with multiple buckets
-        return {size_[bucket] + cr_it->second.size <= capacity_[bucket], &cr_it->second, bucket};
+        return {size_[bucket] + cr_it->second.size <= capacity_[bucket],
+                &cr_it->second,
+                bucket};
       }
     }
   }
@@ -287,7 +307,8 @@ Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 
   for (const auto &next_group : next_groups_)
   {
-    if (std::find(std::begin(path), std::end(path), next_group) == std::end(path))
+    if (std::find(std::begin(path), std::end(path), next_group)
+        == std::end(path))
     {
       return {bool(next_group->can_serve_recursive(tc, path)), false};
     }
@@ -298,8 +319,11 @@ Group::can_serve_recursive(const TrafficClass &tc, Path &path)
 bool
 Group::forward(Load load)
 {
-  // TODO(PW): if the max path has been reached, pass the load to the next layer
-  if (load.drop || load.served_by.size() >= traffic_classes_->at(load.tc_id).max_path_length)
+  // TODO(PW): if the max path has been reached, pass the load to the next
+  // layer
+  if (load.drop
+      || load.served_by.size()
+             >= traffic_classes_->at(load.tc_id).max_path_length)
   {
     drop(load);
     return false;

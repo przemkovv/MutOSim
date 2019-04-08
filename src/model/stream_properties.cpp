@@ -4,6 +4,8 @@
 #include "logger.h"
 #include "types/types_format.h"
 
+#include <cmath>
+
 namespace Model {
 OutgoingRequestStream::OutgoingRequestStream(
     const TrafficClass &tc_,
@@ -15,6 +17,7 @@ OutgoingRequestStream::OutgoingRequestStream(
     mean(intensity * blocking_probability),
     mean_request_number(intensity * blocking_probability.opposite())
 {
+  ASSERT(!isnan(get(peakedness)), "[{}] Peakedness shouldn't be nan.", location());
 }
 //----------------------------------------------------------------------
 IncomingRequestStream &
@@ -22,10 +25,12 @@ IncomingRequestStream::operator+=(const TrafficClass &source_tc)
 {
   ASSERT(
       tc.id == TrafficClassId{0} || tc.id == source_tc.id,
-      "Adding statistics of two different traffic classes ({}!={})",
+      "[{}] Adding statistics of two different traffic classes ({}!={})",
+      location(),
       tc.id,
       source_tc.id);
   *this += IncomingRequestStream(source_tc);
+  ASSERT(!isnan(get(peakedness)), "[{}] Peakedness shouldn't be nan.", location());
   return *this;
 }
 
@@ -34,7 +39,8 @@ IncomingRequestStream::operator+=(const IncomingRequestStream &rs)
 {
   ASSERT(
       tc.id == TrafficClassId{0} || tc.id == rs.tc.id,
-      "Adding statistics of two different traffic classes ({}!={})",
+      "[{}] Adding statistics of two different traffic classes ({}!={})",
+      location(),
       tc.id,
       rs.tc.id);
   mean += rs.mean;
@@ -42,6 +48,7 @@ IncomingRequestStream::operator+=(const IncomingRequestStream &rs)
   peakedness = variance / mean;
   intensity = mean / peakedness;
   tc = rs.tc;
+  ASSERT(!isnan(get(peakedness)), "[{}] Peakedness shouldn't be nan.", location());
 
   return *this;
 }
@@ -50,10 +57,12 @@ IncomingRequestStream::operator+=(const OutgoingRequestStream &rs)
 {
   ASSERT(
       tc.id == TrafficClassId{0} || tc.id == rs.tc.id,
-      "Adding statistics of two different traffic classes ({}!={})",
+      "[{}] Adding statistics of two different traffic classes ({}!={})",
+      location(),
       tc.id,
       rs.tc.id);
   *this += IncomingRequestStream(rs);
+  ASSERT(!isnan(get(peakedness)), "[{}] Peakedness shouldn't be nan.", location());
   return *this;
 }
 

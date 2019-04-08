@@ -5,9 +5,24 @@
 
 #include <vector>
 
-ScenarioSettings erlang_model(Intensity lambda, Capacity V);
-ScenarioSettings engset_model(Intensity lambda, Capacity V, Count N);
-ScenarioSettings engset2_model(Intensity lambda, Capacity V, Count N);
 ScenarioSettings
-                 poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity primary_V);
-ScenarioSettings pascal_source_model(Intensity lambda, Capacity V, Count S);
+erlang_model(Simulation::Intensity lambda, Simulation::Capacity V);
+
+ScenarioSettings engset_model(
+    Simulation::Intensity lambda,
+    Simulation::Capacity  V,
+    Simulation::Count     N);
+ScenarioSettings engset2_model(
+    Simulation::Intensity lambda,
+    Simulation::Capacity  V,
+    Simulation::Count     N);
+
+ScenarioSettings poisson_streams(
+    std::vector<Simulation::Intensity> As,
+    std::vector<Size>                  sizes,
+    Simulation::Capacity               primary_V);
+
+ScenarioSettings pascal_source_model(
+    Simulation::Intensity lambda,
+    Simulation::Capacity  V,
+    Simulation::Count     S);

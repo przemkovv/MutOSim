@@ -77,6 +77,7 @@ struct Group
 
   std::vector<Capacity> free_capacity() { return capacity_ - size_; }
   std::vector<Capacity> capacity() { return capacity_; }
+  Capacity              total_capacity() { return total_capacity_; }
   Layer                 layer() { return layer_; }
 
   CanServeResult          can_serve(const TrafficClass &tc);

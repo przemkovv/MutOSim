@@ -5,7 +5,7 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <optional>
 
-using float_hp = boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50>>;
+using float_hp = highp::float_t;
 
 float_hp erlang_b(float_hp V, float_hp A);
 float_hp erlang_b_inv(float_hp V, float_hp A);

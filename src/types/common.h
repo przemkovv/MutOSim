@@ -21,7 +21,7 @@ struct mediump
 
 struct highp
 {
-  using float_t = mp::number<mp::mpfr_float_backend<100>>;
+  using float_t = mp::number<mp::mpfr_float_backend<100>, mp::et_off>;
   using int_t = mp::mpz_int;
 };
 

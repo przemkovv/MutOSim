@@ -10,7 +10,12 @@
 #include "topology.h"
 #include "types/types_format.h"
 
+using Simulation::Capacity;
+using Simulation::Intensity;
+using Simulation::Count;
+
 //----------------------------------------------------------------------
+
 ScenarioSettings
 erlang_model(const Intensity lambda, const Capacity V)
 {
@@ -18,13 +23,14 @@ erlang_model(const Intensity lambda, const Capacity V)
   const auto A = lambda / serve_intensity;
   const auto size = Size(1);
 
-  auto name = fmt::format("Erlang model. lambda={},  mu={}, V={} ", lambda, serve_intensity, V);
+  auto name = fmt::format(
+      "Erlang model. lambda={},  mu={}, V={} ", lambda, serve_intensity, V);
   ScenarioSettings sim_settings{name};
 
   sim_settings.do_before = [=]() {
     print(
         "[Erlang] P_loss = P_block = E_V(A) = {}\n",
-        erlang_pk_distribution(get(A), ts::get(V), ts::get(V)));
+        erlang_pk_distribution(get(A), int64_t(get(V)), int64_t(get(V))));
   };
   sim_settings.do_after = sim_settings.do_before;
 
@@ -33,7 +39,8 @@ erlang_model(const Intensity lambda, const Capacity V)
   auto &tc = topology.add_traffic_class(lambda, serve_intensity, size);
 
   SourceName s1{"SPo1"};
-  topology.add_source(std::make_unique<Simulation::PoissonSourceStream>(s1, tc));
+  topology.add_source(
+      std::make_unique<Simulation::PoissonSourceStream>(s1, tc));
 
   GroupName g1{"G1"};
   topology.add_group(std::make_unique<Simulation::Group>(g1, V));
@@ -64,10 +71,10 @@ engset_model(const Intensity lambda, const Capacity V, const Count N)
   sim_settings.do_before = [=]() {
     print(
         "[Engset] P_block = E(alfa, V, N) = {}\n",
-        engset_pi(get(alpha), ts::get(V), ts::get(N), ts::get(V)));
+        engset_pi(get(alpha), int64_t(get(V)), get(N), int64_t(get(V))));
     print(
         "[Engset] P_loss = B(alpha, V, N) = E(alfa, V, N-1) = {}\n",
-        engset_pi(get(alpha), ts::get(V), ts::get(N) - 1, ts::get(V)));
+        engset_pi(get(alpha), int64_t(get(V)), get(N) - 1, int64_t(get(V))));
   };
   sim_settings.do_after = sim_settings.do_before;
 
@@ -77,7 +84,8 @@ engset_model(const Intensity lambda, const Capacity V, const Count N)
   SourceName s1{"SEn1"};
   topology.add_group(std::make_unique<Simulation::Group>(g1, V));
 
-  topology.add_source(std::make_unique<Simulation::EngsetSourceStream>(s1, tc, N));
+  topology.add_source(
+      std::make_unique<Simulation::EngsetSourceStream>(s1, tc, N));
   topology.attach_source_to_group(s1, g1);
 
   return sim_settings;
@@ -85,7 +93,10 @@ engset_model(const Intensity lambda, const Capacity V, const Count N)
 
 //----------------------------------------------------------------------
 ScenarioSettings
-poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity primary_V)
+poisson_streams(
+    std::vector<Intensity> As,
+    std::vector<Size>      sizes,
+    Capacity               primary_V)
 {
   auto             serve_intensity = Intensity(1.0L);
   ScenarioSettings sim_settings{"Single group with Poisson streams"};
@@ -101,8 +112,10 @@ poisson_streams(std::vector<Intensity> As, std::vector<Size> sizes, Capacity pri
   {
     SourceName sn{fmt::format("S{}", source_number)};
     Size       z = sizes[source_number];
-    auto &     tc = topology.add_traffic_class(As[source_number], serve_intensity, z);
-    topology.add_source(std::make_unique<Simulation::PoissonSourceStream>(sn, tc));
+    auto &     tc =
+        topology.add_traffic_class(As[source_number], serve_intensity, z);
+    topology.add_source(
+        std::make_unique<Simulation::PoissonSourceStream>(sn, tc));
 
     topology.attach_source_to_group(sn, g1);
   }
@@ -142,7 +155,8 @@ pascal_source_model(Intensity lambda, Capacity V, Count S)
   SourceName s1{"SPa1"};
   topology.add_group(std::make_unique<Simulation::Group>(g1, V));
 
-  topology.add_source(std::make_unique<Simulation::PascalSourceStream>(s1, tc, S));
+  topology.add_source(
+      std::make_unique<Simulation::PascalSourceStream>(s1, tc, S));
   topology.attach_source_to_group(s1, g1);
 
   return sim_settings;

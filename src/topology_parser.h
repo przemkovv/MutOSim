@@ -14,11 +14,11 @@ enum class SourceType { Poisson, Pascal, Engset };
 
 struct TrafficClass
 {
-  TrafficClassId id{};
-  Intensity      serve_intensity{};
-  Size           size{};
-  Weight         weight{};
-  Length         max_path_length{};
+  TrafficClassId        id{};
+  Simulation::Intensity serve_intensity{};
+  Size                  size{};
+  Weight                weight{};
+  Length                max_path_length{};
 };
 
 struct Source
@@ -26,15 +26,15 @@ struct Source
   SourceName     name{};
   SourceType     type{};
   TrafficClassId tc_id{};
-  Count          source_number{};
+  Simulation::Count          source_number{};
   GroupName      attached{};
 };
 
 struct CompressionRatio
 {
-  Capacity        threshold{};
-  Size            size{};
-  IntensityFactor intensity_factor{};
+  Simulation::Capacity        threshold{};
+  Size                        size{};
+  Simulation::IntensityFactor intensity_factor{};
 };
 
 struct TrafficClassSettings
@@ -45,13 +45,14 @@ struct TrafficClassSettings
 
 struct Group
 {
-  GroupName                                                name{};
-  std::vector<Capacity>                                    capacities{};
-  Layer                                                    layer{};
-  Intensity                                                intensity_multiplier{};
-  std::optional<OverflowPolicyName>                        overflow_policy{};
-  std::vector<GroupName>                                   connected{};
-  std::unordered_map<TrafficClassId, TrafficClassSettings> traffic_classess_settings{};
+  GroupName                         name{};
+  std::vector<Simulation::Capacity> capacities{};
+  Layer                             layer{};
+  Simulation::Intensity             intensity_multiplier{};
+  std::optional<OverflowPolicyName> overflow_policy{};
+  std::vector<GroupName>            connected{};
+  std::unordered_map<TrafficClassId, TrafficClassSettings>
+      traffic_classess_settings{};
 };
 
 struct Topology
@@ -62,7 +63,7 @@ struct Topology
   std::unordered_map<GroupName, Group>             groups{};
 };
 
-nlohmann::json                      load_topology_config(const std::string &filename);
+nlohmann::json load_topology_config(const std::string &filename);
 std::pair<Topology, nlohmann::json> parse_topology_config(
     const std::string &             filename,
     const std::vector<std::string> &append_filenames);

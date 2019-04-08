@@ -6,6 +6,7 @@ project(MSMutONet)
 #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+include(cotire)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYjkPES)
   message(STATUS "No build type selected, default to Release")
@@ -25,7 +26,7 @@ set(CMAKE_COLOR_MAKEFILE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -64,6 +65,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     -Wno-return-type
     -fdiagnostics-color=always
     -fdiagnostics-show-template-tree
+    -fmax-errors=5
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
@@ -76,7 +78,7 @@ include(ExternalProject)
 ExternalProject_Add(type_safe
     GIT_REPOSITORY https://github.com/foonathan/type_safe
     INSTALL_DIR ${PROJECT_BINARY_DIR}
-    GIT_TAG 4258afeecbc74f6b8ea7df9b4cff5b867b4aab4c
+    # GIT_TAG 4258afeecbc74f6b8ea7df9b4cff5b867b4aab4c
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DTYPE_SAFE_BUILD_TEST_EXAMPLE=OFF
     UPDATE_COMMAND ""
 )
@@ -131,19 +133,25 @@ endif()
 
 ADD_CUSTOM_TARGET(debug
   COMMAND ${CMAKE_COMMAND} -DSINGLE_THREADED=1 -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
+  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
   COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
   )
 
-ADD_CUSTOM_TARGET(sim_debug
+ADD_CUSTOM_TARGET(debug_verbose
+  COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=1 -DSINGLE_THREADED=1 -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
+  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
+  COMMENT "Switch CMAKE_BUILD_TYPE to verbose Debug"
+  )
+
+ADD_CUSTOM_TARGET(release_verbose
   COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=1 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all  --
-  COMMENT "Switch CMAKE_BUILD_TYPE to Release"
+  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all  --
+  COMMENT "Switch CMAKE_BUILD_TYPE to verbose Release"
   )
 
 ADD_CUSTOM_TARGET(release
   COMMAND ${CMAKE_COMMAND} -DSINGLE_THREADED=0 -DSIM_DEBUG=0 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
+  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
   COMMENT "Switch CMAKE_BUILD_TYPE to Release"
   )
 

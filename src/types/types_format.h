@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.h"
 #include "types.h"
 
 #include <fmt/format.h>
@@ -219,6 +220,7 @@ struct formatter<TypesPrecision::Duration<P>>
     return format_to(ctx.begin(), "{}", get(value));
   }
 };
+
 template <typename P>
 struct formatter<TypesPrecision::Count<P>>
 {
@@ -234,5 +236,36 @@ struct formatter<TypesPrecision::Count<P>>
     return format_to(ctx.begin(), "{}", get(value));
   }
 };
+template <>
+struct formatter<highp::float_t>
+{
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const highp::float_t &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", mediump::float_t(value));
+  }
+};
+template <>
+struct formatter<highp::int_t>
+{
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const highp::int_t &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", mediump::int_t(value));
+  }
+};
+
 
 } // namespace fmt

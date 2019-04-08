@@ -8,11 +8,11 @@
 
 struct TrafficClass
 {
-  TrafficClassId id;
-  Intensity      source_intensity;
-  Intensity      serve_intensity;
-  Size           size;
-  Length         max_path_length;
+  TrafficClassId        id;
+  Simulation::Intensity source_intensity;
+  Simulation::Intensity serve_intensity;
+  Size                  size;
+  Length                max_path_length;
 };
 
 bool operator==(const TrafficClass &tc1, const TrafficClass &tc2);
