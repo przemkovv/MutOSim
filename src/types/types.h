@@ -8,36 +8,37 @@
 
 namespace ts = type_safe;
 namespace Model {
-using Intensity = TypesPrecision::Intensity<highp, use_float_tag>;
-using IntensityFactor = TypesPrecision::IntensityFactor<highp>;
-using Ratio = TypesPrecision::Ratio<highp>;
-using Capacity = TypesPrecision::Capacity<mediump, use_int_tag>;
-using Count = TypesPrecision::Count<mediump>;
+using Intensity = TypesPrecision::Intensity_<highp, use_float_tag>;
+using IntensityFactor = TypesPrecision::IntensityFactor_<highp>;
+using Ratio = TypesPrecision::Ratio_<highp>;
+using Capacity = TypesPrecision::Capacity_<highp, use_int_tag>;
+using Count = TypesPrecision::Count_<highp>;
 
 } // namespace Model
 
+
 namespace Simulation {
-using Intensity = TypesPrecision::Intensity<mediump, use_float_tag>;
-using IntensityFactor = TypesPrecision::IntensityFactor<mediump>;
-using Ratio = TypesPrecision::Ratio<mediump>;
-using Capacity = TypesPrecision::Capacity<mediump, use_int_tag>;
-using Count = TypesPrecision::Count<mediump>;
+using Intensity = TypesPrecision::Intensity_<mediump, use_float_tag>;
+using IntensityFactor = TypesPrecision::IntensityFactor_<mediump>;
+using Ratio = TypesPrecision::Ratio_<mediump>;
+using Capacity = TypesPrecision::Capacity_<mediump, use_int_tag>;
+using Count = TypesPrecision::Count_<mediump>;
 } // namespace Simulation
 
-using CapacityF = TypesPrecision::Capacity<highp, use_float_tag>;
-using Weight = TypesPrecision::Weight<mediump, use_int_tag>;
-using WeightF = TypesPrecision::Weight<highp, use_float_tag>;
-using Size = TypesPrecision::Size<mediump, use_int_tag>;
-using SizeF = TypesPrecision::Size<highp, use_float_tag>;
+using CapacityF = TypesPrecision::Capacity_<highp, use_float_tag>;
+using Weight = TypesPrecision::Weight_<mediump, use_int_tag>;
+using WeightF = TypesPrecision::Weight_<highp, use_float_tag>;
+using Size = TypesPrecision::Size_<mediump, use_int_tag>;
+using SizeF = TypesPrecision::Size_<highp, use_float_tag>;
 
-using SizeRescale = TypesPrecision::SizeRescale<highp>;
-using Time = TypesPrecision::Time<mediump>;
-using Duration = TypesPrecision::Duration<mediump>;
-using Probability = TypesPrecision::Probability<highp>;
-using MeanIntensity = TypesPrecision::MeanIntensity<highp>;
-using Peakedness = TypesPrecision::Peakedness<highp>;
-using Variance = TypesPrecision::Variance<highp>;
-using MeanRequestNumber = TypesPrecision::MeanRequestNumber<highp>;
+using SizeRescale = TypesPrecision::SizeRescale_<highp>;
+using Time = TypesPrecision::Time_<mediump>;
+using Duration = TypesPrecision::Duration_<mediump>;
+using Probability = TypesPrecision::Probability_<highp>;
+using MeanIntensity = TypesPrecision::MeanIntensity_<highp>;
+using Peakedness = TypesPrecision::Peakedness_<highp>;
+using Variance = TypesPrecision::Variance_<highp>;
+using MeanRequestNumber = TypesPrecision::MeanRequestNumber_<highp>;
 
 struct GroupName : ts::strong_typedef<GroupName, name_t>,
                    ts::strong_typedef_op::equality_comparison<GroupName>,

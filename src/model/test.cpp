@@ -7,7 +7,7 @@
 // #include "math_utils.h"
 // #include "model/stream_properties_format.h"
 // #include "overflow_far.h"
-// #include "types/difference_type.h"
+#include "types/difference_type.h"
 // #include "types/types_format.h"
 #include "types/types.h"
 
@@ -21,23 +21,6 @@
 // #include <range/v3/view/map.hpp>
 // #include <range/v3/view/transform.hpp>
 #include <range/v3/utility/iterator_concepts.hpp>
-
-using Cap = TypesPrecision::Capacity<mediump, use_int_tag>;
-
-// namespace ranges {
-// inline namespace v3 {
-// template <>
-// struct difference_type<Cap>
-// {
-  // using type = ::type_safe::underlying_type<Cap>;
-// };
-// template <>
-// struct difference_type<::Model::Capacity>
-// {
-  // using type = ::type_safe::underlying_type<::Model::Capacity>;
-// };
-// } // namespace v3
-// } // namespace ranges
 
 namespace Model {
 
@@ -273,23 +256,32 @@ ranges::v3::concepts::WeaklyEqualityComparable, T, U>())))>::type
 void
 test()
 {
-  // Cap V{2};
-  // ++V;
-  // V++;
-  // println("{}", ++V == V++);
-  // println("{}", ++V != V++);
-  // static_assert(ranges::v3::concepts::
-                    // models<ranges::v3::concepts::WeaklyIncrementable, Cap>());
-  // static_assert(ranges::v3::concepts::models<
-                // ranges::v3::concepts::WeaklyIncrementable,
-                // Model::Capacity>());
+  using T = mp::number<mp::gmp_int, mp::et_off>;
+  Capacity V{2};
+  T V2{2};
+  ++V;
+  V++;
+  ++V2;
+  V2++;
+  println("{}", ++V == V++);
+  println("{}", ++V != V++);
+  // static_assert(std::is_same_v<
+                // ranges::difference_type<Capacity>::type,
+                // ts::underlying_type<Capacity>>);
   // static_assert(
       // ranges::v3::concepts::
-          // models<ranges::v3::concepts::WeaklyEqualityComparable, Cap, Cap>());
+          // models<ranges::v3::concepts::WeaklyIncrementable, Model::Capacity>());
+  // static_assert(ranges::v3::concepts::models<
+                // ranges::v3::concepts::WeaklyEqualityComparable,
+                // Capacity,
+                // Capacity>());
+  // ranges::for_each(ranges::view::closed_iota(T{1}, V2), [&](T n) {
+    // println("{}", n);
+  // });
   // ranges::for_each(ranges::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
     // println("{}", n);
   // });
-  // test1();
+  // // test1();
   // test2();
   // test3();
   // test5();

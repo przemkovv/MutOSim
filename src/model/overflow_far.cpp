@@ -1,5 +1,4 @@
 
-
 #include "overflow_far.h"
 
 #include "erlang_formula.h"
@@ -129,7 +128,8 @@ kaufman_roberts_distribution(
   Probabilities state(size_t(V) + 1, Probability{0});
   state[0] = Probability{1};
 
-  rng::for_each(rng::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
+  for (Capacity n{1}; n <= V; ++n)
+  {
     for (const auto &rs : in_request_streams)
     {
       const auto tc_size = [&]() {
@@ -181,7 +181,7 @@ kaufman_roberts_distribution(
       }
     }
     state[size_t(n)] /= n;
-  });
+  }
   Math::normalize_L1(state);
   return state;
 }
@@ -294,25 +294,27 @@ combinatorial_arrangement_number(
     Capacity                    x,
     const ResourceComponent<C> &component)
 {
-  Count upper_limit{x.value() / (Capacity(component.v).value() + 1)};
+  Count upper_limit{
+      Count::value_type{x.value() / (Capacity(component.v).value() + 1)}};
   if (upper_limit > component.number)
   {
     return Count{0};
   }
-  auto sum = rng::accumulate(
-      rng::view::closed_iota(Count{0}, upper_limit)
-          | rng::view::transform([&](Count iota) {
-              auto factor1 = (1 - 2 * (get(iota) % 2));
-              auto factor2 = Math::n_over_k(component.number, iota);
-              auto factor3 = Math::n_over_k(
-                  Count{Count::value_type{
-                      get(x) + get(component.number)
-                      - get(iota) * (get(Capacity(component.v)) + 1) - 1}},
-                  component.number - Count{1});
-              Count::value_type result = factor1 * get(factor2) * get(factor3);
-              return Count{result};
-            }),
-      Count{0});
+  auto sum = [&] {
+    Count s{0};
+    for (Count iota{0}; iota < upper_limit; ++iota)
+    {
+      const Count       factor1{Count::value_type{1 - 2 * (iota.value() % 2)}};
+      const Count       factor2 = Math::n_over_k(component.number, iota);
+      Count::value_type n = x.value() + component.number.value()
+                            - iota.value() * (Capacity(component.v).value() + 1)
+                            - 1;
+      const Count factor3 =
+          Math::n_over_k(Count{n}, component.number - Count{1});
+      s += factor1 * factor2 * factor3;
+    }
+    return s;
+  }();
 
   return Count{sum};
 }

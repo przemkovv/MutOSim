@@ -82,7 +82,11 @@ run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
 #endif
   for (auto i = 0ul; i < scenarios.size(); ++i)
   {
-    debug_println(fg(fmt::color::green), "Scenario: {}, file: {}", scenarios[i].name, scenarios[i].filename);
+    debug_println(
+        fg(fmt::color::green),
+        "Scenario: {}, file: {}",
+        scenarios[i].name,
+        scenarios[i].filename);
     nlohmann::json analytical_stats;
     switch (scenarios[i].mode)
     {
@@ -144,8 +148,8 @@ find_all_scenario_files(const std::string &path)
       iter.increment(ec);
       if (ec)
       {
-        std::cerr << "Error While Accessing : " << iter->path().string() << " :: " << ec.message()
-                  << '\n';
+        std::cerr << "Error While Accessing : " << iter->path().string()
+                  << " :: " << ec.message() << '\n';
       }
     }
   }
@@ -180,7 +184,8 @@ load_scenarios_from_files(
           auto &      appended_filenames = cli.append_scenario_files;
           if (!appended_filenames.empty())
           {
-            filename = fmt::format("{};{}", scenario_file, join(appended_filenames, ";"));
+            filename = fmt::format(
+                "{};{}", scenario_file, join(appended_filenames, ";"));
           }
           scenario.filename = filename;
           scenario.json = topology_json;
@@ -197,10 +202,13 @@ load_scenarios_from_files(
           scenario.mode = Mode::Analytic;
           scenario.analytic_model = model;
 
-          scenario.layers_types = Model::determine_layers_types(scenario.topology);
-          if (rng::any_of(scenario.layers_types | rng::view::values, [](auto layer_type) {
-                return layer_type == Model::LayerType::Unknown;
-              }))
+          scenario.layers_types =
+              Model::determine_layers_types(scenario.topology);
+          if (rng::any_of(
+                  scenario.layers_types | rng::view::values,
+                  [](auto layer_type) {
+                    return layer_type == Model::LayerType::Unknown;
+                  }))
           {
             println("Couldn't determine analytic model for each layer.");
             continue;
@@ -210,7 +218,8 @@ load_scenarios_from_files(
           auto &      appended_filenames = cli.append_scenario_files;
           if (!appended_filenames.empty())
           {
-            filename = fmt::format("{};{}", scenario_file, join(appended_filenames, ";"));
+            filename = fmt::format(
+                "{};{}", scenario_file, join(appended_filenames, ";"));
           }
           scenario.filename = fmt::format("{};analytic;{}", filename, model);
           scenario.json = topology_json;
@@ -223,30 +232,36 @@ load_scenarios_from_files(
 //----------------------------------------------------------------------
 
 void
-prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli)
+prepare_custom_scenarios(
+    std::vector<ScenarioSettings> &scenarios,
+    const CLIOptions &             cli)
 {
-  using Simulation::Intensity;
   using Simulation::Capacity;
   using Simulation::Count;
+  using Simulation::Intensity;
 
   if ((false))
   {
     for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step)
     {
-      std::vector<Size>        sizes{Size{1}, Size{1}, Size{3}, Size{3}};
-      std::vector<int64_t>     ratios{1, 1, 1, 1};
-      auto                     ratios_sum = std::accumulate(begin(ratios), end(ratios), 0ll);
+      std::vector<Size>    sizes{Size{1}, Size{1}, Size{3}, Size{3}};
+      std::vector<int64_t> ratios{1, 1, 1, 1};
+      auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0ll);
       std::vector<long double> ratios_d(begin(ratios), end(ratios));
-      for_each(begin(ratios_d), end(ratios_d), [ratios_sum](auto &x) { x /= ratios_sum; });
+      for_each(begin(ratios_d), end(ratios_d), [ratios_sum](auto &x) {
+        x /= ratios_sum;
+      });
 
       auto V = Capacity{30};
 
       std::vector<Intensity> intensities{sizes.size()};
       for (auto i = 0u; i < sizes.size(); ++i)
       {
-        intensities[i] = Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i]) * ratios_d[i]};
+        intensities[i] = Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i])
+                                   * ratios_d[i]};
       }
-      auto &scenario = scenarios.emplace_back(poisson_streams(intensities, sizes, V));
+      auto &scenario =
+          scenarios.emplace_back(poisson_streams(intensities, sizes, V));
       scenario.name += fmt::format(" A={}", A);
     }
   }
@@ -256,33 +271,48 @@ prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOpti
     scenarios.emplace_back(single_overflow_poisson(
         Intensity(24.0L),
         {Capacity{60}, Capacity{60}, Capacity{60}},
-        {{Size{1}, Size{2}, Size{6}}, {Size{1}, Size{2}, Size{6}}, {Size{1}, Size{2}, Size{6}}},
+        {{Size{1}, Size{2}, Size{6}},
+         {Size{1}, Size{2}, Size{6}},
+         {Size{1}, Size{2}, Size{6}}},
         Capacity{42}));
   }
 
   if ((false))
   {
-    scenarios.emplace_back(single_overflow_poisson(Intensity(2.0L), Capacity(2)));
-    scenarios.emplace_back(single_overflow_poisson(Intensity(4.0L), Capacity(2)));
-    scenarios.emplace_back(single_overflow_poisson(Intensity(6.0L), Capacity(2)));
+    scenarios.emplace_back(
+        single_overflow_poisson(Intensity(2.0L), Capacity(2)));
+    scenarios.emplace_back(
+        single_overflow_poisson(Intensity(4.0L), Capacity(2)));
+    scenarios.emplace_back(
+        single_overflow_poisson(Intensity(6.0L), Capacity(2)));
   }
 
   if ((false))
   {
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
-    scenarios.emplace_back(pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
   }
 
   if ((false))
   {
-    scenarios.emplace_back(pascal_source_model(Intensity(15.0L), Capacity(30), Count(20)));
-    scenarios.emplace_back(pascal_source_model(Intensity(30.0L), Capacity(30), Count(20)));
-    scenarios.emplace_back(pascal_source_model(Intensity(45.0L), Capacity(30), Count(20)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(15.0L), Capacity(30), Count(20)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(30.0L), Capacity(30), Count(20)));
+    scenarios.emplace_back(
+        pascal_source_model(Intensity(45.0L), Capacity(30), Count(20)));
   }
 
   if ((false))
@@ -294,32 +324,46 @@ prepare_custom_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOpti
 
   if ((false))
   {
-    scenarios.emplace_back(engset_model(Intensity(10.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(engset2_model(Intensity(10.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(engset_model(Intensity(20.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(engset2_model(Intensity(20.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(engset_model(Intensity(30.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
+    scenarios.emplace_back(
+        engset_model(Intensity(10.0L), Capacity(20), Count(40)));
+    scenarios.emplace_back(
+        engset2_model(Intensity(10.0L), Capacity(20), Count(40)));
+    scenarios.emplace_back(
+        engset_model(Intensity(20.0L), Capacity(20), Count(40)));
+    scenarios.emplace_back(
+        engset2_model(Intensity(20.0L), Capacity(20), Count(40)));
+    scenarios.emplace_back(
+        engset_model(Intensity(30.0L), Capacity(20), Count(40)));
+    scenarios.emplace_back(
+        engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
   }
 }
 
 //----------------------------------------------------------------------
 void
-save_json(const nlohmann::json &j, const fs::path &output_dir, const fs::path &filename)
+save_json(
+    const nlohmann::json &j,
+    const fs::path &      output_dir,
+    const fs::path &      filename)
 {
   boost::filesystem::path output_file{output_dir};
   output_file /= filename;
   create_directories(output_file.parent_path());
-  std::ofstream stats_file(output_file.string(), std::ios_base::out | std::ios_base::binary);
+  std::ofstream stats_file(
+      output_file.string(), std::ios_base::out | std::ios_base::binary);
   if (output_file.extension() == ".ubjson")
   {
     auto data = nlohmann::json::to_ubjson(j, true, true);
-    stats_file.write(reinterpret_cast<const char *>(data.data()), static_cast<long>(data.size()));
+    stats_file.write(
+        reinterpret_cast<const char *>(data.data()),
+        static_cast<long>(data.size()));
   }
   else if (output_file.extension() == ".cbor")
   {
     auto data = nlohmann::json::to_cbor(j);
-    stats_file.write(reinterpret_cast<const char *>(data.data()), static_cast<long>(data.size()));
+    stats_file.write(
+        reinterpret_cast<const char *>(data.data()),
+        static_cast<long>(data.size()));
   }
   else
   {
@@ -356,7 +400,9 @@ main(int argc, char *argv[])
 
   po::variables_map vm;
   {
-    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+    po::store(
+        po::command_line_parser(argc, argv).options(desc).positional(p).run(),
+        vm);
     std::ifstream cfg_file{"mutosim.cfg"};
     po::store(po::parse_config_file(cfg_file, desc), vm);
     po::notify(vm);
@@ -381,18 +427,21 @@ main(int argc, char *argv[])
     println("Analytic models: {}", cli.analytic_models);
   }
 
-  if (!std::all_of(begin(cli.scenario_files), end(cli.scenario_files), [](const std::string &file) {
-        namespace fs = boost::filesystem;
-        if (auto path = fs::path{file}; exists(path))
-        {
-          return true;
-        }
-        else
-        {
-          println("[Main] Scenario file {} doesn't exists.", path);
-          return false;
-        }
-      }))
+  if (!std::all_of(
+          begin(cli.scenario_files),
+          end(cli.scenario_files),
+          [](const std::string &file) {
+            namespace fs = boost::filesystem;
+            if (auto path = fs::path{file}; exists(path))
+            {
+              return true;
+            }
+            else
+            {
+              println("[Main] Scenario file {} doesn't exists.", path);
+              return false;
+            }
+          }))
   {
     return ENOENT;
   }

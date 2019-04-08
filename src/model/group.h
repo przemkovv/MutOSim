@@ -16,7 +16,7 @@ struct Group
 {
 private:
   std::map<TrafficClassId, IncomingRequestStream> in_request_streams_{};
-  const Resource<>                                  resource_;
+  const Resource<>                                resource_;
   const Capacity                                  total_V_ = resource_.V();
 
   mutable OutgoingRequestStreams out_request_streams_{};
@@ -35,7 +35,8 @@ public:
   template <typename RequestStream>
   void add_incoming_request_stream(const RequestStream &request_stream);
   template <typename RequestStream>
-  void add_incoming_request_streams(const std::vector<RequestStream> &request_streams);
+  void add_incoming_request_streams(
+      const std::vector<RequestStream> &request_streams);
 
   void add_next_group(GroupName group_name)
   {
@@ -52,11 +53,14 @@ Group::add_incoming_request_stream(const RequestStream &in_rs)
       std::is_same_v<
           RequestStream,
           IncomingRequestStream> || std::is_same_v<RequestStream, OutgoingRequestStream>,
-      "Only IncomingRequestStream and OutgoingRequestStream request stream types are "
+      "Only IncomingRequestStream and OutgoingRequestStream request stream "
+      "types are "
       "supported.");
 
   // Formulas 3.17 and 3.18
-  if (auto [rs_it, inserted] = in_request_streams_.try_emplace(in_rs.tc.id, in_rs); !inserted)
+  if (auto [rs_it, inserted] =
+          in_request_streams_.try_emplace(in_rs.tc.id, in_rs);
+      !inserted)
   {
     rs_it->second += in_rs;
   }
@@ -65,7 +69,8 @@ Group::add_incoming_request_stream(const RequestStream &in_rs)
 
 template <typename RequestStream>
 void
-Group::add_incoming_request_streams(const std::vector<RequestStream> &in_request_streams)
+Group::add_incoming_request_streams(
+    const std::vector<RequestStream> &in_request_streams)
 {
   ranges::for_each(in_request_streams, [this](const auto &rs) {
     this->add_incoming_request_stream(rs);

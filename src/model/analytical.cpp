@@ -35,10 +35,16 @@ void
 analytical_computations_hardcoded()
 {
   IncomingRequestStreams traffic_classes1;
-  traffic_classes1.emplace_back(TrafficClass{
-      TrafficClassId{1}, Simulation::Intensity{20.0L}, Simulation::Intensity{1.0L}, Size{1}, {}});
-  traffic_classes1.emplace_back(TrafficClass{
-      TrafficClassId{2}, Simulation::Intensity{10.0L}, Simulation::Intensity{1.0L}, Size{2}, {}});
+  traffic_classes1.emplace_back(TrafficClass{TrafficClassId{1},
+                                             Simulation::Intensity{20.0L},
+                                             Simulation::Intensity{1.0L},
+                                             Size{1},
+                                             {}});
+  traffic_classes1.emplace_back(TrafficClass{TrafficClassId{2},
+                                             Simulation::Intensity{10.0L},
+                                             Simulation::Intensity{1.0L},
+                                             Size{2},
+                                             {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{3},
                                              Simulation::Intensity{3.33333L},
                                              Simulation::Intensity{1.0L},
@@ -65,16 +71,23 @@ void
 analytical_computations_hardcoded_components()
 {
   IncomingRequestStreams traffic_classes1;
-  traffic_classes1.emplace_back(TrafficClass{
-      TrafficClassId{1}, Simulation::Intensity{20.0L}, Simulation::Intensity{1.0L}, Size{1}, {}});
-  traffic_classes1.emplace_back(TrafficClass{
-      TrafficClassId{2}, Simulation::Intensity{10.0L}, Simulation::Intensity{1.0L}, Size{2}, {}});
+  traffic_classes1.emplace_back(TrafficClass{TrafficClassId{1},
+                                             Simulation::Intensity{20.0L},
+                                             Simulation::Intensity{1.0L},
+                                             Size{1},
+                                             {}});
+  traffic_classes1.emplace_back(TrafficClass{TrafficClassId{2},
+                                             Simulation::Intensity{10.0L},
+                                             Simulation::Intensity{1.0L},
+                                             Size{2},
+                                             {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{3},
                                              Simulation::Intensity{3.33333L},
                                              Simulation::Intensity{1.0L},
                                              Size{6},
                                              {}});
-  Model::Group g1{{Count{3}, Capacity{60}}, KaufmanRobertsVariant::FixedCapacity};
+  Model::Group g1{{Count{3}, Capacity{60}},
+                  KaufmanRobertsVariant::FixedCapacity};
   g1.add_incoming_request_streams(traffic_classes1);
   g1.add_incoming_request_streams(traffic_classes1);
   g1.add_incoming_request_streams(traffic_classes1);
@@ -91,10 +104,16 @@ void
 analytical_computations_hardcoded_components2()
 {
   IncomingRequestStreams traffic_classes1;
-  traffic_classes1.emplace_back(TrafficClass{
-      TrafficClassId{1}, Simulation::Intensity{20.0L}, Simulation::Intensity{1.0L}, Size{1}, {}});
-  traffic_classes1.emplace_back(TrafficClass{
-      TrafficClassId{2}, Simulation::Intensity{10.0L}, Simulation::Intensity{1.0L}, Size{2}, {}});
+  traffic_classes1.emplace_back(TrafficClass{TrafficClassId{1},
+                                             Simulation::Intensity{20.0L},
+                                             Simulation::Intensity{1.0L},
+                                             Size{1},
+                                             {}});
+  traffic_classes1.emplace_back(TrafficClass{TrafficClassId{2},
+                                             Simulation::Intensity{10.0L},
+                                             Simulation::Intensity{1.0L},
+                                             Size{2},
+                                             {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{3},
                                              Simulation::Intensity{3.33333L},
                                              Simulation::Intensity{1.0L},
@@ -117,16 +136,32 @@ analytical_computations_hardcoded_components2()
   println("{}", g0.get_outgoing_request_streams());
 }
 
+std::vector<Model::Capacity>
+to_model(const std::vector<Simulation::Capacity> &capacities)
+{
+  return capacities | rng::view::transform([](const auto &c) {
+           return Model::Capacity{c};
+         })
+         | rng::to_vector;
+}
+Model::Capacity
+to_model(const Simulation::Capacity &capacity)
+{
+  return Model::Capacity{capacity};
+}
 //----------------------------------------------------------------------
 void
-analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_variant)
+analytical_computations(
+    ScenarioSettings &    scenario,
+    KaufmanRobertsVariant kr_variant)
 {
   auto &layers_types = scenario.layers_types;
   ASSERT(
       rng::none_of(
           layers_types | rng::view::values,
           [](auto layer_type) { return layer_type == LayerType::Unknown; }),
-      "The current model supports only FAG and LAG with equal and unequal capacities.");
+      "The current model supports only FAG and LAG with equal and unequal "
+      "capacities.");
 
   const auto &topology = scenario.topology;
 
@@ -146,7 +181,10 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
 
   for (auto &[layer, simulation_groups] : simulation_groups_layers)
   {
-    debug_println("Processing {} layer, type: {}", layer, static_cast<int>(layers_types.at(layer)));
+    debug_println(
+        "Processing {} layer, type: {}",
+        layer,
+        static_cast<int>(layers_types.at(layer)));
     switch (layers_types.at(layer))
     {
       case LayerType::FullAvailability:
@@ -155,11 +193,13 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
         {
           ASSERT(
               layers_types.at(layer) == LayerType::FullAvailability,
-              "The current model doesn't support forwarding traffic to more than one next "
+              "The current model doesn't support forwarding traffic to more "
+              "than one next "
               "groups.");
 
-          auto [model_group_it, inserted] =
-              model_groups.emplace(group_name, Model::Group{group->capacity(), kr_variant});
+          auto [model_group_it, inserted] = model_groups.emplace(
+              group_name,
+              Model::Group{to_model(group->capacity()), kr_variant});
           simulation_to_model_group.emplace(group_name, group_name);
           std::ignore = inserted;
 
@@ -167,7 +207,8 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
           {
             model_group_it->second.add_next_group(next_group->name());
           }
-          model_groups_layers[layer].emplace(group_name, &model_group_it->second);
+          model_groups_layers[layer].emplace(
+              group_name, &model_group_it->second);
         }
         break;
       }
@@ -179,15 +220,16 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
         {
           ASSERT(
               group->capacity().size() == 1,
-              "[{}] Simulation groups with multiple subgroups are not supported.",
+              "[{}] Simulation groups with multiple subgroups are not "
+              "supported.",
               location());
 
-          resource.add_component(group->total_capacity());
+          resource.add_component(to_model(group->total_capacity()));
           layer_name += fmt::format("{};", group_name);
         }
         GroupName current_layer_name{layer_name};
-        auto [model_group_it, inserted] =
-            model_groups.emplace(current_layer_name, Model::Group{resource, kr_variant});
+        auto [model_group_it, inserted] = model_groups.emplace(
+            current_layer_name, Model::Group{resource, kr_variant});
         for (const auto &[group_name, group] : simulation_groups)
         {
           simulation_to_model_group.emplace(group_name, current_layer_name);
@@ -210,7 +252,8 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
             }
           }
         }
-        model_groups_layers[layer].emplace(current_layer_name, &model_group_it->second);
+        model_groups_layers[layer].emplace(
+            current_layer_name, &model_group_it->second);
         break;
       }
       case LayerType::DistributedEqualCapacities:
@@ -243,12 +286,19 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
     std::ignore = layer;
     for (const auto &[group_name, model_group_ptr] : model_groups_ptrs)
     {
-      debug_println(fg(fmt::color::green), "Processing streams of '{}' group.", group_name);
+      debug_println(
+          fg(fmt::color::green),
+          "Processing streams of '{}' group.",
+          group_name);
       for (const auto &next_group_name : model_group_ptr->next_groups())
       {
-        debug_println(fg(fmt::color::green), "Forwarding streams to '{}' group.", next_group_name);
+        debug_println(
+            fg(fmt::color::green),
+            "Forwarding streams to '{}' group.",
+            next_group_name);
         model_groups.at(simulation_to_model_group.at(next_group_name))
-            .add_incoming_request_streams(model_group_ptr->get_outgoing_request_streams());
+            .add_incoming_request_streams(
+                model_group_ptr->get_outgoing_request_streams());
       }
     }
   }
@@ -261,14 +311,17 @@ analytical_computations(ScenarioSettings &scenario, KaufmanRobertsVariant kr_var
       auto &group_stats = stats[get(group_name)];
       debug_println("Layer {}, Group '{}': ", layer, group_name);
       debug_println("{}", model_group_ptr->get_outgoing_request_streams());
-      for (const auto &out_stream : model_group_ptr->get_outgoing_request_streams())
+      for (const auto &out_stream :
+           model_group_ptr->get_outgoing_request_streams())
       {
         auto &j_tc = group_stats[std::to_string(get(out_stream.tc.id))];
-        j_tc["P_block"].push_back(stat_t<>{get(out_stream.blocking_probability)});
+        j_tc["P_block"].push_back(
+            stat_t<>{get(out_stream.blocking_probability)});
         j_tc["peakedness"].push_back(stat_t<>{get(out_stream.peakedness)});
         j_tc["variance"].push_back(stat_t<>{get(out_stream.variance)});
         j_tc["mean"].push_back(stat_t<>{get(out_stream.mean)});
-        j_tc["fictitous_capacity"].push_back(stat_t<>(get(out_stream.fictitous_capacity)));
+        j_tc["fictitous_capacity"].push_back(
+            stat_t<>(get(out_stream.fictitous_capacity)));
       }
     }
   }
@@ -280,17 +333,19 @@ analytical_computations(ScenarioSettings &scenario_settings)
   switch (scenario_settings.analytic_model)
   {
     case AnalyticModel::KaufmanRobertsFixedReqSize:
-      analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedReqSize);
+      analytical_computations(
+          scenario_settings, KaufmanRobertsVariant::FixedReqSize);
       return;
     case AnalyticModel::KaufmanRobertsFixedCapacity:
-      analytical_computations(scenario_settings, KaufmanRobertsVariant::FixedCapacity);
+      analytical_computations(
+          scenario_settings, KaufmanRobertsVariant::FixedCapacity);
       return;
   }
 }
 
 //----------------------------------------------------------------------
-// Based on the types of groups in the layer, tries to determine if either a whole layer can be
-// considered as:
+// Based on the types of groups in the layer, tries to determine if either a
+// whole layer can be considered as:
 // - Full Availability Group,
 // - Limited Availability Group with components of equal size ,
 // - Limited Availability Group with components of various sizes.
@@ -299,36 +354,46 @@ check_layer_type(const Simulation::Topology &topology, Layer layer)
 {
   const auto &groups = topology.groups_per_layer.at(layer);
   // FullAvailability
-  if (rng::all_of(groups, [](const auto &group) { return group->next_groups().size() <= 1; }))
+  if (rng::all_of(groups, [](const auto &group) {
+        return group->next_groups().size() <= 1;
+      }))
   {
     debug_println("[Analytical] Layer: {}, FullAvailability", layer);
     return LayerType::FullAvailability;
   }
 
-  auto groups_names = groups | rng::view::transform([](const auto &group) { return group->name(); })
-                      | rng::to_vector | rng::action::sort;
+  auto groups_names =
+      groups
+      | rng::view::transform([](const auto &group) { return group->name(); })
+      | rng::to_vector | rng::action::sort;
 
   if (rng::all_of(groups, [&](const auto &group) {
         auto next_groups_names =
-            group->next_groups() | rng::view::filter([layer](const auto &next_group) {
-              return next_group->layer() == layer;
-            })
-            | rng::view::transform([](const auto &next_group) { return next_group->name(); })
-            | rng::to_vector | rng::action::push_back(group->name()) | rng::action::sort;
+            group->next_groups()
+            | rng::view::filter([layer](const auto &next_group) {
+                return next_group->layer() == layer;
+              })
+            | rng::view::transform(
+                [](const auto &next_group) { return next_group->name(); })
+            | rng::to_vector | rng::action::push_back(group->name())
+            | rng::action::sort;
         return next_groups_names == groups_names;
       }))
   {
-    if (auto capacities =
-            groups | rng::view::transform([](const auto &group) { return group->capacity(); })
-            | rng::view::unique | rng::to_vector;
+    if (auto capacities = groups | rng::view::transform([](const auto &group) {
+                            return group->capacity();
+                          })
+                          | rng::view::unique | rng::to_vector;
         capacities.size() == 1)
     {
-      debug_println("[Analytical] Layer: {}, DistributedEqualCapacities", layer);
+      debug_println(
+          "[Analytical] Layer: {}, DistributedEqualCapacities", layer);
       return LayerType::DistributedEqualCapacities;
     }
     else
     {
-      debug_println("[Analytical] Layer: {}, DistributedUnequalCapacities", layer);
+      debug_println(
+          "[Analytical] Layer: {}, DistributedUnequalCapacities", layer);
       return LayerType::DistributedUnequalCapacities;
     }
   }
@@ -342,7 +407,8 @@ bool
 check_model_prerequisites(const ScenarioSettings &scenario)
 {
   return rng::all_of(
-      scenario.topology.groups_per_layer | rng::view::keys, [&](const auto &layer) -> bool {
+      scenario.topology.groups_per_layer | rng::view::keys,
+      [&](const auto &layer) -> bool {
         return check_layer_type(scenario.topology, layer) != LayerType::Unknown;
       });
 }

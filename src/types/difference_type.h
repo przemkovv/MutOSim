@@ -6,17 +6,19 @@
 
 namespace ranges {
 inline namespace v3 {
-// template <>
+
 template <typename Prec>
-struct difference_type<TypesPrecision::Count<Prec>>
+struct difference_type<TypesPrecision::Count_<Prec>>
 {
-  using type = ::ts::underlying_type<TypesPrecision::Count<Prec>>;
+  using type = ::ts::underlying_type<TypesPrecision::Count_<Prec>>;
 };
-// template <>
+
 template <typename Prec, typename UseFloat>
-struct difference_type<TypesPrecision::Capacity<Prec, UseFloat>>
+struct difference_type<TypesPrecision::Capacity_<Prec, UseFloat>>
 {
-  using type = ::ts::underlying_type<TypesPrecision::Capacity<Prec, UseFloat>>;
+  using type = ::ts::underlying_type<TypesPrecision::Capacity_<Prec, UseFloat>>;
 };
+
+
 } // namespace v3
 } // namespace ranges

@@ -26,8 +26,9 @@ set(CMAKE_COLOR_MAKEFILE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_options(
@@ -78,7 +79,6 @@ include(ExternalProject)
 ExternalProject_Add(type_safe
     GIT_REPOSITORY https://github.com/foonathan/type_safe
     INSTALL_DIR ${PROJECT_BINARY_DIR}
-    # GIT_TAG 4258afeecbc74f6b8ea7df9b4cff5b867b4aab4c
     CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DTYPE_SAFE_BUILD_TEST_EXAMPLE=OFF
     UPDATE_COMMAND ""
 )
@@ -103,9 +103,9 @@ function(append value)
   endforeach(variable)
 endfunction()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  append("-fuse-ld=gold -Wl,--no-threads,--plugin-opt,cache-dir=${PROJECT_BINARY_DIR}/lto.cache" CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
-endif()
+# if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  # append("-fuse-ld=gold -Wl,--no-threads,--plugin-opt,cache-dir=${PROJECT_BINARY_DIR}/lto.cache" CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
+# # endif()
 
 option(SIM_DEBUG "Enable more detailed tracing" OFF)
 option(SINGLE_THREADED "Use only single thread" OFF)
@@ -133,25 +133,21 @@ endif()
 
 ADD_CUSTOM_TARGET(debug
   COMMAND ${CMAKE_COMMAND} -DSINGLE_THREADED=1 -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
-  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
   COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
   )
 
 ADD_CUSTOM_TARGET(debug_verbose
   COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=1 -DSINGLE_THREADED=1 -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
-  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
   COMMENT "Switch CMAKE_BUILD_TYPE to verbose Debug"
   )
 
 ADD_CUSTOM_TARGET(release_verbose
   COMMAND ${CMAKE_COMMAND} -DSIM_DEBUG=1 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all  --
   COMMENT "Switch CMAKE_BUILD_TYPE to verbose Release"
   )
 
 ADD_CUSTOM_TARGET(release
   COMMAND ${CMAKE_COMMAND} -DSINGLE_THREADED=0 -DSIM_DEBUG=0 -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-  # COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all --
   COMMENT "Switch CMAKE_BUILD_TYPE to Release"
   )
 

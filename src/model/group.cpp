@@ -3,8 +3,8 @@
 
 #include "logger.h"
 #include "overflow_far.h"
-#include "traffic_class.h"
 #include "resource_format.h"
+#include "traffic_class.h"
 
 #include <range/v3/view/map.hpp>
 namespace rng = ranges;
@@ -15,9 +15,13 @@ Group::get_outgoing_request_streams() const
 {
   if (need_recalculate_)
   {
-    IncomingRequestStreams in_request_streams = in_request_streams_ | rng::view::values;
+    IncomingRequestStreams in_request_streams = in_request_streams_
+                                                | rng::view::values;
 
-    debug_println(fg(fmt::color::blue), "[Group::get_outgoung_request_streams] {}", in_request_streams);
+    debug_println(
+        fg(fmt::color::blue),
+        "[Group::get_outgoung_request_streams] {}",
+        in_request_streams);
     const auto resource = [&]() {
       if (kr_variant_ == KaufmanRobertsVariant::FixedCapacity)
       {
@@ -25,15 +29,16 @@ Group::get_outgoing_request_streams() const
       }
       else
       {
-        const auto peakedness = compute_collective_peakedness(in_request_streams);
+        const auto peakedness =
+            compute_collective_peakedness(in_request_streams);
         return resource_ / peakedness;
       }
     }();
     debug_println("[Group::get_outgoung_request_streams] {}", resource);
     auto V = resource.V();
 
-    out_request_streams_ =
-        kaufman_roberts_blocking_probability(in_request_streams, resource, kr_variant_);
+    out_request_streams_ = kaufman_roberts_blocking_probability(
+        in_request_streams, resource, kr_variant_);
 
     out_request_streams_ = compute_overflow_parameters(out_request_streams_, V);
 
@@ -48,7 +53,8 @@ Group::Group(std::vector<Capacity> V, KaufmanRobertsVariant kr_variant)
   debug_println("Group resource {}", resource_);
 }
 
-Group::Group(Capacity V, KaufmanRobertsVariant kr_variant) : resource_({V}), kr_variant_(kr_variant)
+Group::Group(Capacity V, KaufmanRobertsVariant kr_variant)
+  : resource_({V}), kr_variant_(kr_variant)
 {
   debug_println("Group resource {}", resource_);
 }

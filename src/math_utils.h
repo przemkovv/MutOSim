@@ -45,8 +45,9 @@ factorial(int64_t x)
 inline auto
 exp(long double x)
 {
-  return 1.0L + x + pow(x, 2) / factorial(2) + pow(x, 3) / factorial(3) + pow(x, 4) / factorial(4)
-         + pow(x, 5) / factorial(5) + pow(x, 6) / factorial(6) + pow(x, 7) / factorial(7)
+  return 1.0L + x + pow(x, 2) / factorial(2) + pow(x, 3) / factorial(3)
+         + pow(x, 4) / factorial(4) + pow(x, 5) / factorial(5)
+         + pow(x, 6) / factorial(6) + pow(x, 7) / factorial(7)
          + pow(x, 8) / factorial(8) + pow(x, 9) / factorial(9);
 }
 
@@ -67,18 +68,20 @@ product(int64_t from, int64_t to)
   return result;
 }
 
-int64_t n_over_k(const int64_t n, const int64_t k);
+int64_t      n_over_k(const int64_t n, const int64_t k);
+highp::int_t n_over_k(const highp::int_t &n, const highp::int_t &k);
 
 template <typename StrongType>
 StrongType
-n_over_k(const StrongType n, const StrongType k)
+n_over_k(const StrongType &n, const StrongType &k)
 {
-  return StrongType{n_over_k(static_cast<int64_t>(get(n)), static_cast<int64_t>(get(k)))};
+  return StrongType{n_over_k(get(n), get(k))};
 }
 
 template <typename C>
 auto
-normalize_L1(C &container) -> std::remove_reference_t<decltype(*begin(container))>
+normalize_L1(C &container)
+    -> std::remove_reference_t<decltype(*begin(container))>
 {
   using E = std::remove_reference_t<decltype(*begin(container))>;
   auto sum = std::accumulate(begin(container), end(container), E{});
@@ -99,10 +102,12 @@ auto
 normalize_L1(T &container, size_t N)
 {
   using E = std::remove_reference_t<decltype(*begin(container))>;
-  auto sum = std::accumulate(begin(container), next(begin(container), ptrdiff_t(N)), E{});
-  std::for_each(begin(container), next(begin(container), ptrdiff_t(N)), [sum](auto &v) {
-    v /= sum;
-  });
+  auto sum = std::accumulate(
+      begin(container), next(begin(container), ptrdiff_t(N)), E{});
+  std::for_each(
+      begin(container), next(begin(container), ptrdiff_t(N)), [sum](auto &v) {
+        v /= sum;
+      });
   return sum;
 }
 
