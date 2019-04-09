@@ -214,10 +214,7 @@ Group::unblock(TrafficClassId tc_id, const Load &load)
   if (block_stats.try_unblock(load.end_time))
   {
     debug_print(
-        "{} Load: {}, Unblocking bt={}\n",
-        *this,
-        load,
-        block_stats.block_time);
+        "{} Load: {}, Unblocking bt={}\n", *this, load, block_stats.block_time);
   }
 }
 

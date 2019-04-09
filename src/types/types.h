@@ -25,7 +25,6 @@ using MeanRequestNumber = TypesPrecision::MeanRequestNumber_<highp>;
 using CapacityF = TypesPrecision::Capacity_<highp, use_float_tag>;
 using WeightF = TypesPrecision::Weight_<highp, use_float_tag>;
 using SizeF = TypesPrecision::Size_<highp, use_float_tag>;
-
 using SizeRescale = TypesPrecision::SizeRescale_<highp>;
 
 } // namespace Model
