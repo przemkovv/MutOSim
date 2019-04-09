@@ -167,15 +167,15 @@ struct formatter<TypesPrecision::MeanIntensity_<P>>
   }
 };
 
-template <typename P, typename Tag>
-struct formatter<TypesPrecision::Intensity_<P, Tag>>
-  : formatter<intensity_t<P, Tag>>
+template <typename P>
+struct formatter<TypesPrecision::Intensity_<P>>
+  : formatter<intensity_t<P>>
 {
   template <typename FormatContext>
   auto
-  format(const TypesPrecision::Intensity_<P, Tag> &value, FormatContext &ctx)
+  format(const TypesPrecision::Intensity_<P> &value, FormatContext &ctx)
   {
-    return formatter<intensity_t<P, Tag>>::format(get(value), ctx);
+    return formatter<intensity_t<P>>::format(get(value), ctx);
   }
 };
 

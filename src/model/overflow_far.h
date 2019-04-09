@@ -46,7 +46,6 @@ CapacityF compute_fictitious_capacity_fit_carried_traffic(
     TrafficClassId                tc_id,
     KaufmanRobertsVariant         kr_variant);
 
-// Count combinatorial_arrangement_number(Capacity x, Count resources_number, Capacity f);
 template <typename C>
 Count combinatorial_arrangement_number(Capacity x, const ResourceComponent<C> &component);
 

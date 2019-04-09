@@ -257,8 +257,8 @@ prepare_custom_scenarios(
       std::vector<Intensity> intensities{sizes.size()};
       for (auto i = 0u; i < sizes.size(); ++i)
       {
-        intensities[i] = Intensity{ts::get(A) * ts::get(V) / ts::get(sizes[i])
-                                   * ratios_d[i]};
+        intensities[i] =
+            Intensity{get(A) * get(V) / get(sizes[i]) * ratios_d[i]};
       }
       auto &scenario =
           scenarios.emplace_back(poisson_streams(intensities, sizes, V));

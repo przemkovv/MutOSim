@@ -342,45 +342,40 @@ operator>=(
   return get(c) >= get(s);
 }
 //----------------------------------------------------------------------
-template <typename Prec = mediump, typename UseFloat = use_float_tag>
+template <typename Prec = mediump>
 struct IntensitySize_
-  : ts::strong_typedef<
-        IntensitySize_<Prec, UseFloat>,
-        intensity_t<Prec, UseFloat>>,
-    ts::strong_typedef_op::multiplication<IntensitySize_<Prec, UseFloat>>,
-    ts::strong_typedef_op::output_operator<IntensitySize_<Prec, UseFloat>>
+  : ts::strong_typedef<IntensitySize_<Prec>, intensity_t<Prec>>,
+    ts::strong_typedef_op::multiplication<IntensitySize_<Prec>>,
+    ts::strong_typedef_op::output_operator<IntensitySize_<Prec>>
 {
-  using ts::strong_typedef<
-      IntensitySize_<Prec, UseFloat>,
-      intensity_t<Prec, UseFloat>>::strong_typedef;
+  using ts::strong_typedef<IntensitySize_<Prec>, intensity_t<Prec>>::
+      strong_typedef;
 };
 
 //----------------------------------------------------------------------
 
-template <typename Prec = mediump, typename UseFloat = use_float_tag>
+template <typename Prec = mediump>
 struct Intensity_
-  : ts::strong_typedef<Intensity_<Prec, UseFloat>, intensity_t<Prec, UseFloat>>,
-    ts::strong_typedef_op::multiplication<Intensity_<Prec, UseFloat>>,
-    ts::strong_typedef_op::addition<Intensity_<Prec, UseFloat>>,
-    ts::strong_typedef_op::relational_comparison<Intensity_<Prec, UseFloat>>,
-    ts::strong_typedef_op::output_operator<Intensity_<Prec, UseFloat>>
+  : ts::strong_typedef<Intensity_<Prec>, intensity_t<Prec>>,
+    ts::strong_typedef_op::multiplication<Intensity_<Prec>>,
+    ts::strong_typedef_op::addition<Intensity_<Prec>>,
+    ts::strong_typedef_op::relational_comparison<Intensity_<Prec>>,
+    ts::strong_typedef_op::output_operator<Intensity_<Prec>>
 {
-  using ts::strong_typedef<
-      Intensity_<Prec, UseFloat>,
-      intensity_t<Prec, UseFloat>>::strong_typedef;
+  using ts::strong_typedef<Intensity_<Prec>, intensity_t<Prec>>::strong_typedef;
   template <
       typename Prec2,
       typename = std::enable_if<std::is_same_v<precision_t<Prec, Prec2>, Prec>>>
   Intensity_(const Intensity_<Prec2> &intensity) : Intensity_(get(intensity))
   {
   }
-  constexpr auto operator/(const Intensity_<Prec, UseFloat> &intensity) const
+  constexpr auto operator/(const Intensity_<Prec> &intensity) const
   {
-    return Intensity_<Prec, UseFloat>{ts::get(*this) / ts::get(intensity)};
+    return Intensity_<Prec>{ts::get(*this) / ts::get(intensity)};
   }
   constexpr auto operator/(const Size_<Prec> &size) const
   {
-    return Intensity_<Prec, UseFloat>(ts::get(*this) / ts::get(size));
+    return Intensity_<Prec>(ts::get(*this) / ts::get(size));
   }
   template <
       typename Prec2 = mediump,
@@ -389,7 +384,7 @@ struct Intensity_
   constexpr auto operator*(const Size_<Prec2, SizeUseFloat> &size) const
   {
     typename Result::float_t value = get(*this) * get(size);
-    return IntensitySize_<Result, promote_t<SizeUseFloat, UseFloat>>(value);
+    return IntensitySize_<Result>(value);
   }
   constexpr auto operator*(const Capacity_<Prec> &capacity) const
   {
@@ -412,25 +407,21 @@ operator==(
          && (get(intensity1) - epsilon) < get(intensity2);
 }
 
-template <typename Prec = mediump, typename UseFloat = use_float_tag>
+template <typename Prec = mediump, typename UseFloat>
 constexpr auto
 operator/(
-    const IntensitySize_<Prec, UseFloat> &intensity,
-    const Size_<Prec, UseFloat> &         size)
+    const IntensitySize_<Prec> & intensity,
+    const Size_<Prec, UseFloat> &size)
 {
-  return Intensity_<Prec, UseFloat>(ts::get(intensity) / ts::get(size));
+  return Intensity_<Prec>(ts::get(intensity) / ts::get(size));
 }
-template <
-    typename Prec = mediump,
-    typename IntensityUseFloat,
-    typename CapacityUseFloat,
-    typename UseFloat = promote_t<IntensityUseFloat, CapacityUseFloat>>
+template <typename Prec = mediump, typename UseFloat>
 constexpr auto
 operator/(
-    const IntensitySize_<Prec, IntensityUseFloat> &intensity,
-    const Capacity_<Prec, CapacityUseFloat> &      size)
+    const IntensitySize_<Prec> &     intensity,
+    const Capacity_<Prec, UseFloat> &capacity)
 {
-  return Intensity_<Prec, UseFloat>(ts::get(intensity) / ts::get(size));
+  return Intensity_<Prec>(ts::get(intensity) / ts::get(capacity));
 }
 //----------------------------------------------------------------------
 template <typename Prec = mediump>

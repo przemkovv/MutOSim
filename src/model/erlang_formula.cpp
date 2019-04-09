@@ -1,11 +1,14 @@
 
 #include "erlang_formula.h"
 
-#include "logger.h"
-
 #include <boost/math/special_functions/gamma.hpp>
 
 using namespace boost::math;
+
+using float_hp = highp::float_t;
+float_hp erlang_b(float_hp V, float_hp A);
+float_hp erlang_b_inv(float_hp V, float_hp A);
+float_hp extended_erlang_b(float_hp V, float_hp A);
 
 //----------------------------------------------------------------------
 float_hp
@@ -41,16 +44,17 @@ extended_erlang_b(float_hp V, float_hp A)
 
 //----------------------------------------------------------------------
 // criterion based on blocking probability fit (Formula 3.10)
-std::optional<CapacityF>
+std::optional<Model::CapacityF>
 compute_fictitious_capacity_fit_blocking_probability(
     const Model::OutgoingRequestStream &rs,
-    CapacityF                           V)
+    Model::CapacityF                    V)
 {
   float_hp target_p_block = get(rs.blocking_probability);
   float_hp a = get(rs.intensity);
   float_hp e = 1e-10;
   float_hp left_bound = 0;
-  float_hp right_bound = 4 * get(V); // TODO(PW): determine what range should be searched
+  // TODO(PW): determine what range should be searched
+  float_hp right_bound = 4 * ts::get(V);
   float_hp current = left_bound;
   float_hp p = -1;
 
@@ -58,7 +62,8 @@ compute_fictitious_capacity_fit_blocking_probability(
   {
     current = (right_bound + left_bound) * float_hp{0.5L};
     p = extended_erlang_b(current, a);
-    // println("{} {} {}, {} -> {}", right_bound, current, left_bound, p, target_p_block);
+    // println("{} {} {}, {} -> {}", right_bound, current, left_bound, p,
+    // target_p_block);
     if (p > target_p_block)
     {
       left_bound = current;
@@ -74,7 +79,8 @@ compute_fictitious_capacity_fit_blocking_probability(
   }
   if (p < target_p_block + e && p > target_p_block - e)
   {
-    return CapacityF{count_float_t<>{current * get(rs.tc.size)}};
+    return Model::CapacityF{
+        Model::Capacity::value_type{current * get(rs.tc.size)}};
   }
   return {};
 }
