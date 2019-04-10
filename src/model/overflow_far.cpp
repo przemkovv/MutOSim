@@ -56,7 +56,7 @@ compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
   auto inv_sum =
       rng::accumulate(
           in_request_streams | rng::view::transform([](const auto &rs) {
-            return rs.mean * rs.tc.size;
+            return rs.mean * Size{rs.tc.size};
           }),
           WeightF{0})
           .invert();
@@ -64,7 +64,7 @@ compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
   // Formula 3.19
   auto peakedness = rng::accumulate(
       in_request_streams | rng::view::transform([inv_sum](const auto &rs) {
-        return rs.variance * (rs.tc.size * inv_sum);
+        return rs.variance * (Size{rs.tc.size} * inv_sum);
       }),
       Peakedness{0});
 
@@ -74,10 +74,10 @@ compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
 //----------------------------------------------------------------------
 Variance
 compute_riordan_variance(
-    MeanIntensity mean,
-    Intensity     intensity,
-    CapacityF     fictitous_capacity,
-    SizeF         tc_size)
+    const MeanIntensity mean,
+    const Intensity     intensity,
+    const CapacityF     fictitous_capacity,
+    const SizeF         tc_size)
 {
   ts::underlying_type<Variance> variance =
       get(mean)
@@ -94,9 +94,9 @@ compute_riordan_variance(
 CapacityF
 compute_fictitious_capacity_fit_carried_traffic(
     const OutgoingRequestStreams &out_request_streams,
-    CapacityF                     V,
-    TrafficClassId                tc_id,
-    KaufmanRobertsVariant         kr_variant)
+    const CapacityF               V,
+    const TrafficClassId          tc_id,
+    const KaufmanRobertsVariant   kr_variant)
 {
   return V
          - rng::accumulate(
@@ -106,11 +106,11 @@ compute_fictitious_capacity_fit_carried_traffic(
                if (kr_variant == KaufmanRobertsVariant::FixedCapacity)
                {
                  return rs.mean_request_number
-                        * (SizeRescale{rs.peakedness} * rs.tc.size);
+                        * (SizeRescale{rs.peakedness} * Size{rs.tc.size});
                }
                else
                {
-                 return rs.mean_request_number * rs.tc.size;
+                 return rs.mean_request_number * Size{rs.tc.size};
                }
              }),
              CapacityF{0});
@@ -120,9 +120,9 @@ compute_fictitious_capacity_fit_carried_traffic(
 Probabilities
 kaufman_roberts_distribution(
     const IncomingRequestStreams &in_request_streams,
-    Resource<CapacityF>           resource,
-    Size                          offset,
-    KaufmanRobertsVariant         kr_variant)
+    const Resource<CapacityF>     resource,
+    const Size                    offset,
+    const KaufmanRobertsVariant   kr_variant)
 {
   const auto    V = Model::Capacity{resource.V()} + offset;
   Probabilities state(size_t(V) + 1, Probability{0});
@@ -132,22 +132,23 @@ kaufman_roberts_distribution(
   {
     for (const auto &rs : in_request_streams)
     {
-      const auto tc_size = [&]() {
+      const SizeF tc_size = [&]() {
         if (kr_variant == KaufmanRobertsVariant::FixedReqSize)
         {
           return SizeF{rs.tc.size};
         }
         else
         {
-          return SizeRescale{rs.peakedness} * rs.tc.size;
+          return SizeRescale{rs.peakedness} * Size{rs.tc.size};
         }
       }();
-      auto previous_state = Capacity{n - tc_size};
+      const auto previous_state = Capacity{CapacityF{n} - tc_size};
       if (previous_state >= Capacity{0})
       {
         Probability previous_state_value{0};
 
-        if (auto prec = get(n - tc_size); (false) && floor(prec) < prec)
+        if (auto prec = get(CapacityF{n} - tc_size);
+            (false) && floor(prec) < prec)
         {
           const auto fraction = prec - floor(prec);
           const auto s1 = state[size_t(previous_state)];
@@ -190,8 +191,8 @@ kaufman_roberts_distribution(
 OutgoingRequestStreams
 kaufman_roberts_blocking_probability(
     const IncomingRequestStreams &in_request_streams,
-    Resource<CapacityF>           resource,
-    KaufmanRobertsVariant         kr_variant)
+    const Resource<CapacityF>     resource,
+    const KaufmanRobertsVariant   kr_variant)
 {
   CapacityF V = resource.V();
   debug_println("Resource: {}", resource);
@@ -203,7 +204,7 @@ kaufman_roberts_blocking_probability(
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams)
   {
-    CapacityF n{V - in_rs.tc.size + SizeF{1}};
+    CapacityF n{V - SizeF{in_rs.tc.size} + SizeF{1}};
 
     auto blocking_probability = rng::accumulate(
         distribution | rng::view::drop(size_t(floor(get(n)))), Probability{0});
@@ -245,7 +246,7 @@ kaufman_roberts_blocking_probability(
 OutgoingRequestStreams
 compute_overflow_parameters(
     OutgoingRequestStreams out_request_streams,
-    CapacityF              V)
+    const CapacityF              V)
 {
   for (auto &rs : out_request_streams)
   {
@@ -268,7 +269,7 @@ compute_overflow_parameters(
     rs.fictitous_capacity = fictitous_capacity.value();
 
     rs.variance = compute_riordan_variance(
-        rs.mean, rs.intensity, rs.fictitous_capacity, rs.tc.size);
+        rs.mean, rs.intensity, rs.fictitous_capacity, SizeF{rs.tc.size});
 
     ASSERT(
         get(rs.variance) >= 0,
@@ -291,7 +292,7 @@ compute_overflow_parameters(
 template <typename C>
 Count
 combinatorial_arrangement_number(
-    Capacity                    x,
+    const Capacity              x,
     const ResourceComponent<C> &component)
 {
   Count upper_limit{
@@ -358,15 +359,15 @@ struct NCounter
 template <typename C>
 Count
 combinatorial_arrangement_number_unequal_resources(
-    Capacity    x, // number of free allocation units
-    Resource<C> resource)
+    const Capacity    x, // number of free allocation units
+    const Resource<C> resource)
 {
   debug_println<DebugTransition>("x: {}", x);
   const auto component_types_number =
       Count(resource.components.size() - 1); // chi_s
   const auto &components = resource.components;
 
-  auto stop_condition = component_types_number * x;
+  const auto stop_condition = component_types_number * x;
 
   std::vector<std::vector<Capacity>> all_coefficients;
   NCounter                           counter(component_types_number, x);
@@ -404,13 +405,13 @@ combinatorial_arrangement_number_unequal_resources(
 template <typename C>
 Probability
 conditional_transition_probability(
-    Capacity                    n,
+    const Capacity              n,
     const ResourceComponent<C> &component,
-    Size                        t)
+    const Size                  t)
 {
   auto V = Capacity{component.V()};
   auto nominator_resource =
-      ResourceComponent{component.number, Capacity{get(t) - 1}};
+      ResourceComponent{component.number, Capacity{t - Size{1}}};
   auto nominator = combinatorial_arrangement_number(V - n, nominator_resource);
   auto denominator = combinatorial_arrangement_number(V - n, component);
   debug_println<DebugTransition>("nom: {}, denom: {}", nominator, denominator);
@@ -423,9 +424,9 @@ conditional_transition_probability(
 template <typename C>
 Probability
 conditional_transition_probability(
-    Capacity           n,
+    const Capacity     n,
     const Resource<C> &resource,
-    Size               t)
+    const Size         t)
 {
   auto V = Capacity{resource.V()};
   if (n == V)
@@ -433,9 +434,9 @@ conditional_transition_probability(
     return Probability{0};
   }
   auto nominator_resource = resource;
-  for (auto &component : nominator_resource.components)
+  for (ResourceComponent<C> &component : nominator_resource.components)
   {
-    component.v = C{get(t) - 1};
+    component.v = C{Capacity{t - Size{1}}};
   }
   auto nominator = combinatorial_arrangement_number_unequal_resources(
       V - n, nominator_resource);

@@ -24,8 +24,9 @@ using MeanRequestNumber = TypesPrecision::MeanRequestNumber_<highp>;
 
 using CapacityF = TypesPrecision::Capacity_<highp, use_float_tag>;
 using WeightF = TypesPrecision::Weight_<highp, use_float_tag>;
-using SizeF = TypesPrecision::Size_<highp, use_float_tag>;
 using SizeRescale = TypesPrecision::SizeRescale_<highp>;
+using Size = TypesPrecision::Size_<highp, use_int_tag>;
+using SizeF = TypesPrecision::Size_<highp, use_float_tag>;
 
 } // namespace Model
 
@@ -35,10 +36,10 @@ using IntensityFactor = TypesPrecision::IntensityFactor_<mediump>;
 using Ratio = TypesPrecision::Ratio_<mediump>;
 using Capacity = TypesPrecision::Capacity_<mediump, use_int_tag>;
 using Count = TypesPrecision::Count_<mediump>;
+using Size = TypesPrecision::Size_<mediump, use_int_tag>;
 } // namespace Simulation
 
 using Weight = TypesPrecision::Weight_<mediump, use_int_tag>;
-using Size = TypesPrecision::Size_<mediump, use_int_tag>;
 
 using Time = TypesPrecision::Time_<mediump>;
 using Duration = TypesPrecision::Duration_<mediump>;

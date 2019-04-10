@@ -9,6 +9,7 @@
 namespace ts = type_safe;
 
 namespace TypesPrecision {
+
 template <typename T, typename... Ts>
 constexpr bool is_any_same_v = std::disjunction_v<std::is_same<T, Ts>...>;
 
@@ -23,6 +24,60 @@ using precision_t =
     std::conditional_t<is_any_same_v<highp, Ts...>, highp, mediump>;
 
 //----------------------------------------------------------------------
+// Template forward declarations
+
+template <typename Prec>
+struct Ratio_;
+
+template <typename Prec, typename UseFloat>
+struct InvWeight_;
+
+template <typename Prec, typename UseFloat>
+struct Weight_;
+
+template <typename Prec>
+struct Count_;
+
+template <typename Prec, typename UseFloat>
+struct Capacity_;
+
+template <typename Prec, typename UseFloat>
+struct Size_;
+
+template <typename Prec>
+struct IntensitySize_;
+
+template <typename Prec>
+struct Intensity_;
+
+template <typename Prec>
+struct Probability_;
+
+template <typename Prec>
+struct IntensityFactor_;
+
+template <typename Prec>
+struct Duration_;
+
+template <typename Prec>
+struct Variance_;
+
+template <typename Prec>
+struct MeanRequestNumber_;
+
+template <typename Prec>
+struct MeanIntensity_;
+
+template <typename Prec>
+struct Peakedness_;
+
+template <typename Prec>
+struct SizeRescale_;
+
+template <typename Prec>
+struct Time_;
+
+//----------------------------------------------------------------------
 template <typename Prec>
 struct Ratio_ : ts::strong_typedef<Ratio_<Prec>, ratio_t<Prec>>,
                 ts::strong_typedef_op::equality_comparison<Ratio_<Prec>>,
@@ -30,6 +85,8 @@ struct Ratio_ : ts::strong_typedef<Ratio_<Prec>, ratio_t<Prec>>,
                 ts::strong_typedef_op::output_operator<Ratio_<Prec>>
 {
   using ts::strong_typedef<Ratio_<Prec>, ratio_t<Prec>>::strong_typedef;
+
+  using value_type = typename ts::underlying_type<Ratio_>;
 };
 
 //----------------------------------------------------------------------
@@ -42,17 +99,13 @@ struct InvWeight_
   using ts::strong_typedef<
       InvWeight_<Prec, UseFloat>,
       weight_t<Prec, UseFloat>>::strong_typedef;
-};
 
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator+(
-    const InvWeight_<Prec, UseFloat> &w1,
-    const InvWeight_<Prec, UseFloat> &w2)
-{
-  weight_t<Prec, UseFloat> value = get(w1) + get(w2);
-  return InvWeight_<Prec, UseFloat>{value};
-}
+  constexpr auto operator+(const InvWeight_ &w) const
+  {
+    weight_t<Prec, UseFloat> value = get(*this) + get(w);
+    return InvWeight_{value};
+  }
+};
 
 //----------------------------------------------------------------------
 template <typename Prec, typename UseFloat>
@@ -63,20 +116,20 @@ struct Weight_
 {
   using ts::strong_typedef<Weight_<Prec, UseFloat>, weight_t<Prec, UseFloat>>::
       strong_typedef;
+
   constexpr auto operator/(const Weight_ &w) const
   {
-    return Ratio_<Prec>{
-        static_cast<ts::underlying_type<Ratio_<Prec>>>(ts::get(*this))
-        / ts::get(w)};
+    ratio_t<Prec> result = static_cast<ratio_t<Prec>>(get(*this)) / get(w);
+    return Ratio_<Prec>{result};
   }
-  constexpr auto invert()
+  constexpr auto invert() const
   {
     weight_t<Prec, use_float_tag> value = 1 / get(*this);
     return InvWeight_<Prec, use_float_tag>{value};
   }
-  template <
-      typename = std::enable_if_t<std::is_same_v<UseFloat, use_float_tag>>>
-  constexpr Weight_ opposite()
+  template <typename Result = Weight_>
+  constexpr auto opposite() const
+      -> std::enable_if_t<std::is_same_v<UseFloat, use_float_tag>, Result>
   {
     ASSERT(
         get(*this) >= 0 && get(*this) <= 1,
@@ -92,15 +145,20 @@ struct Weight_
     ts::get(*this) += ts::get(w);
     return *this;
   }
+
+  constexpr auto operator+(const Weight_ &w2) const
+  {
+    weight_t<Prec, UseFloat> value = get(*this) + get(w2);
+    return Weight_{value};
+  }
+
+  constexpr auto operator*(const Probability_<Prec> &probability)
+  {
+    probability_t<Prec> result = get(*this) * get(probability);
+    return Probability_<Prec>{result};
+  }
 };
 
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator+(const Weight_<Prec, UseFloat> &w1, const Weight_<Prec, UseFloat> &w2)
-{
-  weight_t<Prec, UseFloat> value = get(w1) + get(w2);
-  return Weight_<Prec, UseFloat>{value};
-}
 //----------------------------------------------------------------------
 
 template <typename Prec>
@@ -151,14 +209,35 @@ struct Count_ : ts::strong_typedef<Count_<Prec>, count_t<Prec>>,
     count_t<Prec> value = get(*this) * get(c);
     return Count_{value};
   }
+  constexpr auto operator/(const Count_ &c2) const
+  {
+    ratio_t<Prec> result = static_cast<ratio_t<Prec>>(get(*this))
+                           / static_cast<ratio_t<Prec>>(get(c2));
+    return Ratio_<Prec>{result};
+  }
+  template <typename CapacityUseFloat>
+  constexpr auto
+  operator*(const Capacity_<Prec, CapacityUseFloat> &capacity) const
+  {
+    count_t<Prec, CapacityUseFloat> value = get(*this) * get(capacity);
+    return Capacity_<Prec, CapacityUseFloat>{value};
+  }
+  constexpr auto operator*(const Intensity_<Prec> &intensity) const
+  {
+    intensity_t<Prec> value = get(*this) * get(intensity);
+    return Intensity_<Prec>{value};
+  }
 };
+
 //----------------------------------------------------------------------
-//----------------------------------------------------------------------
+
 template <typename Prec, typename UseFloat>
 struct Capacity_
   : ts::strong_typedef<Capacity_<Prec, UseFloat>, count_t<Prec, UseFloat>>,
     ts::strong_typedef_op::equality_comparison<Capacity_<Prec, UseFloat>>,
     ts::strong_typedef_op::relational_comparison<Capacity_<Prec, UseFloat>>,
+    ts::strong_typedef_op::increment<Capacity_<Prec, UseFloat>>,
+    ts::strong_typedef_op::decrement<Capacity_<Prec, UseFloat>>,
     ts::strong_typedef_op::output_operator<Capacity_<Prec, UseFloat>>
 {
   using ts::strong_typedef<Capacity_<Prec, UseFloat>, count_t<Prec, UseFloat>>::
@@ -170,70 +249,83 @@ struct Capacity_
   explicit operator size_t() const { return static_cast<size_t>(get(*this)); }
 
   template <
-      typename Prec2,
-      typename Dummy = void,
-      typename =
-          std::enable_if_t<std::is_same_v<UseFloat, use_float_tag>, Dummy>>
-  constexpr Capacity_(const Capacity_<Prec2, use_int_tag> &c)
-    : Capacity_(get(c))
+      typename SrcPrec,
+      typename SrcUseFloat,
+      typename = std::enable_if_t<!std::is_same_v<
+          Capacity_<SrcPrec, SrcUseFloat>,
+          Capacity_<Prec, UseFloat>>>>
+  explicit constexpr Capacity_(const Capacity_<SrcPrec, SrcUseFloat> &c)
+    : Capacity_(static_cast<value_type>(get(c)))
   {
-  }
-
-  template <typename Prec2>
-  explicit operator Capacity_<Prec2, use_int_tag>() const
-  {
-    return Capacity_<Prec2, use_int_tag>{
-        static_cast<count_t<Prec2>>(get(*this))};
   }
   template <
-      typename Dummy = void,
-      typename = std::enable_if_t<std::is_same_v<UseFloat, use_int_tag>, Dummy>>
-  Capacity_ &operator++()
+      typename SrcPrec,
+      typename SrcUseFloat,
+      typename = std::enable_if_t<std::conjunction_v<
+          std::is_same_v<SrcPrec, Prec>,
+          std::is_same_v<SrcUseFloat, UseFloat>>>>
+  explicit constexpr Capacity_(const Size_<SrcPrec, SrcUseFloat> &s)
+    : Capacity_(get(s))
   {
-    ++ts::get(*this);
-    return *this;
   }
-  template <
-      typename Dummy = void,
-      typename = std::enable_if_t<std::is_same_v<UseFloat, use_int_tag>, Dummy>>
-  Capacity_ operator++(int)
+  template <typename DstPrec, typename DstUseFloat>
+  explicit operator Capacity_<DstPrec, DstUseFloat>() const &&
   {
-    const Capacity_ result = *this;
-    ts::get(*this)++;
-    return result;
+    return Capacity_<DstPrec, DstUseFloat>(get(*this));
   }
   constexpr auto &operator+=(const Capacity_ &c)
   {
-    ts::get(*this) += ts::get(c);
+    get(*this) += get(c);
     return *this;
   }
   constexpr auto &operator-=(const Capacity_ &c)
   {
-    ts::get(*this) -= ts::get(c);
+    get(*this) -= get(c);
     return *this;
+  }
+  constexpr auto operator-(const Capacity_ &c) const
+  {
+    count_t<Prec, UseFloat> value = get(*this) - get(c);
+    return Capacity_{value};
+  }
+  constexpr auto operator+(const Capacity_ &c) const
+  {
+    count_t<Prec, UseFloat> value = get(*this) + get(c);
+    return Capacity_{value};
+  }
+
+  constexpr auto operator+(const Size_<Prec, UseFloat> &s) const
+  {
+    count_t<Prec, UseFloat> value = get(*this) + get(s);
+    return Capacity_<Prec, UseFloat>{value};
+  }
+
+  constexpr auto operator-(const Size_<Prec, UseFloat> &s) const
+  {
+    count_t<Prec, UseFloat> value = get(*this) - get(s);
+    return Capacity_<Prec, UseFloat>{value};
+  }
+
+  constexpr auto &operator+=(const Size_<Prec, UseFloat> &s)
+  {
+    get(*this) = get(*this) + get(s);
+    return *this;
+  }
+
+  constexpr auto operator>=(const Size_<Prec, UseFloat> &s) const
+  {
+    return get(*this) >= get(s);
+  }
+  constexpr auto operator/(const Peakedness_<Prec> &peakedness) const
+  {
+    count_t<Prec, use_float_tag> result =
+        static_cast<stat_t<Prec>>(get(*this)) / get(peakedness);
+    return Capacity_<Prec, use_float_tag>{result};
   }
 };
 
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator-(
-    const Capacity_<Prec, UseFloat> &c1,
-    const Capacity_<Prec, UseFloat> &c2)
-{
-  count_t<Prec, UseFloat> value = get(c1) - get(c2);
-  return Capacity_<Prec, UseFloat>{value};
-}
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator+(
-    const Capacity_<Prec, UseFloat> &c1,
-    const Capacity_<Prec, UseFloat> &c2)
-{
-  count_t<Prec, UseFloat> value = get(c1) + get(c2);
-  return Capacity_<Prec, UseFloat>{value};
-}
-
 //----------------------------------------------------------------------
+
 template <typename Prec, typename UseFloat>
 struct Size_
   : ts::strong_typedef<Size_<Prec, UseFloat>, count_t<Prec, UseFloat>>,
@@ -244,104 +336,81 @@ struct Size_
   using ts::strong_typedef<Size_<Prec, UseFloat>, count_t<Prec, UseFloat>>::
       strong_typedef;
 
-  template <typename Prec2, typename UseFloat2>
-  constexpr Size_(const Size_<Prec2, UseFloat2> &c)
+  template <typename SrcPrec, typename SrcUseFloat>
+  explicit constexpr Size_(const Size_<SrcPrec, SrcUseFloat> &c)
     : Size_(count_t<Prec, UseFloat>(get(c)))
   {
   }
+  template <
+      typename SrcPrec,
+      typename = std::enable_if_t<std::is_same_v<UseFloat, use_int_tag>>>
+  explicit constexpr Size_(const Size_<SrcPrec, use_float_tag> &c)
+    : Size_(count_t<Prec, UseFloat>(ceil(get(c))))
+  {
+  }
+
+  template <
+      typename Dummy = void,
+      typename = std::enable_if_t<std::is_same_v<Prec, mediump>, Dummy>>
+  operator Size_<highp, UseFloat>() const
+  {
+    return Size_<highp, UseFloat>{get(*this)};
+  }
+
+  explicit constexpr operator Capacity_<Prec, UseFloat>() const &&
+  {
+    return Capacity_<Prec, UseFloat>{get(*this)};
+  }
   constexpr auto &operator+=(const Size_ &s)
   {
-    return ts::get(*this) += ts::get(s);
+    get(*this) += get(s);
+    return *this;
   }
   constexpr auto &operator-=(const Size_ &s)
   {
-    return ts::get(*this) -= ts::get(s);
+    get(*this) -= get(s);
+    return *this;
+  }
+  constexpr auto operator-(const Size_ &c2) const
+  {
+    count_t<Prec, UseFloat> value = get(*this) - get(c2);
+    return Size_{value};
+  }
+  constexpr auto operator+(const Size_ &c2) const
+  {
+    count_t<Prec, UseFloat> value = get(*this) + get(c2);
+    return Size_{value};
   }
 
-  constexpr bool operator==(const Capacity_<Prec, UseFloat> &c)
+  constexpr bool operator==(const Capacity_<Prec, UseFloat> &c) const
   {
-    return ts::get(*this) == ts::get(c);
+    return get(*this) == get(c);
   }
-  constexpr bool operator<=(const Capacity_<Prec, UseFloat> &c)
+  constexpr bool operator<=(const Capacity_<Prec, UseFloat> &c) const
   {
-    return ts::get(*this) <= ts::get(c);
+    return get(*this) <= get(c);
   }
-  constexpr bool operator>(const Capacity_<Prec, UseFloat> &c)
+  constexpr bool operator>(const Capacity_<Prec, UseFloat> &c) const
   {
-    return ts::get(*this) > ts::get(c);
+    return get(*this) > get(c);
   }
-  explicit operator Size_<Prec, use_int_tag>() const
+  constexpr auto operator/(const IntensityFactor_<Prec> &intensity_factor)
   {
-    return Size_<Prec, use_int_tag>{
-        static_cast<count_t<Prec, use_int_tag>>(std::ceil(get(*this)))};
+    count_t<Prec, use_float_tag> value =
+        static_cast<count_t<Prec, use_float_tag>>(
+            get(*this) / get(intensity_factor));
+    return Size_<Prec, use_float_tag>{value};
+  }
+  constexpr auto
+  operator*(const InvWeight_<Prec, use_float_tag> &inv_weight) const
+  {
+    weight_t<Prec, use_float_tag> value = get(*this) * get(inv_weight);
+    return Weight_<Prec, use_float_tag>{value};
   }
 };
 
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator-(const Size_<Prec, UseFloat> &c1, const Size_<Prec, UseFloat> &c2)
-{
-  count_t<Prec, UseFloat> value = get(c1) - get(c2);
-  return Size_<Prec, UseFloat>{value};
-}
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator+(const Size_<Prec, UseFloat> &c1, const Size_<Prec, UseFloat> &c2)
-{
-  count_t<Prec, UseFloat> value = get(c1) + get(c2);
-  return Size_<Prec, UseFloat>{value};
-}
-
 //----------------------------------------------------------------------
-template <
-    typename Prec,
-    typename Prec2,
-    typename CapacityUseFloat,
-    typename SizeUseFloat,
-    typename CommonUseFloat = promote_t<CapacityUseFloat, SizeUseFloat>,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto
-operator-(
-    const Capacity_<Prec, CapacityUseFloat> &c,
-    const Size_<Prec2, SizeUseFloat> &       s)
-{
-  count_t<Result, CommonUseFloat> value = get(c) - get(s);
-  return Capacity_<Result, CommonUseFloat>{value};
-}
 
-template <
-    typename Prec,
-    typename Prec2,
-    typename CapacityUseFloat,
-    typename SizeUseFloat,
-    typename CommonUseFloat = promote_t<CapacityUseFloat, SizeUseFloat>,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto
-operator+(
-    const Capacity_<Prec, CapacityUseFloat> &c,
-    const Size_<Prec2, SizeUseFloat> &       s)
-{
-  count_t<Result, CommonUseFloat> value = get(c) + get(s);
-  return Capacity_<Result, CommonUseFloat>{value};
-}
-
-template <typename Prec, typename UseFloat>
-constexpr auto &
-operator+=(Capacity_<Prec, UseFloat> &c, const Size_<Prec, UseFloat> &s)
-{
-  get(c) = get(c) + get(s);
-  return c;
-}
-
-template <typename Prec>
-constexpr auto
-operator>=(
-    const Capacity_<Prec, use_int_tag> &c,
-    const Size_<Prec, use_int_tag> &    s)
-{
-  return get(c) >= get(s);
-}
-//----------------------------------------------------------------------
 template <typename Prec>
 struct IntensitySize_
   : ts::strong_typedef<IntensitySize_<Prec>, intensity_t<Prec>>,
@@ -350,6 +419,25 @@ struct IntensitySize_
 {
   using ts::strong_typedef<IntensitySize_<Prec>, intensity_t<Prec>>::
       strong_typedef;
+
+  template <typename UseFloat>
+  constexpr auto operator/(const Size_<Prec, UseFloat> &size) const
+  {
+    intensity_t<Prec> value = ts::get(*this) / ts::get(size);
+    return Intensity_<Prec>(value);
+  }
+  template <typename UseFloat>
+  constexpr auto operator/(const Capacity_<Prec, UseFloat> &capacity) const
+  {
+    intensity_t<Prec> value = ts::get(*this) / ts::get(capacity);
+    return Intensity_<Prec>(value);
+  }
+
+  constexpr auto operator*(const Probability_<Prec> &probability)
+  {
+    probability_t<Prec> result = get(*this) * get(probability);
+    return Probability_<Prec>{result};
+  }
 };
 
 //----------------------------------------------------------------------
@@ -369,64 +457,55 @@ struct Intensity_
   Intensity_(const Intensity_<Prec2> &intensity) : Intensity_(get(intensity))
   {
   }
-  constexpr auto operator/(const Intensity_<Prec> &intensity) const
+  constexpr auto operator/(const Intensity_ &intensity) const
   {
-    return Intensity_<Prec>{ts::get(*this) / ts::get(intensity)};
+    intensity_t<Prec> value = get(*this) / get(intensity);
+    return Intensity_<Prec>{value};
   }
   template <typename UseFloat>
   constexpr auto operator/(const Size_<Prec, UseFloat> &size) const
   {
-    return Intensity_<Prec>(ts::get(*this) / ts::get(size));
+    intensity_t<Prec> value = get(*this) / get(size);
+    return Intensity_<Prec>(value);
+  }
+  constexpr auto operator/(const Count_<Prec> &count) const
+  {
+    intensity_t<Prec> value = get(*this) / get(count);
+    return Intensity_{value};
   }
 
-  template <
-      typename Prec2,
-      typename SizeUseFloat,
-      typename Result = precision_t<Prec, Prec2>>
-  constexpr auto operator*(const Size_<Prec2, SizeUseFloat> &size) const
+  template <typename SizeUseFloat>
+  constexpr auto operator*(const Size_<Prec, SizeUseFloat> &size) const
   {
-    typename Result::float_t value = get(*this) * get(size);
-    return IntensitySize_<Result>(value);
+    intensity_t<Prec> value = get(*this) * get(size);
+    return IntensitySize_<Prec>(value);
   }
   template <typename UseFloat>
   constexpr auto operator*(const Capacity_<Prec, UseFloat> &capacity) const
   {
-    return Intensity_<Prec>(ts::get(*this) * ts::get(capacity));
+    intensity_t<Prec> value = get(*this) * get(capacity);
+    return Intensity_<Prec>(value);
   }
   constexpr auto operator*(const Ratio_<Prec> &ratio) const
   {
-    return Intensity_<Prec>(ts::get(*this) * ts::get(ratio));
+    intensity_t<Prec> value = get(*this) * get(ratio);
+    return Intensity_<Prec>(value);
+  }
+
+  constexpr bool operator==(const Intensity_<Prec> &intensity) const
+  {
+    return (get(*this) + epsilon) > get(intensity)
+           && (get(*this) - epsilon) < get(intensity);
+  }
+  constexpr auto operator*(const Probability_<Prec> &probability) const
+  {
+    intensity_t<Prec> value = get(*this) * get(probability);
+    return MeanIntensity_<Prec>{value};
   }
 };
+
 //----------------------------------------------------------------------
 
-template <typename Prec>
-constexpr bool
-operator==(
-    const Intensity_<Prec> &intensity1,
-    const Intensity_<Prec> &intensity2)
-{
-  return (get(intensity1) + epsilon) > get(intensity2)
-         && (get(intensity1) - epsilon) < get(intensity2);
-}
-
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator/(
-    const IntensitySize_<Prec> & intensity,
-    const Size_<Prec, UseFloat> &size)
-{
-  return Intensity_<Prec>(ts::get(intensity) / ts::get(size));
-}
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator/(
-    const IntensitySize_<Prec> &     intensity,
-    const Capacity_<Prec, UseFloat> &capacity)
-{
-  return Intensity_<Prec>(ts::get(intensity) / ts::get(capacity));
-}
-//----------------------------------------------------------------------
 template <typename Prec>
 struct Probability_
   : ts::strong_typedef<Probability_<Prec>, probability_t<Prec>>,
@@ -437,21 +516,21 @@ struct Probability_
   using ts::strong_typedef<Probability_<Prec>, probability_t<Prec>>::
       strong_typedef;
 
-  template <typename Prec2, typename UseFloat>
-  constexpr Probability_ &operator/=(const Capacity_<Prec2, UseFloat> &capacity)
-  {
-    ts::get(*this) /= ts::get(capacity);
-    return *this;
-  }
   constexpr Probability_ opposite()
   {
     probability_t<Prec> value = 1 - get(*this);
     return Probability_{value};
   }
-  constexpr Probability_ &operator/=(const Probability_ &p)
+
+  explicit constexpr Probability_(const Ratio_<Prec> &ratio)
   {
-    get(*this) /= get(p);
-    return *this;
+    get(*this) = get(ratio);
+  }
+
+  constexpr auto operator+(const Probability_ &p2) const
+  {
+    probability_t<Prec> value = get(*this) + get(p2);
+    return Probability_<Prec>{value};
   }
   constexpr Probability_ &operator+=(const Probability_ &p)
   {
@@ -459,78 +538,44 @@ struct Probability_
     return *this;
   }
 
-  template <typename Prec2>
-  explicit constexpr Probability_(const Ratio_<Prec2> &ratio)
+  constexpr auto operator-(const Probability_ &p2) const
   {
-    get(*this) = get(ratio);
+    probability_t<Prec> value = get(*this) - get(p2);
+    return Probability_<Prec>{value};
+  }
+
+  constexpr auto operator*(const Probability_ &p2) const
+  {
+    probability_t<Prec> value = get(*this) * get(p2);
+    return Probability_<Prec>{value};
+  }
+
+  constexpr auto operator/(const Probability_ &p2) const
+  {
+    probability_t<Prec> value = get(*this) / get(p2);
+    return Probability_<Prec>{value};
+  }
+  constexpr Probability_ &operator/=(const Probability_ &p)
+  {
+    get(*this) /= get(p);
+    return *this;
+  }
+
+  template <typename UseFloat>
+  constexpr auto operator/(const Capacity_<Prec, UseFloat> &capacity) const
+  {
+    probability_t<Prec> value = get(*this) / get(capacity);
+    return Probability_<Prec>{value};
+  }
+  template <typename UseFloat>
+  constexpr Probability_ &operator/=(const Capacity_<Prec, UseFloat> &capacity)
+  {
+    ts::get(*this) /= ts::get(capacity);
+    return *this;
   }
 };
 
-template <typename Prec>
-constexpr auto
-operator+(const Probability_<Prec> &p1, const Probability_<Prec> &p2)
-{
-  probability_t<Prec> value = get(p1) + get(p2);
-  return Probability_<Prec>{value};
-}
-
-template <typename Prec>
-constexpr auto
-operator-(const Probability_<Prec> &p1, const Probability_<Prec> &p2)
-{
-  probability_t<Prec> value = get(p1) - get(p2);
-  return Probability_<Prec>{value};
-}
-
-template <typename Prec>
-constexpr auto
-operator*(const Probability_<Prec> &p1, const Probability_<Prec> &p2)
-{
-  probability_t<Prec> value = get(p1) * get(p2);
-  return Probability_<Prec>{value};
-}
-
-template <typename Prec>
-constexpr auto
-operator/(const Probability_<Prec> &p1, const Probability_<Prec> &p2)
-{
-  probability_t<Prec> value = get(p1) / get(p2);
-  return Probability_<Prec>{value};
-}
-
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator/(
-    const Probability_<Prec> &       probability,
-    const Capacity_<Prec, UseFloat> &capacity)
-{
-  return Probability_<Prec>{get(probability) / get(capacity)};
-}
-
-template <
-    typename Prec,
-    typename Prec2,
-    typename UseFloat,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto operator*(
-    const Weight_<Prec, UseFloat> &weight,
-    const Probability_<Prec2> &    probability)
-{
-  probability_t<Result> result = get(weight) * get(probability);
-  return Probability_<Result>{result};
-}
-
-template <
-    typename Prec,
-    typename Prec2,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto operator*(
-    const IntensitySize_<Prec> &intensity,
-    const Probability_<Prec2> & probability)
-{
-  probability_t<Result> result = get(intensity) * get(probability);
-  return Probability_<Result>{result};
-}
+//----------------------------------------------------------------------
 
 template <typename Prec>
 struct IntensityFactor_
@@ -543,65 +588,23 @@ struct IntensityFactor_
 
   constexpr auto operator*(const Intensity_<Prec> &intensity) const
   {
-    return Intensity_<Prec>(ts::get(*this) * ts::get(intensity));
+    intensity_t<Prec> value = get(*this) * get(intensity);
+    return Intensity_<Prec>(value);
   }
 };
-
-template <typename Prec, typename UseFloat>
-constexpr auto
-operator/(
-    const Size_<Prec, UseFloat> & size,
-    const IntensityFactor_<Prec> &intensity_factor)
-{
-  return Size_<Prec, use_float_tag>{static_cast<count_t<Prec, use_float_tag>>(
-      get(size) / get(intensity_factor))};
-}
 
 //----------------------------------------------------------------------
 
 template <typename Prec>
-constexpr auto
-operator*(const Count_<Prec> &count, const Intensity_<Prec> &intensity)
-{
-  return ts::get(count) * ts::get(intensity);
-}
-
-template <typename Prec>
-constexpr auto
-operator/(const Intensity_<Prec> &intensity, const Count_<Prec> &count)
-{
-  return Intensity_<Prec>{ts::get(intensity) / ts::get(count)};
-}
-
-template <typename Prec>
-constexpr auto
-operator/(const Count_<Prec> &c1, const Count_<Prec> &c2)
-{
-  ratio_t<Prec> result = static_cast<ratio_t<Prec>>(ts::get(c1))
-                         / static_cast<ratio_t<Prec>>(ts::get(c2));
-  return Ratio_<Prec>{result};
-}
-
-template <typename Prec>
-constexpr auto operator*(const Count_<Prec> &count, const Count_<Prec> &count2)
+[[deprecated]] constexpr auto
+operator*(const Count_<Prec> &count, const Count_<Prec> &count2)
 {
   count_t<Prec> result = get(count2) * get(count);
   return Count_<Prec>{result};
 }
 
-template <
-    typename Prec,
-    typename Prec2,
-    typename CapacityUseFloat,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto operator
-    *(const Count_<Prec> &count, const Capacity_<Prec2, CapacityUseFloat> &c)
-{
-  count_t<Result, CapacityUseFloat> value = get(c) * get(count);
-  return Capacity_<Result, CapacityUseFloat>{value};
-}
-
 //----------------------------------------------------------------------
+
 template <typename Prec>
 struct Duration_ : ts::strong_typedef<Duration_<Prec>, duration_t<Prec>>,
                    ts::strong_typedef_op::equality_comparison<Duration_<Prec>>,
@@ -622,6 +625,7 @@ struct Duration_ : ts::strong_typedef<Duration_<Prec>, duration_t<Prec>>,
 };
 
 //----------------------------------------------------------------------
+
 template <typename Prec>
 struct Variance_ : ts::strong_typedef<Variance_<Prec>, stat_t<Prec>>,
                    ts::strong_typedef_op::addition<Variance_<Prec>>,
@@ -632,6 +636,16 @@ struct Variance_ : ts::strong_typedef<Variance_<Prec>, stat_t<Prec>>,
   explicit Variance_(const Intensity_<Prec2> &intensity)
     : Variance_(get(intensity))
   {
+  }
+  constexpr auto operator*(const Weight_<Prec, use_float_tag> &weight) const
+  {
+    stat_t<Prec> value = get(*this) * get(weight);
+    return Peakedness_<Prec>{value};
+  }
+  constexpr auto operator/(const MeanIntensity_<Prec> &mean) const
+  {
+    stat_t<Prec> value = get(*this) / get(mean);
+    return Peakedness_<Prec>{value};
   }
 };
 
@@ -645,6 +659,13 @@ struct MeanRequestNumber_
 {
   using ts::strong_typedef<MeanRequestNumber_<Prec>, intensity_t<Prec>>::
       strong_typedef;
+
+  template <typename UseFloat>
+  constexpr auto operator*(const Size_<Prec, UseFloat> &size) const
+  {
+    count_t<Prec, use_float_tag> result = get(*this) * get(size);
+    return Capacity_<Prec, use_float_tag>{result};
+  }
 };
 
 //----------------------------------------------------------------------
@@ -657,7 +678,7 @@ struct MeanIntensity_
 {
   using ts::strong_typedef<MeanIntensity_<Prec>, intensity_t<Prec>>::
       strong_typedef;
-  explicit operator MeanRequestNumber_<Prec>()
+  explicit operator MeanRequestNumber_<Prec>() const
   {
     return MeanRequestNumber_<Prec>{get(*this)};
   }
@@ -668,7 +689,21 @@ struct MeanIntensity_
     : MeanIntensity_(get(intensity))
   {
   }
+
+  constexpr auto operator/(const Peakedness_<Prec> &peakedness) const
+  {
+    intensity_t<Prec> value = get(*this) / get(peakedness);
+    return Intensity_<Prec>{value};
+  }
+
+  template <typename UseFloat>
+  constexpr auto operator*(const Size_<Prec, UseFloat> &size) const
+  {
+    weight_t<Prec, use_float_tag> value = get(*this) * get(size);
+    return Weight_<Prec, use_float_tag>{value};
+  }
 };
+
 //----------------------------------------------------------------------
 
 template <typename Prec>
@@ -678,121 +713,14 @@ struct Peakedness_
     ts::strong_typedef_op::output_operator<Peakedness_<Prec>>
 {
   using ts::strong_typedef<Peakedness_<Prec>, stat_t<Prec>>::strong_typedef;
+
+  constexpr auto operator+(const Peakedness_<Prec> &w2) const
+  {
+    stat_t<Prec> value = get(*this) + get(w2);
+    return Peakedness_<Prec>{value};
+  }
 };
 
-template <typename Prec>
-constexpr auto
-operator+(const Peakedness_<Prec> &w1, const Peakedness_<Prec> &w2)
-{
-  stat_t<Prec> value = get(w1) + get(w2);
-  return Peakedness_<Prec>{value};
-}
-
-template <typename Prec>
-constexpr auto operator*(
-    const Variance_<Prec> &             variance,
-    const Weight_<Prec, use_float_tag> &weight)
-{
-  stat_t<Prec> value = get(variance) * get(weight);
-  return Peakedness_<Prec>{value};
-}
-template <
-    typename Prec,
-    typename Prec2,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto
-operator/(const Variance_<Prec> &variance, const MeanIntensity_<Prec2> &mean)
-    -> Peakedness_<Result>
-{
-  typename Result::float_t value = get(variance) / get(mean);
-  return Peakedness_<Result>{value};
-}
-
-template <
-    typename Prec,
-    typename Prec2,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto
-operator/(
-    const MeanIntensity_<Prec> &mean,
-    const Peakedness_<Prec2> &  peakedness) -> Intensity_<Result>
-{
-  typename Result::float_t value = get(mean) / get(peakedness);
-  return Intensity_<Result>{value};
-}
-
-template <
-    typename Prec,
-    typename Prec2,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto operator*(
-    const Intensity_<Prec> &   intensity,
-    const Probability_<Prec2> &probability) -> MeanIntensity_<Result>
-{
-  typename Result::float_t value = get(intensity) * get(probability);
-  return MeanIntensity_<Result>(value);
-}
-
-template <
-    typename Prec,
-    typename Prec2,
-    typename UseFloat,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto
-operator/(
-    const Capacity_<Prec, UseFloat> &capacity,
-    const Peakedness_<Prec2> &peakedness) -> Capacity_<Result, use_float_tag>
-{
-  count_t<Result, use_float_tag> result =
-      static_cast<stat_t<Prec>>(get(capacity)) / get(peakedness);
-  return Capacity_<Result, use_float_tag>{result};
-}
-template <
-    typename Prec,
-    typename Prec2,
-    typename UseFloat,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto
-operator*(const MeanIntensity_<Prec> &mean, const Size_<Prec2, UseFloat> &size)
-    -> Weight_<Result, use_float_tag>
-{
-  typename Result::float_t value = get(mean) * get(size);
-  return Weight_<Result, use_float_tag>{value};
-}
-template <
-    typename Prec,
-    typename Prec2,
-    typename UseFloat,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto operator
-    *(const MeanRequestNumber_<Prec> &mean, const Size_<Prec2, UseFloat> &size)
-{
-  count_t<Result, use_float_tag> result = get(mean) * get(size);
-  return Capacity_<Result, use_float_tag>{result};
-}
-template <
-    typename Prec,
-    typename Prec2,
-    typename Result = precision_t<Prec, Prec2>>
-constexpr auto operator*(
-    const MeanRequestNumber_<Prec> &   mean,
-    const Size_<Prec2, use_float_tag> &size)
-{
-  count_t<Result, use_float_tag> value = get(mean) * get(size);
-  return Capacity_<Result, use_float_tag>{value};
-}
-template <
-    typename PrecSize,
-    typename PrecWeight,
-    typename UseFloat,
-    typename Result = precision_t<PrecSize, PrecWeight>>
-constexpr auto operator*(
-    const Size_<PrecSize, UseFloat> &            size,
-    const InvWeight_<PrecWeight, use_float_tag> &inv_weight)
-{
-  weight_t<Result, use_float_tag> value = get(size) * get(inv_weight);
-  return Weight_<Result, use_float_tag>{value};
-}
 //----------------------------------------------------------------------
 
 template <typename Prec>
@@ -801,25 +729,19 @@ struct SizeRescale_ : ts::strong_typedef<SizeRescale_<Prec>, intensity_t<Prec>>,
 {
   using ts::strong_typedef<SizeRescale_<Prec>, intensity_t<Prec>>::
       strong_typedef;
+
   explicit SizeRescale_(const Peakedness_<Prec> &peakedness)
     : SizeRescale_(get(peakedness))
   {
   }
+  template <typename SizeUseFloat>
+  constexpr auto operator*(const Size_<Prec, SizeUseFloat> &size) const
+  {
+    count_t<Prec, use_float_tag> value = get(*this) * get(size);
+    return Size_<Prec, use_float_tag>{value};
+  }
 };
-//----------------------------------------------------------------------
 
-template <
-    typename Prec,
-    typename PrecSize,
-    typename SizeUseFloat,
-    typename Result = precision_t<Prec, PrecSize>>
-constexpr auto operator*(
-    const SizeRescale_<Prec> &           rescale,
-    const Size_<PrecSize, SizeUseFloat> &size)
-{
-  count_t<Result, use_float_tag> value = get(rescale) * get(size);
-  return Size_<Result, use_float_tag>{value};
-}
 //----------------------------------------------------------------------
 
 template <typename Prec>
@@ -833,18 +755,21 @@ struct Time_ : ts::strong_typedef<Time_<Prec>, time_type<Prec>>,
   {
     return Duration_<Prec>(ts::get(*this));
   }
-  constexpr Time_<Prec> &operator+=(const Duration_<Prec> &d)
+  constexpr Time_ &operator+=(const Duration_<Prec> &d)
   {
     ts::get(*this) += ts::get(d);
     return *this;
   }
-  constexpr Time_<Prec> operator+(const Duration_<Prec> &duration) const
+  constexpr Time_ operator+(const Duration_<Prec> &duration) const
   {
-    return Time_<Prec>{ts::get(*this) + ts::get(duration)};
+    return Time_{ts::get(*this) + ts::get(duration)};
   }
-  constexpr Duration_<Prec> operator-(const Time_<Prec> &t) const
+  constexpr Duration_<Prec> operator-(const Time_ &t) const
   {
     return Duration_<Prec>{ts::get(*this) - ts::get(t)};
   }
 };
+
+//----------------------------------------------------------------------
+
 } // namespace TypesPrecision

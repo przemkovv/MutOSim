@@ -38,17 +38,17 @@ analytical_computations_hardcoded()
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{1},
                                              Simulation::Intensity{20.0L},
                                              Simulation::Intensity{1.0L},
-                                             Size{1},
+                                             Simulation::Size{1},
                                              {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{2},
                                              Simulation::Intensity{10.0L},
                                              Simulation::Intensity{1.0L},
-                                             Size{2},
+                                             Simulation::Size{2},
                                              {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{3},
                                              Simulation::Intensity{3.33333L},
                                              Simulation::Intensity{1.0L},
-                                             Size{6},
+                                             Simulation::Size{6},
                                              {}});
   Model::Group g1{{Capacity{60}}, KaufmanRobertsVariant::FixedCapacity};
   Model::Group g2{{Capacity{60}}, KaufmanRobertsVariant::FixedCapacity};
@@ -74,17 +74,17 @@ analytical_computations_hardcoded_components()
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{1},
                                              Simulation::Intensity{20.0L},
                                              Simulation::Intensity{1.0L},
-                                             Size{1},
+                                             Simulation::Size{1},
                                              {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{2},
                                              Simulation::Intensity{10.0L},
                                              Simulation::Intensity{1.0L},
-                                             Size{2},
+                                             Simulation::Size{2},
                                              {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{3},
                                              Simulation::Intensity{3.33333L},
                                              Simulation::Intensity{1.0L},
-                                             Size{6},
+                                             Simulation::Size{6},
                                              {}});
   Model::Group g1{{Count{3}, Capacity{60}},
                   KaufmanRobertsVariant::FixedCapacity};
@@ -107,17 +107,17 @@ analytical_computations_hardcoded_components2()
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{1},
                                              Simulation::Intensity{20.0L},
                                              Simulation::Intensity{1.0L},
-                                             Size{1},
+                                             Simulation::Size{1},
                                              {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{2},
                                              Simulation::Intensity{10.0L},
                                              Simulation::Intensity{1.0L},
-                                             Size{2},
+                                             Simulation::Size{2},
                                              {}});
   traffic_classes1.emplace_back(TrafficClass{TrafficClassId{3},
                                              Simulation::Intensity{3.33333L},
                                              Simulation::Intensity{1.0L},
-                                             Size{6},
+                                             Simulation::Size{6},
                                              {}});
   Model::Group g1{{
                       {Count{1}, Capacity{60}},

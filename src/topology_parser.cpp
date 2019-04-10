@@ -10,9 +10,10 @@
 #include <unordered_map>
 
 using nlohmann::json;
+using Simulation::Capacity;
 using Simulation::Intensity;
 using Simulation::IntensityFactor;
-using Simulation::Capacity;
+using Simulation::Size;
 
 namespace std {
 template <typename T>
@@ -65,8 +66,12 @@ void from_json(const json &j, CompressionRatio &c);
 void to_json(json &j, const TrafficClassSettings &c);
 void from_json(const json &j, TrafficClassSettings &c);
 
-void to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
-void from_json(const json &j, std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+void to_json(
+    json &                                                          j,
+    const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
+void from_json(
+    const json &                                              j,
+    std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs);
 
 void
 to_json(json &j, const SourceType &st)
@@ -174,19 +179,23 @@ from_json(const json &j, Group &g)
   g.connected = j.value("connected", std::vector<GroupName>{});
   if (j.count("overflow_policy"))
   {
-    g.overflow_policy = j.at("overflow_policy").get<std::optional<OverflowPolicyName>>();
+    g.overflow_policy =
+        j.at("overflow_policy").get<std::optional<OverflowPolicyName>>();
   }
   if (j.find("traffic_classes") != j.end())
   {
     g.traffic_classess_settings =
-        j.at("traffic_classes").get<std::unordered_map<TrafficClassId, TrafficClassSettings>>();
+        j.at("traffic_classes")
+            .get<std::unordered_map<TrafficClassId, TrafficClassSettings>>();
   }
 }
 
 void
 to_json(json &j, const CompressionRatio &c)
 {
-  j = {{"threshold", c.threshold}, {"size", c.size}, {"intensity_factor", c.intensity_factor}};
+  j = {{"threshold", c.threshold},
+       {"size", c.size},
+       {"intensity_factor", c.intensity_factor}};
 }
 void
 from_json(const json &j, CompressionRatio &c)
@@ -211,10 +220,13 @@ from_json(const json &j, TrafficClassSettings &c)
 {
   if (j.find("compression") != j.end())
   {
-    c.compression_ratios = j["compression"].get<std::vector<CompressionRatio>>();
+    c.compression_ratios =
+        j["compression"].get<std::vector<CompressionRatio>>();
   }
   std::sort(
-      begin(c.compression_ratios), end(c.compression_ratios), [](const auto &cr1, const auto &cr2) {
+      begin(c.compression_ratios),
+      end(c.compression_ratios),
+      [](const auto &cr1, const auto &cr2) {
         return cr1.threshold < cr2.threshold;
       });
 
@@ -225,7 +237,9 @@ from_json(const json &j, TrafficClassSettings &c)
 }
 
 void
-to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
+to_json(
+    json &                                                          j,
+    const std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
 {
   for (const auto &[tc_id, tc_s] : tcs)
   {
@@ -233,11 +247,15 @@ to_json(json &j, const std::unordered_map<TrafficClassId, TrafficClassSettings> 
   }
 }
 void
-from_json(const json &j, std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
+from_json(
+    const json &                                              j,
+    std::unordered_map<TrafficClassId, TrafficClassSettings> &tcs)
 {
   for (const auto &tc_j : j.items())
   {
-    tcs.emplace(TrafficClassId{std::stoul(tc_j.key())}, tc_j.value().get<TrafficClassSettings>());
+    tcs.emplace(
+        TrafficClassId{std::stoul(tc_j.key())},
+        tc_j.value().get<TrafficClassSettings>());
   }
 }
 
@@ -320,7 +338,8 @@ load_topology_config(const std::string &filename)
     std::ifstream file(filename_path.string());
     auto &        last_config = configs.emplace_back(json::parse(file));
 
-    if (auto include_it = last_config.find("_include"); include_it != end(last_config))
+    if (auto include_it = last_config.find("_include");
+        include_it != end(last_config))
     {
       is_include = true;
       fs::path included_path = include_it->get<std::string>();
@@ -335,7 +354,10 @@ load_topology_config(const std::string &filename)
   } while (is_include);
 
   auto config = std::accumulate(
-      configs.rbegin(), configs.rend(), nlohmann::json{}, [](auto &j1, const auto &p) {
+      configs.rbegin(),
+      configs.rend(),
+      nlohmann::json{},
+      [](auto &j1, const auto &p) {
         j1.merge_patch(p);
         return j1;
       });
@@ -343,7 +365,9 @@ load_topology_config(const std::string &filename)
 }
 
 std::pair<Topology, nlohmann::json>
-parse_topology_config(const std::string &filename, const std::vector<std::string> &append_filenames)
+parse_topology_config(
+    const std::string &             filename,
+    const std::vector<std::string> &append_filenames)
 {
   auto main_scenario = load_topology_config(filename);
   for (const auto &append_filename : append_filenames)
@@ -352,7 +376,8 @@ parse_topology_config(const std::string &filename, const std::vector<std::string
     auto main_scenario_name = main_scenario["name"].get<std::string>();
     auto patch_scenario_name = patch_scenario["name"].get<std::string>();
     main_scenario.merge_patch(patch_scenario);
-    main_scenario["name"] = fmt::format("{} {}", main_scenario_name, patch_scenario_name);
+    main_scenario["name"] =
+        fmt::format("{} {}", main_scenario_name, patch_scenario_name);
   }
   return {main_scenario, main_scenario};
 } // namespace Config

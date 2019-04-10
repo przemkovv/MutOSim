@@ -59,11 +59,11 @@ struct hash<SourceId>
 };
 /// Hash specialization for [Size].
 template <>
-struct hash<Size>
+struct hash<Simulation::Size>
 {
-  std::size_t operator()(const Size &i) const noexcept
+  std::size_t operator()(const Simulation::Size &i) const noexcept
   {
-    using T = ts::underlying_type<Size>;
+    using T = ts::underlying_type<Simulation::Size>;
     return std::hash<T>()(static_cast<T>(i));
   }
 };

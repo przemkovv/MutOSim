@@ -42,7 +42,8 @@ struct LostServedStats
     else
     {
       // TODO(PW): make it more accurate (casting to int)
-      served.size += load.compression_ratio->size / load.compression_ratio->intensity_factor;
+      served.size += Size{load.compression_ratio->size
+                          / load.compression_ratio->intensity_factor};
     }
     served.count++;
   }
@@ -95,7 +96,10 @@ struct TrafficClassStats
         get(lost_served_stats.lost.count));
   }
   auto block_ratio() const { return block_time / simulation_time; }
-  auto block_recursive_ratio() const { return block_recursive_time / simulation_time; }
+  auto block_recursive_ratio() const
+  {
+    return block_recursive_time / simulation_time;
+  }
 };
 
 //----------------------------------------------------------------------
@@ -110,15 +114,16 @@ struct GroupStatistics
 {
   boost::container::flat_map<TrafficClassId, LostServedStats> served_by_tc;
   boost::container::flat_map<TrafficClassId, BlockStats>      blocked_by_tc;
-  boost::container::flat_map<TrafficClassId, BlockStats>      blocked_recursive_by_tc;
+  boost::container::flat_map<TrafficClassId, BlockStats>
+      blocked_recursive_by_tc;
 
   Stats get_stats(Duration sim_duration);
 };
 
 //----------------------------------------------------------------------
-LoadStats        operator+(const LoadStats &s1, const LoadStats &s2);
-LoadStats &      operator+=(LoadStats &s1, const LoadStats &s2);
-LostServedStats  operator+(const LostServedStats &s1, const LostServedStats &s2);
+LoadStats       operator+(const LoadStats &s1, const LoadStats &s2);
+LoadStats &     operator+=(LoadStats &s1, const LoadStats &s2);
+LostServedStats operator+(const LostServedStats &s1, const LostServedStats &s2);
 LostServedStats &operator+=(LostServedStats &s1, const LostServedStats &s2);
 
 } // namespace Simulation

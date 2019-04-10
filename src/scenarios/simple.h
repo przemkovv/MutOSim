@@ -19,7 +19,7 @@ ScenarioSettings engset2_model(
 
 ScenarioSettings poisson_streams(
     std::vector<Simulation::Intensity> As,
-    std::vector<Size>                  sizes,
+    std::vector<Simulation::Size>                  sizes,
     Simulation::Capacity               primary_V);
 
 ScenarioSettings pascal_source_model(

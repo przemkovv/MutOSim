@@ -8,9 +8,10 @@
 #include "simulation/source_stream/poisson.h"
 #include "topology.h"
 
-using Simulation::Intensity;
 using Simulation::Capacity;
 using Simulation::Count;
+using Simulation::Intensity;
+using Simulation::Size;
 
 //----------------------------------------------------------------------
 ScenarioSettings

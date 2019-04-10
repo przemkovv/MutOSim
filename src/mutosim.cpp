@@ -239,6 +239,7 @@ prepare_custom_scenarios(
   using Simulation::Capacity;
   using Simulation::Count;
   using Simulation::Intensity;
+  using Simulation::Size;
 
   if ((false))
   {

@@ -13,6 +13,7 @@
 using Simulation::Capacity;
 using Simulation::Intensity;
 using Simulation::Count;
+using Simulation::Size;
 
 //----------------------------------------------------------------------
 
