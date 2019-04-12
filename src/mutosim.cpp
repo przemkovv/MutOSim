@@ -19,8 +19,8 @@
 #include "types/types_format.h"
 #include "utils.h"
 
-#include <boost/filesystem.hpp>
 #include <boost/program_options/parsers.hpp>
+#include <filesystem>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 #include <fstream>
@@ -144,7 +144,7 @@ find_all_scenario_files(const std::string &path)
         list_of_scenario_files.push_back(iter->path().string());
       }
 
-      boost::system::error_code ec;
+      std::error_code ec;
       iter.increment(ec);
       if (ec)
       {
@@ -347,7 +347,7 @@ save_json(
     const fs::path &      output_dir,
     const fs::path &      filename)
 {
-  boost::filesystem::path output_file{output_dir};
+  std::filesystem::path output_file{output_dir};
   output_file /= filename;
   create_directories(output_file.parent_path());
   std::ofstream stats_file(
@@ -432,7 +432,7 @@ main(int argc, char *argv[])
           begin(cli.scenario_files),
           end(cli.scenario_files),
           [](const std::string &file) {
-            namespace fs = boost::filesystem;
+            namespace fs = std::filesystem;
             if (auto path = fs::path{file}; exists(path))
             {
               return true;

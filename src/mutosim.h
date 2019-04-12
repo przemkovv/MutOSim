@@ -5,7 +5,7 @@
 #include "scenario_settings.h"
 #include "types/types.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <nlohmann/json.hpp>
 #include <range/v3/algorithm/find.hpp>
 #include <string>
@@ -13,7 +13,7 @@
 
 struct CLIOptions;
 
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 void           print_state(const std::vector<bool> &states);
 nlohmann::json run_scenarios(std::vector<ScenarioSettings> &scenarios, const CLIOptions &cli);

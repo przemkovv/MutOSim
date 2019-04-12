@@ -10,19 +10,6 @@ namespace ts = type_safe;
 
 namespace TypesPrecision {
 
-template <typename T, typename... Ts>
-constexpr bool is_any_same_v = std::disjunction_v<std::is_same<T, Ts>...>;
-
-template <typename... Ts>
-using promote_t = std::conditional_t<
-    is_any_same_v<use_float_tag, Ts...>,
-    use_float_tag,
-    use_int_tag>;
-
-template <typename... Ts>
-using precision_t =
-    std::conditional_t<is_any_same_v<highp, Ts...>, highp, mediump>;
-
 //----------------------------------------------------------------------
 // Template forward declarations
 
@@ -451,12 +438,9 @@ struct Intensity_
     ts::strong_typedef_op::output_operator<Intensity_<Prec>>
 {
   using ts::strong_typedef<Intensity_<Prec>, intensity_t<Prec>>::strong_typedef;
-  template <
-      typename Prec2,
-      typename = std::enable_if<std::is_same_v<precision_t<Prec, Prec2>, Prec>>>
-  Intensity_(const Intensity_<Prec2> &intensity) : Intensity_(get(intensity))
-  {
-  }
+
+  using value_type = ts::underlying_type<Intensity_>;
+
   constexpr auto operator/(const Intensity_ &intensity) const
   {
     intensity_t<Prec> value = get(*this) / get(intensity);
@@ -678,17 +662,17 @@ struct MeanIntensity_
 {
   using ts::strong_typedef<MeanIntensity_<Prec>, intensity_t<Prec>>::
       strong_typedef;
+
+  MeanIntensity_(const Intensity_<Prec> &intensity)
+    : MeanIntensity_(get(intensity))
+  {
+  }
+
   explicit operator MeanRequestNumber_<Prec>() const
   {
     return MeanRequestNumber_<Prec>{get(*this)};
   }
-  template <
-      typename Prec2,
-      typename = std::enable_if<std::is_same_v<precision_t<Prec, Prec2>, Prec>>>
-  MeanIntensity_(const Intensity_<Prec2> &intensity)
-    : MeanIntensity_(get(intensity))
-  {
-  }
+
 
   constexpr auto operator/(const Peakedness_<Prec> &peakedness) const
   {

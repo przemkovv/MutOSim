@@ -4,7 +4,7 @@
 #include "logger.h"
 #include "types/parser.h"
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unordered_map>
@@ -328,7 +328,7 @@ from_json(const json &j, Topology &t)
 nlohmann::json
 load_topology_config(const std::string &filename)
 {
-  namespace fs = boost::filesystem;
+  namespace fs = std::filesystem;
   fs::path filename_path{std::string{filename}};
 
   std::vector<json> configs;

@@ -84,10 +84,10 @@ IncomingRequestStream::IncomingRequestStream(const OutgoingRequestStream &rs)
 }
 IncomingRequestStream::IncomingRequestStream(const TrafficClass &source_tc)
   : tc(source_tc),
-    mean(source_tc.source_intensity / source_tc.serve_intensity),
+    mean(to_model(source_tc.source_intensity / source_tc.serve_intensity)),
     variance(source_tc.source_intensity / source_tc.serve_intensity),
     peakedness(1.0L),
-    intensity(source_tc.source_intensity / source_tc.serve_intensity)
+    intensity(to_model(source_tc.source_intensity / source_tc.serve_intensity))
 {
 }
 

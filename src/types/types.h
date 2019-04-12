@@ -10,39 +10,44 @@ namespace ts = type_safe;
 
 namespace Model {
 
-using Intensity = TypesPrecision::Intensity_<highp>;
-using IntensityFactor = TypesPrecision::IntensityFactor_<highp>;
-using Ratio = TypesPrecision::Ratio_<highp>;
-using Capacity = TypesPrecision::Capacity_<highp, use_int_tag>;
-using Count = TypesPrecision::Count_<highp>;
+using precision = highp;
 
-using Probability = TypesPrecision::Probability_<highp>;
-using MeanIntensity = TypesPrecision::MeanIntensity_<highp>;
-using Peakedness = TypesPrecision::Peakedness_<highp>;
-using Variance = TypesPrecision::Variance_<highp>;
-using MeanRequestNumber = TypesPrecision::MeanRequestNumber_<highp>;
+using Intensity = TypesPrecision::Intensity_<precision>;
+using IntensityFactor = TypesPrecision::IntensityFactor_<precision>;
+using Ratio = TypesPrecision::Ratio_<precision>;
+using Capacity = TypesPrecision::Capacity_<precision, use_int_tag>;
+using CapacityF = TypesPrecision::Capacity_<precision, use_float_tag>;
+using Size = TypesPrecision::Size_<precision, use_int_tag>;
+using SizeF = TypesPrecision::Size_<precision, use_float_tag>;
+using Count = TypesPrecision::Count_<precision>;
 
-using CapacityF = TypesPrecision::Capacity_<highp, use_float_tag>;
-using WeightF = TypesPrecision::Weight_<highp, use_float_tag>;
-using SizeRescale = TypesPrecision::SizeRescale_<highp>;
-using Size = TypesPrecision::Size_<highp, use_int_tag>;
-using SizeF = TypesPrecision::Size_<highp, use_float_tag>;
+using Probability = TypesPrecision::Probability_<precision>;
+using MeanIntensity = TypesPrecision::MeanIntensity_<precision>;
+using Peakedness = TypesPrecision::Peakedness_<precision>;
+using Variance = TypesPrecision::Variance_<precision>;
+using MeanRequestNumber = TypesPrecision::MeanRequestNumber_<precision>;
+
+using WeightF = TypesPrecision::Weight_<precision, use_float_tag>;
+using SizeRescale = TypesPrecision::SizeRescale_<precision>;
 
 } // namespace Model
 
 namespace Simulation {
-using Intensity = TypesPrecision::Intensity_<mediump>;
-using IntensityFactor = TypesPrecision::IntensityFactor_<mediump>;
-using Ratio = TypesPrecision::Ratio_<mediump>;
-using Capacity = TypesPrecision::Capacity_<mediump, use_int_tag>;
-using Count = TypesPrecision::Count_<mediump>;
-using Size = TypesPrecision::Size_<mediump, use_int_tag>;
-} // namespace Simulation
 
-using Weight = TypesPrecision::Weight_<mediump, use_int_tag>;
+using precision = mediump;
+
+using Intensity = TypesPrecision::Intensity_<precision>;
+using IntensityFactor = TypesPrecision::IntensityFactor_<precision>;
+using Ratio = TypesPrecision::Ratio_<precision>;
+using Capacity = TypesPrecision::Capacity_<precision, use_int_tag>;
+using Count = TypesPrecision::Count_<precision>;
+using Size = TypesPrecision::Size_<precision, use_int_tag>;
+
+} // namespace Simulation
 
 using Time = TypesPrecision::Time_<mediump>;
 using Duration = TypesPrecision::Duration_<mediump>;
+using Weight = TypesPrecision::Weight_<mediump, use_int_tag>;
 
 struct GroupName : ts::strong_typedef<GroupName, name_t>,
                    ts::strong_typedef_op::equality_comparison<GroupName>,
@@ -91,3 +96,17 @@ struct TrafficClassId
 {
   using strong_typedef::strong_typedef;
 };
+
+inline Model::Capacity
+to_model(const Simulation::Capacity &capacity)
+{
+  return Model::Capacity{
+      static_cast<Model::Capacity::value_type>(ts::get(capacity))};
+}
+
+inline Model::Intensity
+to_model(const Simulation::Intensity &intensity)
+{
+  return Model::Intensity{
+      static_cast<Model::Intensity::value_type>(ts::get(intensity))};
+}

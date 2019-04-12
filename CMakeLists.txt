@@ -83,7 +83,7 @@ ExternalProject_Add(type_safe
     UPDATE_COMMAND ""
 )
 
-find_package(Boost REQUIRED system program_options filesystem )
+find_package(Boost REQUIRED system program_options )
 find_package(fmt CONFIG REQUIRED)
 find_package(MPFR 4.0.1 MODULE REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)

@@ -144,11 +144,6 @@ to_model(const std::vector<Simulation::Capacity> &capacities)
          })
          | rng::to_vector;
 }
-Model::Capacity
-to_model(const Simulation::Capacity &capacity)
-{
-  return Model::Capacity{capacity};
-}
 //----------------------------------------------------------------------
 void
 analytical_computations(

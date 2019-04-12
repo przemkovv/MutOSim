@@ -33,8 +33,8 @@ using PrecisionType = std::conditional_t<
 
 using uuid_t = uint64_t;
 using name_t = std::string;
-using OverflowPolicyName = name_t;
 
+using OverflowPolicyName = name_t;
 using Uuid = uuid_t;
 using Name = name_t;
 using Layer = uint64_t;
@@ -75,3 +75,4 @@ using ratio_t = PrecisionType<Precision, UseFloat>;
 
 template <typename Precision = mediump, typename UseFloat = use_int_tag>
 using threshold_t = count_t<Precision, UseFloat>;
+
