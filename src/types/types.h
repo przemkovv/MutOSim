@@ -55,6 +55,7 @@ struct GroupName : ts::strong_typedef<GroupName, name_t>,
                    ts::strong_typedef_op::output_operator<GroupName>
 {
   using strong_typedef::strong_typedef;
+  using value_type = ts::underlying_type<GroupName>;
   GroupName operator+(std::string_view str)
   {
     return GroupName(ts::get(*this) + name_t(str));
@@ -67,6 +68,7 @@ struct SourceName : ts::strong_typedef<SourceName, name_t>,
                     ts::strong_typedef_op::output_operator<SourceName>
 {
   using strong_typedef::strong_typedef;
+  using value_type = ts::underlying_type<SourceName>;
 };
 
 struct GroupId : ts::strong_typedef<GroupId, uuid_t>,
@@ -74,18 +76,21 @@ struct GroupId : ts::strong_typedef<GroupId, uuid_t>,
                  ts::strong_typedef_op::output_operator<GroupId>
 {
   using strong_typedef::strong_typedef;
+  using value_type = ts::underlying_type<GroupId>;
 };
 struct SourceId : ts::strong_typedef<SourceId, uuid_t>,
                   ts::strong_typedef_op::equality_comparison<SourceId>,
                   ts::strong_typedef_op::output_operator<SourceId>
 {
   using strong_typedef::strong_typedef;
+  using value_type = ts::underlying_type<SourceId>;
 };
 struct LoadId : ts::strong_typedef<LoadId, uuid_t>,
                 ts::strong_typedef_op::equality_comparison<LoadId>,
                 ts::strong_typedef_op::output_operator<LoadId>
 {
   using strong_typedef::strong_typedef;
+  using value_type = ts::underlying_type<LoadId>;
 };
 
 struct TrafficClassId
@@ -95,6 +100,7 @@ struct TrafficClassId
     ts::strong_typedef_op::output_operator<TrafficClassId>
 {
   using strong_typedef::strong_typedef;
+  using value_type = ts::underlying_type<TrafficClassId>;
 };
 
 inline Model::Capacity

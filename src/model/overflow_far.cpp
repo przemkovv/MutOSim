@@ -79,7 +79,7 @@ compute_riordan_variance(
     const CapacityF     fictitous_capacity,
     const SizeF         tc_size)
 {
-  ts::underlying_type<Variance> variance =
+  Variance::value_type variance =
       get(mean)
       * (get(intensity)
              / ((get(fictitous_capacity) / get(tc_size)) + 1 - get(intensity)
@@ -217,7 +217,7 @@ kaufman_roberts_blocking_probability(
           distribution2 | rng::view::drop(size_t(ceil(get(n)))),
           Probability{0});
 
-      WeightF interp{ts::underlying_type<WeightF>(prec - floor(prec))};
+      WeightF interp{WeightF::value_type(prec - floor(prec))};
       // println("P1 {}\tP2 {}", blocking_probability, blocking_probability2);
       blocking_probability =
           Probability{interp.opposite() * blocking_probability

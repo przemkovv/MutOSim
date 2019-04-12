@@ -24,7 +24,7 @@ to_json(nlohmann::json &j, const ts::strong_typedef<T, UT> &value)
 inline void
 from_json(const nlohmann::json &j, GroupName &value)
 {
-  value = GroupName{j.get<ts::underlying_type<GroupName>>()};
+  value = GroupName{j.get<GroupName::value_type>()};
 }
 inline void
 to_json(nlohmann::json &j, const GroupName &value)

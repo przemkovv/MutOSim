@@ -2,8 +2,8 @@
 #pragma once
 
 #include "common.h"
-#include "operations.h"
 #include "logger.h"
+#include "operations.h"
 
 #include <type_safe/strong_typedef.hpp>
 
@@ -104,6 +104,7 @@ struct Weight_
 {
   using ts::strong_typedef<Weight_<Prec, UseFloat>, weight_t<Prec, UseFloat>>::
       strong_typedef;
+  using value_type = ts::underlying_type<Weight_>;
 
   constexpr auto operator/(const Weight_ &w) const
   {
@@ -207,7 +208,7 @@ struct Count_ : ts::strong_typedef<Count_<Prec>, count_t<Prec>>,
   constexpr auto
   operator*(const Capacity_<Prec, CapacityUseFloat> &capacity) const
   {
-    count_t<Prec, CapacityUseFloat> value = mul(get(*this) , get(capacity));
+    count_t<Prec, CapacityUseFloat> value = mul(get(*this), get(capacity));
     return Capacity_<Prec, CapacityUseFloat>{value};
   }
   constexpr auto operator*(const Intensity_<Prec> &intensity) const
@@ -620,6 +621,8 @@ struct Variance_ : ts::strong_typedef<Variance_<Prec>, stat_t<Prec>>,
                    ts::strong_typedef_op::output_operator<Variance_<Prec>>
 {
   using ts::strong_typedef<Variance_<Prec>, stat_t<Prec>>::strong_typedef;
+  using value_type = ts::underlying_type<Variance_>;
+
   template <typename Prec2>
   explicit Variance_(const Intensity_<Prec2> &intensity)
     : Variance_(get(intensity))
