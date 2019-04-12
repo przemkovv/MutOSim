@@ -2,6 +2,7 @@
 #pragma once
 
 #include "common.h"
+#include "operations.h"
 #include "logger.h"
 
 #include <type_safe/strong_typedef.hpp>
@@ -206,7 +207,7 @@ struct Count_ : ts::strong_typedef<Count_<Prec>, count_t<Prec>>,
   constexpr auto
   operator*(const Capacity_<Prec, CapacityUseFloat> &capacity) const
   {
-    count_t<Prec, CapacityUseFloat> value = get(*this) * get(capacity);
+    count_t<Prec, CapacityUseFloat> value = mul(get(*this) , get(capacity));
     return Capacity_<Prec, CapacityUseFloat>{value};
   }
   constexpr auto operator*(const Intensity_<Prec> &intensity) const
@@ -391,7 +392,8 @@ struct Size_
   constexpr auto
   operator*(const InvWeight_<Prec, use_float_tag> &inv_weight) const
   {
-    weight_t<Prec, use_float_tag> value = get(*this) * get(inv_weight);
+    using dst_t = weight_t<Prec, use_float_tag>;
+    dst_t value = mul(get(*this), get(inv_weight));
     return Weight_<Prec, use_float_tag>{value};
   }
 };
@@ -499,6 +501,7 @@ struct Probability_
 {
   using ts::strong_typedef<Probability_<Prec>, probability_t<Prec>>::
       strong_typedef;
+  using value_type = ts::underlying_type<Probability_>;
 
   constexpr Probability_ opposite()
   {
@@ -548,13 +551,14 @@ struct Probability_
   template <typename UseFloat>
   constexpr auto operator/(const Capacity_<Prec, UseFloat> &capacity) const
   {
-    probability_t<Prec> value = get(*this) / get(capacity);
+    probability_t<Prec> value =
+        get(*this) / static_cast<value_type>(get(capacity));
     return Probability_<Prec>{value};
   }
   template <typename UseFloat>
   constexpr Probability_ &operator/=(const Capacity_<Prec, UseFloat> &capacity)
   {
-    ts::get(*this) /= ts::get(capacity);
+    ts::get(*this) /= static_cast<value_type>(ts::get(capacity));
     return *this;
   }
 };
@@ -647,7 +651,8 @@ struct MeanRequestNumber_
   template <typename UseFloat>
   constexpr auto operator*(const Size_<Prec, UseFloat> &size) const
   {
-    count_t<Prec, use_float_tag> result = get(*this) * get(size);
+    using dst_t = count_t<Prec, use_float_tag>;
+    dst_t result = mul(get(*this), get(size));
     return Capacity_<Prec, use_float_tag>{result};
   }
 };
@@ -673,7 +678,6 @@ struct MeanIntensity_
     return MeanRequestNumber_<Prec>{get(*this)};
   }
 
-
   constexpr auto operator/(const Peakedness_<Prec> &peakedness) const
   {
     intensity_t<Prec> value = get(*this) / get(peakedness);
@@ -683,7 +687,8 @@ struct MeanIntensity_
   template <typename UseFloat>
   constexpr auto operator*(const Size_<Prec, UseFloat> &size) const
   {
-    weight_t<Prec, use_float_tag> value = get(*this) * get(size);
+    using dst_t = weight_t<Prec, use_float_tag>;
+    dst_t value = mul(get(*this), get(size));
     return Weight_<Prec, use_float_tag>{value};
   }
 };
@@ -721,7 +726,8 @@ struct SizeRescale_ : ts::strong_typedef<SizeRescale_<Prec>, intensity_t<Prec>>,
   template <typename SizeUseFloat>
   constexpr auto operator*(const Size_<Prec, SizeUseFloat> &size) const
   {
-    count_t<Prec, use_float_tag> value = get(*this) * get(size);
+    using dst_t = count_t<Prec, use_float_tag>;
+    dst_t value = mul(get(*this), get(size));
     return Size_<Prec, use_float_tag>{value};
   }
 };

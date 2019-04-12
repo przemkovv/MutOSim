@@ -26,7 +26,7 @@ namespace rng = ranges;
 namespace Model {
 //----------------------------------------------------------------------
 
-static constexpr bool DebugTransition = true;
+static constexpr bool DebugTransition = false;
 
 //----------------------------------------------------------------------
 IncomingRequestStreams
@@ -164,7 +164,8 @@ kaufman_roberts_distribution(
         const auto chi = [&] {
           if (resource.components.size() == 1)
           {
-            auto &component = resource.components.front();
+            const ResourceComponent<CapacityF> &component =
+                resource.components.front();
             return component.number > Count{1}
                        ? conditional_transition_probability(
                            previous_state, component, Size(tc_size))
@@ -246,7 +247,7 @@ kaufman_roberts_blocking_probability(
 OutgoingRequestStreams
 compute_overflow_parameters(
     OutgoingRequestStreams out_request_streams,
-    const CapacityF              V)
+    const CapacityF        V)
 {
   for (auto &rs : out_request_streams)
   {
@@ -429,19 +430,24 @@ conditional_transition_probability(
     const Size         t)
 {
   auto V = Capacity{resource.V()};
+  debug_println<DebugTransition>("OrigV: {}, V: {}", resource.V(), V);
   if (n == V)
   {
     return Probability{0};
+  }
+  const auto denominator =
+      combinatorial_arrangement_number_unequal_resources(V - n, resource);
+  if (denominator == Count{0})
+  {
+    return Probability{1};
   }
   auto nominator_resource = resource;
   for (ResourceComponent<C> &component : nominator_resource.components)
   {
     component.v = C{Capacity{t - Size{1}}};
   }
-  auto nominator = combinatorial_arrangement_number_unequal_resources(
+  const auto nominator = combinatorial_arrangement_number_unequal_resources(
       V - n, nominator_resource);
-  auto denominator =
-      combinatorial_arrangement_number_unequal_resources(V - n, resource);
   debug_println<DebugTransition>("nom: {}, denom: {}", nominator, denominator);
   ASSERT(
       denominator != Count{0}, "[{}] Denominator cannot be zero.", location());

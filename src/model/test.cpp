@@ -256,15 +256,6 @@ ranges::v3::concepts::WeaklyEqualityComparable, T, U>())))>::type
 void
 test()
 {
-  using T = mp::number<mp::gmp_int, mp::et_off>;
-  Capacity V{2};
-  T V2{2};
-  ++V;
-  V++;
-  ++V2;
-  V2++;
-  println("{}", ++V == V++);
-  println("{}", ++V != V++);
   // static_assert(std::is_same_v<
                 // ranges::difference_type<Capacity>::type,
                 // ts::underlying_type<Capacity>>);

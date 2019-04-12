@@ -1,8 +1,12 @@
 
 #pragma once
 
-#include <boost/multiprecision/gmp.hpp>
-#include <boost/multiprecision/mpfr.hpp>
+#include "config.h"
+
+#include <boost/multiprecision/cpp_dec_float.hpp>
+#include <boost/multiprecision/cpp_int.hpp>
+// #include <boost/multiprecision/gmp.hpp>
+// #include <boost/multiprecision/mpfr.hpp>
 #include <string>
 #include <type_traits>
 
@@ -21,9 +25,22 @@ struct mediump
 
 struct highp
 {
-  using float_t = mp::number<mp::mpfr_float_backend<100>>;
+  static constexpr auto digits_number = 50;
+  using float_t = mp::number<mp::cpp_dec_float<digits_number>>;
+  using int_t = mp::int128_t;
+};
+
+/*
+struct highp_float
+{
+  static constexpr auto digit_number = 50;
+  using float_t = std::conditional_t<
+      Config::debug_mpfr,
+      mp::number<mp::debug_adaptor<mp::mpfr_float_backend<digit_number>>>,
+      mp::number<mp::mpfr_float_backend<digit_number>>>;
   using int_t = mp::mpz_int;
 };
+*/
 
 template <typename Precision, typename UseFloatTag>
 using PrecisionType = std::conditional_t<
@@ -75,4 +92,3 @@ using ratio_t = PrecisionType<Precision, UseFloat>;
 
 template <typename Precision = mediump, typename UseFloat = use_int_tag>
 using threshold_t = count_t<Precision, UseFloat>;
-

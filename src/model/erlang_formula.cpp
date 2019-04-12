@@ -79,8 +79,8 @@ compute_fictitious_capacity_fit_blocking_probability(
   }
   if (p < target_p_block + e && p > target_p_block - e)
   {
-    return Model::CapacityF{
-        Model::Capacity::value_type{current * get(rs.tc.size)}};
+    return Model::CapacityF{Model::CapacityF::value_type{
+        current * static_cast<Model::CapacityF::value_type>(get(rs.tc.size))}};
   }
   return {};
 }

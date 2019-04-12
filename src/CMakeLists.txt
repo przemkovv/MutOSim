@@ -11,15 +11,23 @@ target_link_libraries(${TARGET_NAME} PRIVATE fmt::fmt fmt::fmt-header-only)
 target_link_libraries(${TARGET_NAME} PRIVATE Boost::program_options Boost::system)
 target_link_libraries(${TARGET_NAME} PRIVATE stdc++fs)
 target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(${TARGET_NAME} PRIVATE ${MPFR_LIBRARIES})
-target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARY})
+# target_link_libraries(${TARGET_NAME} PRIVATE ${MPFR_LIBRARIES})
+# target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARY})
 
 set_target_properties(${TARGET_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF
-  INTERPROCEDURAL_OPTIMIZATION TRUE
-)
+  )
+
+check_ipo_supported(RESULT ipo_supported OUTPUT error)
+if (ipo_supported)
+  message(STATUS "IPO / LTO enabled")
+  set_target_properties(${TARGET_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+  set_target_properties(${TARGET_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE)
+else()
+  message(STATUS "IPO / LTO not supported: <${error}>")
+endif()
 
 add_custom_target(run COMMAND time ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET_NAME}
   COMMENT "Run with ${CMAKE_BUILD_TYPE} configuration")
@@ -115,6 +123,8 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/types/types_format.h"
   "${CMAKE_CURRENT_LIST_DIR}/types/common.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/types/common.h"
+  "${CMAKE_CURRENT_LIST_DIR}/types/operations.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/types/operations.h"
   "${CMAKE_CURRENT_LIST_DIR}/types/hash.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/types/hash.h"
   "${CMAKE_CURRENT_LIST_DIR}/types/precision.cpp"
