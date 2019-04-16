@@ -125,7 +125,7 @@ struct Weight_
         "[{}] Try to get opposite value while weight is not in normalized "
         "range (0..1)",
         location());
-    weight_t<Prec, UseFloat> value = 1 - get(*this);
+    value_type value = value_type{1} - get(*this);
     return Weight_{value};
   }
 

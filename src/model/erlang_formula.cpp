@@ -51,7 +51,7 @@ compute_fictitious_capacity_fit_blocking_probability(
 {
   float_hp target_p_block = get(rs.blocking_probability);
   float_hp a = get(rs.intensity);
-  float_hp e = std::numeric_limits<float_hp>::epsilon() * 1e25;
+  float_hp e = std::numeric_limits<float_hp>::epsilon() * 1e30;
   float_hp left_bound = 0;
   // TODO(PW): determine what range should be searched
   float_hp right_bound = 4 * V.value();

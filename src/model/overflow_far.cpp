@@ -198,7 +198,7 @@ kaufman_roberts_blocking_probability(
     const KaufmanRobertsVariant   kr_variant)
 {
   CapacityF V = resource.V();
-  debug_println("Resource: {}", resource);
+  debug_println("V: {}, Resource: {}", V, resource);
   auto distribution = kaufman_roberts_distribution(
       in_request_streams, resource, Size{0}, kr_variant);
   auto distribution2 = kaufman_roberts_distribution(
@@ -207,7 +207,7 @@ kaufman_roberts_blocking_probability(
   std::vector<OutgoingRequestStream> out_request_streams;
   for (const auto &in_rs : in_request_streams)
   {
-    CapacityF n{V - SizeF{in_rs.tc.size} + SizeF{1}};
+    CapacityF n{std::max(CapacityF{0}, V - SizeF{in_rs.tc.size} + SizeF{1})};
 
     auto blocking_probability = rng::accumulate(
         distribution | rng::view::drop(size_t(floor(get(n)))), Probability{0});
