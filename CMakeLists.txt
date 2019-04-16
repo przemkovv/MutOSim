@@ -84,6 +84,8 @@ ExternalProject_Add(type_safe
 )
 
 find_package(Boost REQUIRED system program_options )
+find_package(Catch2 REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 find_package(MPFR 4.0.1 MODULE REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
@@ -155,4 +157,7 @@ include_directories(SYSTEM ${PROJECT_BINARY_DIR}/include)
 link_directories(${PROJECT_BINARY_DIR}/lib64 ${PROJECT_BINARY_DIR}/lib)
 
 add_subdirectory(src)
+add_subdirectory(tests)
+
+enable_testing()
 

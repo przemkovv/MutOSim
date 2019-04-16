@@ -9,7 +9,7 @@ n_over_k(const int64_t n, const int64_t k)
 {
   if (n < 0)
   {
-    return n_over_k(-n + k - 1, k);
+    return (1 - (k & 1) * 2) * n_over_k(-n + k - 1, k);
   }
   return static_cast<int64_t>(boost::math::binomial_coefficient<double>(
       static_cast<uint32_t>(n), static_cast<uint32_t>(k)));

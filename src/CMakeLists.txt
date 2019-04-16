@@ -1,20 +1,30 @@
 project(MSMutONetSim)
 
-set(TARGET_NAME mutosim)
+set(TARGET_NAME mutosim_lib)
+set(TARGET_NAME_EXE mutosim)
 
-add_executable(${TARGET_NAME})
+add_library(${TARGET_NAME} STATIC)
+add_executable(${TARGET_NAME_EXE})
+
 target_include_directories(${TARGET_NAME} PRIVATE ${MSMutONetSim_SOURCE_DIR})
+target_include_directories(${TARGET_NAME_EXE} PRIVATE ${MSMutONetSim_SOURCE_DIR})
 
 add_dependencies(${TARGET_NAME} type_safe)
+add_dependencies(${TARGET_NAME_EXE} ${TARGET_NAME})
+
 target_link_libraries(${TARGET_NAME} PRIVATE meta range-v3)
 target_link_libraries(${TARGET_NAME} PRIVATE fmt::fmt fmt::fmt-header-only)
 target_link_libraries(${TARGET_NAME} PRIVATE Boost::program_options Boost::system)
 target_link_libraries(${TARGET_NAME} PRIVATE stdc++fs)
+target_link_libraries(${TARGET_NAME} PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 # target_link_libraries(${TARGET_NAME} PRIVATE ${MPFR_LIBRARIES})
 # target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARY})
 
-set_target_properties(${TARGET_NAME} PROPERTIES
+target_link_libraries(${TARGET_NAME_EXE} PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
+target_link_libraries(${TARGET_NAME_EXE} PRIVATE ${TARGET_NAME})
+
+set_target_properties(${TARGET_NAME_EXE} ${TARGET_NAME} PROPERTIES
   CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF
@@ -23,14 +33,18 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 check_ipo_supported(RESULT ipo_supported OUTPUT error)
 if (ipo_supported)
   message(STATUS "IPO / LTO enabled")
-  set_target_properties(${TARGET_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
-  set_target_properties(${TARGET_NAME} PROPERTIES INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE)
+  set_target_properties(${TARGET_NAME_EXE} ${TARGET_NAME} PROPERTIES
+    INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
+    NTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE
+    )
 else()
   message(STATUS "IPO / LTO not supported: <${error}>")
 endif()
 
-add_custom_target(run COMMAND time ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${TARGET_NAME}
-  COMMENT "Run with ${CMAKE_BUILD_TYPE} configuration")
+target_sources(${TARGET_NAME_EXE} PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}/mutosim.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/mutosim.h"
+  )
 
 target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/calculation.cpp"
@@ -44,8 +58,6 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/math_utils.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/math_utils.h"
   "${CMAKE_CURRENT_LIST_DIR}/math_utils.h"
-  "${CMAKE_CURRENT_LIST_DIR}/mutosim.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/mutosim.h"
   "${CMAKE_CURRENT_LIST_DIR}/scenario_settings.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/scenario_settings.h"
   "${CMAKE_CURRENT_LIST_DIR}/topology.cpp"
@@ -133,4 +145,4 @@ target_sources(${TARGET_NAME} PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/types/parser.h"
   )
 
-cotire(${TARGET_NAME})
+# cotire(${TARGET_NAME})

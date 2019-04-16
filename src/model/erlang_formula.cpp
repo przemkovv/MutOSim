@@ -51,10 +51,10 @@ compute_fictitious_capacity_fit_blocking_probability(
 {
   float_hp target_p_block = get(rs.blocking_probability);
   float_hp a = get(rs.intensity);
-  float_hp e = 1e-10;
+  float_hp e = std::numeric_limits<float_hp>::epsilon() * 1e25;
   float_hp left_bound = 0;
   // TODO(PW): determine what range should be searched
-  float_hp right_bound = 4 * ts::get(V);
+  float_hp right_bound = 4 * V.value();
   float_hp current = left_bound;
   float_hp p = -1;
 
@@ -62,7 +62,12 @@ compute_fictitious_capacity_fit_blocking_probability(
   {
     current = (right_bound + left_bound) * float_hp{0.5L};
     p = extended_erlang_b(current, a);
-    // println("{} {} {}, {} -> {}", right_bound, current, left_bound, p,
+    // println(
+    // "{} {} {}, {} -> {}",
+    // right_bound,
+    // current,
+    // left_bound,
+    // p,
     // target_p_block);
     if (p > target_p_block)
     {
@@ -77,10 +82,12 @@ compute_fictitious_capacity_fit_blocking_probability(
       break;
     }
   }
-  if (p < target_p_block + e && p > target_p_block - e)
+  if (p < target_p_block + e * 1e5 && p > target_p_block - e * 1e5)
   {
     return Model::CapacityF{Model::CapacityF::value_type{
         current * static_cast<Model::CapacityF::value_type>(get(rs.tc.size))}};
   }
+  // float_hp r = target_p_block - p;
+  // println("Diff: {}", r);
   return {};
 }

@@ -32,24 +32,30 @@
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/utility/functional.hpp>
 #include <range/v3/view/map.hpp>
+#include <sys/ioctl.h>
 
 namespace rng = ranges;
 
 void
 print_state(const std::vector<bool> &states)
 {
-  constexpr auto    width = 120;
+  winsize ws;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
+  auto              width = ws.ws_col - 10;
   const auto        rows = states.size() / width + 2;
   std::stringstream str;
   int               finished = 0;
   int               current = 0;
 
+  str << "     ";
   for (bool state : states)
   {
     str << (state ? "\033[48;2;255;255;0m " : "\033[48;2;155;155;155m ");
     finished += state;
     if (++current % width == 0)
-      str << '\n';
+    {
+      str << "\033[0m\n     ";
+    }
   }
   str << "\033[0m";
   if (finished > 0)

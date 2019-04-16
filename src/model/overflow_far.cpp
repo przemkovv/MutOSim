@@ -164,6 +164,7 @@ kaufman_roberts_distribution(
         const auto chi = [&] {
           if (resource.components.size() == 1)
           {
+            // NOTE(PW): distributed equal components
             const ResourceComponent<CapacityF> &component =
                 resource.components.front();
             return component.number > Count{1}
@@ -173,6 +174,7 @@ kaufman_roberts_distribution(
           }
           else
           {
+            // NOTE(PW): distributed unequal components
             return conditional_transition_probability(
                 previous_state, resource, Size(tc_size));
           }
@@ -264,7 +266,8 @@ compute_overflow_parameters(
         compute_fictitious_capacity_fit_blocking_probability(rs, V);
     ASSERT(
         fictitous_capacity.has_value(),
-        "Couldn't find fictitious capacity for stream {}.",
+        "[{}] Couldn't find fictitious capacity for stream {}.",
+        location(),
         rs);
 
     rs.fictitous_capacity = fictitous_capacity.value();
@@ -274,7 +277,8 @@ compute_overflow_parameters(
 
     ASSERT(
         get(rs.variance) >= 0,
-        "Variance should be positive but is equal to {}. ({})",
+        "[{}] Variance should be positive but is equal to {}. ({})",
+        location(),
         rs.variance,
         rs);
 
@@ -298,13 +302,17 @@ combinatorial_arrangement_number(
 {
   Count upper_limit{
       Count::value_type{x.value() / (Capacity(component.v).value() + 1)}};
+  // TODO(PW): verify what approach should be applied:
+  // a) if upper limit is greater than component numbers return 0
+  // b) use max(upper_limit, component.number)
   if (upper_limit > component.number)
   {
-    return Count{0};
+    // return Count{0}; // a)
+    upper_limit = component.number; // b)
   }
   auto sum = [&] {
     Count s{0};
-    for (Count iota{0}; iota < upper_limit; ++iota)
+    for (Count iota{0}; iota <= upper_limit; ++iota)
     {
       const Count       factor1{Count::value_type{1 - 2 * (iota.value() % 2)}};
       const Count       factor2 = Math::n_over_k(component.number, iota);
@@ -329,12 +337,23 @@ struct NCounter
   const Capacity        S_;
   std::vector<Capacity> values_;
   Capacity              sum_{0};
+  bool                  finished_ = false;
+  Count                 combinations_count_{0};
+  Count                 combinations_number_{0};
 
-  NCounter(Count N, Capacity S) : N_(get(N)), S_(S), values_(size_t(get(N))) {}
+  NCounter(Count N, Capacity S) : N_(get(N)), S_(S), values_(size_t(get(N)))
+  {
+    combinations_count_ =
+        Math::n_over_k(N + Count{get(S_)} - Count{1}, N - Count{1});
+    debug_println<DebugTransition>(
+        "Combination count: {}", combinations_count_);
+
+    values_.back() = S_;
+  }
 
   NCounter &operator++()
   {
-    for (size_t i{0}; i < N_; ++i)
+    for (size_t i{0}; i < N_ - 1; ++i)
     {
       if (values_[i] < S_)
       {
@@ -348,11 +367,16 @@ struct NCounter
         values_[i] = Capacity{0};
       }
     }
+    values_.back() = S_ - sum_;
+    debug_println<DebugTransition>(
+        "Number: {}, State: {}", combinations_number_, values_);
+    ++combinations_number_;
+    finished_ = combinations_number_ == combinations_count_;
     return *this;
   }
 
-  Capacity    sum() { return sum_; }
-  const auto &values() { return values_; }
+  const auto &values() const { return values_; }
+  bool        finished() const { return finished_; }
 };
 
 //----------------------------------------------------------------------
@@ -365,23 +389,17 @@ combinatorial_arrangement_number_unequal_resources(
 {
   debug_println<DebugTransition>("x: {}", x);
   const auto component_types_number =
-      Count(resource.components.size() - 1); // chi_s
-  const auto &components = resource.components;
-
-  const auto stop_condition = component_types_number * x;
-
+      Count(resource.components.size()); // chi_s
+  const auto &                       components = resource.components;
   std::vector<std::vector<Capacity>> all_coefficients;
   NCounter                           counter(component_types_number, x);
-  while (counter.sum() < stop_condition)
+  do
   {
-    if (counter.sum() <= x)
-    {
-      all_coefficients.push_back(counter.values());
-      all_coefficients.back().push_back(x - counter.sum());
-    }
+    all_coefficients.push_back(counter.values());
     ++counter;
-  }
-  debug_println<DebugTransition>("{}", all_coefficients);
+  } while (!counter.finished());
+
+  debug_println<DebugTransition>("All coefficients: {}", all_coefficients);
 
   Count sum{0};
   for (const auto &coefficients : all_coefficients)
@@ -401,6 +419,10 @@ combinatorial_arrangement_number_unequal_resources(
   return sum;
 }
 
+template Count combinatorial_arrangement_number_unequal_resources<Capacity>(
+    const Capacity           x, // number of free allocation units
+    const Resource<Capacity> resource);
+
 //----------------------------------------------------------------------
 // Formula (3.34)
 template <typename C>
@@ -411,13 +433,26 @@ conditional_transition_probability(
     const Size                  t)
 {
   auto V = Capacity{component.V()};
+  debug_println<DebugTransition>("N: {}, V: {}", n, V);
   auto nominator_resource =
       ResourceComponent{component.number, Capacity{t - Size{1}}};
+  debug_println<DebugTransition>(
+      "Components: nom: {}, denom: {}", nominator_resource, component);
   auto nominator = combinatorial_arrangement_number(V - n, nominator_resource);
+  if (nominator == Count{0})
+  {
+    return Probability{1};
+  }
   auto denominator = combinatorial_arrangement_number(V - n, component);
   debug_println<DebugTransition>("nom: {}, denom: {}", nominator, denominator);
   ASSERT(
       denominator != Count{0}, "[{}] Denominator cannot be zero.", location());
+  ASSERT(
+      nominator >= Count{0}, "[{}] Nominator cannot be negative.", location());
+  ASSERT(
+      denominator > Count{0},
+      "[{}] Denominator cannot be negative.",
+      location());
   return Probability{1} - Probability{nominator / denominator};
 }
 //----------------------------------------------------------------------
@@ -431,10 +466,10 @@ conditional_transition_probability(
 {
   auto V = Capacity{resource.V()};
   debug_println<DebugTransition>("OrigV: {}, V: {}", resource.V(), V);
-  if (n == V)
-  {
-    return Probability{0};
-  }
+  // if (n == V)
+  // {
+  // return Probability{0};
+  // }
   const auto denominator =
       combinatorial_arrangement_number_unequal_resources(V - n, resource);
   if (denominator == Count{0})
@@ -451,6 +486,12 @@ conditional_transition_probability(
   debug_println<DebugTransition>("nom: {}, denom: {}", nominator, denominator);
   ASSERT(
       denominator != Count{0}, "[{}] Denominator cannot be zero.", location());
+  ASSERT(
+      nominator >= Count{0}, "[{}] Nominator cannot be negative.", location());
+  ASSERT(
+      denominator > Count{0},
+      "[{}] Denominator cannot be negative.",
+      location());
   return Probability{1} - Probability{nominator / denominator};
 }
 

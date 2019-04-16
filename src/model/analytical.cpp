@@ -222,6 +222,11 @@ analytical_computations(
           resource.add_component(to_model(group->total_capacity()));
           layer_name += fmt::format("{};", group_name);
         }
+        ASSERT(
+            resource.components.size() > 1,
+            "Component number has to be greater than 1 in "
+            "DistributedUnequalCapacities mode.");
+
         GroupName current_layer_name{layer_name};
         auto [model_group_it, inserted] = model_groups.emplace(
             current_layer_name, Model::Group{resource, kr_variant});
@@ -253,7 +258,50 @@ analytical_computations(
       }
       case LayerType::DistributedEqualCapacities:
       {
-        ASSERT(false, "[{}] Not implemented yet.", location());
+        Resource<> resource;
+        auto       layer_name = fmt::format("L{}:", layer);
+        for (const auto &[group_name, group] : simulation_groups)
+        {
+          ASSERT(
+              group->capacity().size() == 1,
+              "[{}] Simulation groups with multiple subgroups are not "
+              "supported.",
+              location());
+
+          resource.add_component(to_model(group->total_capacity()));
+          layer_name += fmt::format("{};", group_name);
+        }
+        ASSERT(
+            resource.components.size() == 1,
+            "Component number has to be 1 in DistributedEqualCapacities mode.");
+
+        GroupName current_layer_name{layer_name};
+        auto [model_group_it, inserted] = model_groups.emplace(
+            current_layer_name, Model::Group{resource, kr_variant});
+        for (const auto &[group_name, group] : simulation_groups)
+        {
+          simulation_to_model_group.emplace(group_name, current_layer_name);
+        }
+        for (const auto &[group_name, group] : simulation_groups)
+        {
+          for (const auto &next_group : group->next_groups())
+          {
+            if (auto it = simulation_to_model_group.find(next_group->name());
+                it != end(simulation_to_model_group))
+            {
+              if (it->second != current_layer_name)
+              {
+                model_group_it->second.add_next_group(next_group->name());
+              }
+            }
+            else
+            {
+              model_group_it->second.add_next_group(next_group->name());
+            }
+          }
+        }
+        model_groups_layers[layer].emplace(
+            current_layer_name, &model_group_it->second);
         break;
       }
       case LayerType::Unknown:

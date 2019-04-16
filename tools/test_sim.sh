@@ -2,8 +2,8 @@
 
 # set -x
 
-OUTPUT_DIR=tests/output
-ORIGIN_DIR=tests/origin
+OUTPUT_DIR=data/tests/output
+ORIGIN_DIR=data/tests/origin
 ARGS="-m simulation -m analytic --analytic_model=KRFixedReqSize --analytic_model=KRFixedCapacity -c1 --start 0.4 --stop 1.8 --step 0.1 -t 1000 --parallel=true -r0  -d $OUTPUT_DIR"
 # ARGS="--start=1.1 --stop=1.2 --step=0.1 --count=1 --random=0 --duration=300000 --parallel=0 -d $OUTPUT_DIR -q 0"
 SCENARIOS_DIR=data/scenarios/analytical
