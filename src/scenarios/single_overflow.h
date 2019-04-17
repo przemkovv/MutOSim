@@ -17,3 +17,7 @@ ScenarioSettings single_overflow_poisson(
     std::vector<std::vector<Simulation::Size>> t_c_s,
     Simulation::Capacity                       secondary_V);
 ScenarioSettings multiple_sources_single_overflow();
+
+void prepare_custom_scenarios(
+    std::vector<ScenarioSettings> &scenarios,
+    const CLIOptions &             cli);

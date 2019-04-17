@@ -7,27 +7,22 @@
 #include "logger.h"
 #include "model/analytical.h"
 #include "model/test.h"
-#include "scenarios/simple.h"
 #include "scenarios/single_overflow.h"
 #include "scenarios/topology_based.h"
 #include "simulation/group.h"
 #include "simulation/source_stream/source_stream.h"
 #include "simulation/world.h"
 #include "topology_parser.h"
-#include "traffic_class.h"
 #include "types/types.h"
 #include "types/types_format.h"
 #include "utils.h"
 
 #include <boost/program_options/parsers.hpp>
-#include <filesystem>
 #include <fmt/format.h>
 #include <fmt/ranges.h>
 #include <fstream>
 #include <functional>
-#include <iostream>
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <optional>
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/utility/functional.hpp>
@@ -233,116 +228,6 @@ load_scenarios_from_files(
         }
       }
     }
-  }
-}
-//----------------------------------------------------------------------
-
-void
-prepare_custom_scenarios(
-    std::vector<ScenarioSettings> &scenarios,
-    const CLIOptions &             cli)
-{
-  using Simulation::Capacity;
-  using Simulation::Count;
-  using Simulation::Intensity;
-  using Simulation::Size;
-
-  if ((false))
-  {
-    for (auto A = cli.A_start; A < cli.A_stop; A += cli.A_step)
-    {
-      std::vector<Size>    sizes{Size{1}, Size{1}, Size{3}, Size{3}};
-      std::vector<int64_t> ratios{1, 1, 1, 1};
-      auto ratios_sum = std::accumulate(begin(ratios), end(ratios), 0ll);
-      std::vector<long double> ratios_d(begin(ratios), end(ratios));
-      for_each(begin(ratios_d), end(ratios_d), [ratios_sum](auto &x) {
-        x /= ratios_sum;
-      });
-
-      auto V = Capacity{30};
-
-      std::vector<Intensity> intensities{sizes.size()};
-      for (auto i = 0u; i < sizes.size(); ++i)
-      {
-        intensities[i] =
-            Intensity{get(A) * get(V) / get(sizes[i]) * ratios_d[i]};
-      }
-      auto &scenario =
-          scenarios.emplace_back(poisson_streams(intensities, sizes, V));
-      scenario.name += fmt::format(" A={}", A);
-    }
-  }
-
-  if ((false))
-  {
-    scenarios.emplace_back(single_overflow_poisson(
-        Intensity(24.0L),
-        {Capacity{60}, Capacity{60}, Capacity{60}},
-        {{Size{1}, Size{2}, Size{6}},
-         {Size{1}, Size{2}, Size{6}},
-         {Size{1}, Size{2}, Size{6}}},
-        Capacity{42}));
-  }
-
-  if ((false))
-  {
-    scenarios.emplace_back(
-        single_overflow_poisson(Intensity(2.0L), Capacity(2)));
-    scenarios.emplace_back(
-        single_overflow_poisson(Intensity(4.0L), Capacity(2)));
-    scenarios.emplace_back(
-        single_overflow_poisson(Intensity(6.0L), Capacity(2)));
-  }
-
-  if ((false))
-  {
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1.0L), Capacity(1), Count(2)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1.0L), Capacity(1), Count(1)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1.0L), Capacity(2), Count(1)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1.0L), Capacity(3), Count(1)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(1.0L), Capacity(4), Count(1)));
-  }
-
-  if ((false))
-  {
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(15.0L), Capacity(30), Count(20)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(30.0L), Capacity(30), Count(20)));
-    scenarios.emplace_back(
-        pascal_source_model(Intensity(45.0L), Capacity(30), Count(20)));
-  }
-
-  if ((false))
-  {
-    scenarios.emplace_back(erlang_model(Intensity(15.0L), Capacity(30)));
-    scenarios.emplace_back(erlang_model(Intensity(30.0L), Capacity(30)));
-    scenarios.emplace_back(erlang_model(Intensity(45.0L), Capacity(30)));
-  }
-
-  if ((false))
-  {
-    scenarios.emplace_back(
-        engset_model(Intensity(10.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(
-        engset2_model(Intensity(10.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(
-        engset_model(Intensity(20.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(
-        engset2_model(Intensity(20.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(
-        engset_model(Intensity(30.0L), Capacity(20), Count(40)));
-    scenarios.emplace_back(
-        engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
   }
 }
 

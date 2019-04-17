@@ -15,7 +15,7 @@ namespace rng = ranges;
 
 template <typename Container, typename T>
 auto
-contains(const Container &container, const T &value)
+contains(const Container &container, const T &value) -> bool
 {
   return rng::find(container, value) != std::end(container);
 }

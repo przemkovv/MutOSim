@@ -107,12 +107,12 @@ inline Model::Capacity
 to_model(const Simulation::Capacity &capacity)
 {
   return Model::Capacity{
-      static_cast<Model::Capacity::value_type>(ts::get(capacity))};
+      static_cast<Model::Capacity::value_type>(capacity.value())};
 }
 
 inline Model::Intensity
 to_model(const Simulation::Intensity &intensity)
 {
   return Model::Intensity{
-      static_cast<Model::Intensity::value_type>(ts::get(intensity))};
+      static_cast<Model::Intensity::value_type>(intensity.value())};
 }

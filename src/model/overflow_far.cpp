@@ -132,7 +132,7 @@ kaufman_roberts_distribution(
   {
     for (const auto &rs : in_request_streams)
     {
-      const SizeF tc_size = [&]() {
+      const SizeF tc_size = [&]() -> SizeF {
         if (kr_variant == KaufmanRobertsVariant::FixedReqSize)
         {
           return SizeF{rs.tc.size};
@@ -161,7 +161,7 @@ kaufman_roberts_distribution(
         {
           previous_state_value = state[size_t(previous_state)];
         }
-        const auto chi = [&] {
+        const auto chi = [&]() -> Probability {
           if (resource.components.size() == 1)
           {
             // NOTE(PW): distributed equal components

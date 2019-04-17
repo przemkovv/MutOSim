@@ -11,8 +11,8 @@
 #include "types/types_format.h"
 
 using Simulation::Capacity;
-using Simulation::Intensity;
 using Simulation::Count;
+using Simulation::Intensity;
 using Simulation::Size;
 
 //----------------------------------------------------------------------
@@ -162,3 +162,4 @@ pascal_source_model(Intensity lambda, Capacity V, Count S)
 
   return sim_settings;
 }
+

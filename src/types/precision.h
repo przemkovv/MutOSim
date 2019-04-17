@@ -125,7 +125,7 @@ struct Weight_
         "[{}] Try to get opposite value while weight is not in normalized "
         "range (0..1)",
         location());
-    value_type value = value_type{1} - get(*this);
+    weight_t<Prec, UseFloat> value = value_type{1} - get(*this);
     return Weight_{value};
   }
 
@@ -443,6 +443,7 @@ struct Intensity_
   using ts::strong_typedef<Intensity_<Prec>, intensity_t<Prec>>::strong_typedef;
 
   using value_type = ts::underlying_type<Intensity_>;
+  const auto &value() const { return get(*this); }
 
   constexpr auto operator/(const Intensity_ &intensity) const
   {
