@@ -118,4 +118,14 @@ lerp(T value, S from, S to)
   return S{(to - from) * value + from};
 }
 
+template <typename T>
+bool
+is_little_bigger(const T &value, const T &target)
+{
+  return value.value() > target.value()
+         && value.value()
+                <= target.value()
+                       + std::numeric_limits<typename T::value_type>::epsilon();
+}
+
 } // namespace Math

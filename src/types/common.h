@@ -78,8 +78,8 @@ using stat_t = PrecisionType<Precision, UseFloat>;
 template <typename Precision = mediump, typename UseFloat = use_float_tag>
 using probability_t = PrecisionType<Precision, UseFloat>;
 
-template <typename Precision = mediump, typename UseFloat = use_float_tag>
-using intensity_t = PrecisionType<Precision, UseFloat>;
+template <typename Precision = mediump>
+using intensity_t = PrecisionType<Precision, use_float_tag>;
 
 template <typename Precision = mediump, typename UseFloat = use_int_tag>
 using weight_t = PrecisionType<Precision, UseFloat>;

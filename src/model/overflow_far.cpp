@@ -224,15 +224,22 @@ kaufman_roberts_blocking_probability(
       blocking_probability =
           Probability{interp.opposite() * blocking_probability
                       + interp * blocking_probability2};
-      // println("n {}, interp {}\tP3 {}", n, interp, blocking_probability);
     }
+    if (Math::is_little_bigger(blocking_probability, Probability{1}))
+    {
+      debug_println(
+          "3. n: {}, P_b: {}", n, blocking_probability - Probability{1});
+      blocking_probability = Probability{1};
+    }
+
     debug_println("2. n: {}, P_b: {}", n, blocking_probability);
     debug_println("{}", in_rs);
 
     ASSERT(
         blocking_probability >= Probability{0}
             && blocking_probability <= Probability{1},
-        "[{}] Blocking probability should be between 0 and 1, but is equal to "
+        "[{}] Blocking probability should be between 0 and 1, but is equal "
+        "to "
         "{}",
         location(),
         blocking_probability);
@@ -255,12 +262,10 @@ compute_overflow_parameters(
   {
     debug_println("Computing overflow parameters for: {}", rs);
     // TODO(PW): add CLI option for choosing fittin to carried traffic
-    // rs.fictitous_capacity = compute_fictitious_capacity_fit_carried_traffic(
-    // out_request_streams, V, rs.tc.id, KaufmanRobertsVariant::FixedReqSize);
-    // println(
-    // "Cr V= {}, V_f = {}, P_b={}",
-    // V,
-    // rs.fictitious_capacity,
+    // rs.fictitous_capacity =
+    // compute_fictitious_capacity_fit_carried_traffic( out_request_streams,
+    // V, rs.tc.id, KaufmanRobertsVariant::FixedReqSize); println( "Cr V= {},
+    // V_f = {}, P_b={}", V, rs.fictitious_capacity,
     // extended_erlang_b(rs.fictitous_capacity, rs.intensity));
     auto fictitous_capacity =
         compute_fictitious_capacity_fit_blocking_probability(rs, V);

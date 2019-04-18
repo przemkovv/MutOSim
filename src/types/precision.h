@@ -504,6 +504,8 @@ struct Probability_
   using ts::strong_typedef<Probability_<Prec>, probability_t<Prec>>::
       strong_typedef;
   using value_type = ts::underlying_type<Probability_>;
+  const auto &value() const { return get(*this); }
+
 
   constexpr Probability_ opposite()
   {

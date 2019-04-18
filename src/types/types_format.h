@@ -167,6 +167,22 @@ struct formatter<TypesPrecision::MeanIntensity_<P>>
   }
 };
 
+template <typename P, typename Tag>
+struct formatter<TypesPrecision::Weight_<P, Tag>>
+{
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const TypesPrecision::Weight_<P, Tag> &value, FormatContext &ctx)
+  {
+    return format_to(ctx.begin(), "{}", get(value));
+  }
+};
+
 template <typename P>
 struct formatter<TypesPrecision::Intensity_<P>>
   : formatter<intensity_t<P>>
