@@ -7,3 +7,4 @@ data/results/
 .ropeproject
 .gdb_history
 .ccls-cache
+.mypy_cache
