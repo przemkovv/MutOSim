@@ -81,6 +81,7 @@ import scipy as sp
 import scipy.stats
 import ubjson
 import cbor2
+from typing import Optional
 
 
 stats_name2label = {'served_u': 'Carried traffic',
@@ -97,10 +98,9 @@ def cols_number(items):
     max_per_column = 5
     if items_number <= max_per_column:
         return items_number
-    elif items_number <= 2 * max_per_column:
+    if items_number <= 2 * max_per_column:
         return math.ceil(items_number / 2)
-    else:
-        return max_per_column
+    return max_per_column
 
 
 def get_traffic_classes_sizes(scenario):
@@ -114,6 +114,46 @@ def get_traffic_classes_sizes(scenario):
 
 def load_traffic_classes_sizes(scenario_file):
     return get_traffic_classes_sizes(json.load(open(scenario_file)))
+
+
+def is_group_in_layer(group_name, layer_name):
+    if layer_name[0] != 'L':
+        return False
+    return group_name in layer_name_to_groups(layer_name)
+
+
+def is_layer_name(layer_name):
+    return layer_name[0] == 'L'
+
+
+def layer_name_to_groups(layer_name):
+    return filter(None, layer_name.split(':', 1)[1].split(';'))
+
+
+def is_in_groups(group_name, groups):
+    if is_layer_name(group_name):
+        return any(is_group_in_layer(group, group_name) for group in groups)
+    return group_name in groups
+
+
+def get_valid_group(group_name: str, groups) -> Optional[str]:
+    if is_layer_name(group_name):
+        layer_name = group_name
+        return next((group for group in layer_name_to_groups(layer_name) if group in groups), None)
+    if group_name in groups:
+        return group_name
+    return None
+
+
+def get_corresponding_group(needle_group, groups):
+    for group in groups:
+        if is_layer_name(group):
+            layer_name = group
+            layer_groups = layer_name_to_groups(layer_name)
+            return next((layer_name for layer_group in layer_groups if needle_group == layer_group), None)
+        elif needle_group == group:
+            return group
+    return None
 
 
 def append_tc_stat_for_groups_by_size(tc_data_y,
@@ -254,13 +294,18 @@ def main():
     # rc('font',**{'family':'serif','serif':['Palatino']})
     #  rc('text', usetex=True)
 
+    plots_number_x = int(args["-x"])
+    plots_number_y = int(args["-y"])
+
     fig = plt.figure(
         figsize=(float(args["--width"]), float(args["--height"])), tight_layout=True)
     fig.canvas.set_window_title(title)
     plot_id = 1
+    glob_fig = plt.figure(
+        figsize=(float(args["--width"])/plots_number_y, float(args["--height"])/plots_number_x), tight_layout=True)
+    glob_fig.canvas.set_window_title(title)
 
-    plots_number_x = int(args["-x"])
-    plots_number_y = int(args["-y"])
+    glob_ax = glob_fig.add_subplot(1, 1, 1)
 
     if args['--print-all']:
         print("All scenarios:")
@@ -277,8 +322,10 @@ def main():
     pprint(list(enumerate(filtered_data.keys())))
 
     all_data = {}
+    scenario_id = -1
 
     for scenario_file, scenario_results in filtered_data.items():
+        scenario_id = scenario_id+1
         all_data[scenario_file] = {}
         if "_scenario" in scenario_results.keys():
             tc_sizes, scenario = get_traffic_classes_sizes(
@@ -303,7 +350,9 @@ def main():
                 return set_plot_log_style(ax, y_max, y_min)
             aggregate = False
 
-        markers = ['+', 'x', 's']
+        markers = ['+', 'x', '2']
+        glob_markers = ['+', 'x', '2']
+        glob_linestyle = [':', '-']
 
         tcs_served_by_groups = get_tcs_served_by_groups(
             scenario_results, tc_filter)
@@ -323,28 +372,41 @@ def main():
 
         if args['--normal']:
             for group_name, group_data_y in tc_data_y_by_size.items():
-                if groups and group_name not in groups:
+                if not get_valid_group(group_name, groups):
                     continue
+
                 markerscycle = itertools.cycle(markers)
+                glob_markerscycle = itertools.cycle(glob_markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
                 for tc_size, data_y in group_data_y.items():
                     ax.set_xlim(x_min, x_max)
                     ax.plot(tc_data_x, data_y, label="t={}".format(tc_size),
                             marker=next(markerscycle))
+                    glob_ax.set_xlim(x_min, x_max)
+                    glob_ax.plot(tc_data_x, data_y, label="t={}".format(tc_size),
+                                 marker=next(glob_markerscycle))
 
                 set_style(ax)
+                set_style(glob_ax)
                 ax.set_title("{} ({}\n{})".format(
                     group_name, scenario["name"], scenario_file))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
+                glob_ax.set_title("{} ({}\n{})".format(
+                    group_name, scenario["name"], scenario_file))
+                glob_ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=4, ncol=3)
+                glob_ax.legend(loc=4, ncol=3)
 
             for group_name, group_data_y in tc_data_y.items():
-                if groups and group_name not in groups:
+                if not get_valid_group(group_name, groups):
                     continue
+
                 markerscycle = itertools.cycle(markers)
+                glob_markerscycle = itertools.cycle(glob_markers)
+                glob_linestylecycle = itertools.cycle(glob_linestyle)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
                 #  pprint(tc_data_x)
                 for tc_id, data_y in group_data_y.items():
@@ -359,6 +421,7 @@ def main():
                     #  pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
                         #  for serie in data_y])
                     ax.set_xlim(x_min, x_max)
+                    glob_ax.set_xlim(x_min, x_max)
                     #  pprint((len(tc_data_x), tc_data_x,
                     #  len([statistics.mean(serie) for serie in data_y]),
                     #  [statistics.mean(serie) for serie in data_y]))
@@ -371,8 +434,17 @@ def main():
                             #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
                             label="$t_{}={}$".format(tc_id, tc_sizes[tc_id]),
                             marker=next(markerscycle))
+                    glob_ax.plot(tc_data_x,
+                                 series_means,
+                                 #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
+                                 label="{} $t_{}={}$".format(
+                                     scenario_id, tc_id, tc_sizes[tc_id]),
+                                 linestyle=glob_linestyle[scenario_id],
+                                 markevery=5,
+                                 marker=next(glob_markerscycle))
 
                 set_style(ax)
+                set_style(glob_ax)
                 #  ax.set_title("{} V={} {}"
                 #  .format(group_name,
                 #  scenario["groups"][group_name]["capacity"],
@@ -382,10 +454,12 @@ def main():
                 else:
                     ax.set_title("{} {}" .format(group_name, title_suffix))
                 ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
+                glob_ax.set_ylabel(stats_name2label.get(stat_name, stat_name))
                 if plot_id % plots_number_x == 0:
                     ax.set_xlabel("a")
                 plot_id += 1
                 ax.legend(loc=4, ncol=3)
+                glob_ax.legend(loc=4, ncol=3)
 
     if args["--pairs"]:
         key_pairs_id = list(ast.literal_eval(args["--pairs"]))
@@ -403,11 +477,18 @@ def main():
                 print("OK")
             if not compare_dicts_structure(all_data[k1]['y'], all_data[k2]['y']):
                 print("NOT OK")
-                #  continue
+
             for group_name, k1_group_data_y in all_data[k1]['y'].items():
-                if groups and group_name not in groups:
+                valid_group_k1 = get_valid_group(group_name, groups)
+
+                if not valid_group_k1:
                     continue
-                k2_group_data_y = all_data[k2]['y'][group_name]
+                valid_group_k2 = get_corresponding_group(
+                    valid_group_k1, all_data[k2]['y'].keys())
+                if not valid_group_k2:
+                    continue
+
+                k2_group_data_y = all_data[k2]['y'][valid_group_k2]
 
                 markerscycle = itertools.cycle(markers)
                 ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
@@ -624,12 +705,12 @@ def main():
                         x+y for x, y in itertools.zip_longest(k2_sum, k2_data_y_means, fillvalue=0)]
 
                 plot_data = [x/y*100 if y != 0 else 0 for x,
-                            y in zip(k1_sum, k2_sum)]
+                             y in zip(k1_sum, k2_sum)]
 
                 def clean(s):
                     return s.replace("data/journal/", "").replace("data/journal2/", "").replace("data/scenarios/simulator_publication/", "").replace(".json", "")
                 label = "{} - {} ".format(clean(k1), clean(k2)
-                                        ) if p_name is None else p_name
+                                          ) if p_name is None else p_name
                 if not args['--no-pair-suffix']:
                     label = "{}{}".format(label, group_name)
                 data_x = np.array([all_data[k1]['x'], all_data[k2]['x']])
@@ -660,13 +741,22 @@ def main():
         plt.show()
 
     if args["--save"]:
-        output_dir = args["--output-dir"]
-        if not os.path.isdir(output_dir):
-            os.makedirs(output_dir)
-        output_file = title + "." + args["--format"]
-        output_file = path.join(output_dir, output_file)
+        def create_filename(name: str):
+            output_dir = args["--output-dir"]
+            if not os.path.isdir(output_dir):
+                os.makedirs(output_dir)
+            output_file = name + "." + args["--format"]
+            output_file = path.join(output_dir, output_file)
+            return output_file
+
+        output_file = create_filename(title)
         fig.set_size_inches(float(args["--width"]), float(args["--height"]))
         fig.savefig(output_file, transparent=True)
+
+        output_file = create_filename(title+"foo")
+        glob_fig.set_size_inches(
+            float(args["--width"])/plots_number_y, float(args["--height"])/plots_number_x)
+        glob_fig.savefig(output_file, transparent=True)
 
 
 if __name__ == "__main__":
