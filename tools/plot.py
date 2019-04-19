@@ -753,7 +753,7 @@ def main():
         fig.set_size_inches(float(args["--width"]), float(args["--height"]))
         fig.savefig(output_file, transparent=True)
 
-        output_file = create_filename(title+"foo")
+        output_file = create_filename("glob_" + title)
         glob_fig.set_size_inches(
             float(args["--width"])/plots_number_y, float(args["--height"])/plots_number_x)
         glob_fig.savefig(output_file, transparent=True)
