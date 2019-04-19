@@ -57,6 +57,14 @@ Group::add_incoming_request_stream(const RequestStream &in_rs)
       "types are "
       "supported.");
 
+  if (in_rs.peakedness == Peakedness{0})
+  {
+    debug_println(
+        "Input request stream: {} has been skipped because of peakedness = 0",
+        in_rs);
+    return;
+  }
+
   // Formulas 3.17 and 3.18
   if (auto [rs_it, inserted] =
           in_request_streams_.try_emplace(in_rs.tc.id, in_rs);

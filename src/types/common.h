@@ -87,8 +87,8 @@ using weight_t = PrecisionType<Precision, UseFloat>;
 template <typename Precision = mediump, typename UseFloat = use_float_tag>
 using weight_float_t = PrecisionType<Precision, UseFloat>;
 
-template <typename Precision = mediump, typename UseFloat = use_float_tag>
-using ratio_t = PrecisionType<Precision, UseFloat>;
+template <typename Precision = mediump>
+using ratio_t = PrecisionType<Precision, use_float_tag>;
 
 template <typename Precision = mediump, typename UseFloat = use_int_tag>
 using threshold_t = count_t<Precision, UseFloat>;

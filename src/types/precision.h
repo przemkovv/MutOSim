@@ -324,6 +324,8 @@ struct Size_
 {
   using ts::strong_typedef<Size_<Prec, UseFloat>, count_t<Prec, UseFloat>>::
       strong_typedef;
+  using value_type = ts::underlying_type<Size_>;
+  const auto &value() const { return get(*this); }
 
   template <typename SrcPrec, typename SrcUseFloat>
   explicit constexpr Size_(const Size_<SrcPrec, SrcUseFloat> &c)
@@ -506,7 +508,6 @@ struct Probability_
   using value_type = ts::underlying_type<Probability_>;
   const auto &value() const { return get(*this); }
 
-
   constexpr Probability_ opposite()
   {
     probability_t<Prec> value = 1 - get(*this);
@@ -669,10 +670,14 @@ template <typename Prec>
 struct MeanIntensity_
   : ts::strong_typedef<MeanIntensity_<Prec>, intensity_t<Prec>>,
     ts::strong_typedef_op::addition<MeanIntensity_<Prec>>,
+    ts::strong_typedef_op::relational_comparison<MeanIntensity_<Prec>>,
     ts::strong_typedef_op::output_operator<MeanIntensity_<Prec>>
 {
   using ts::strong_typedef<MeanIntensity_<Prec>, intensity_t<Prec>>::
       strong_typedef;
+
+  using value_type = ts::underlying_type<MeanIntensity_>;
+  const auto &value() const { return get(*this); }
 
   MeanIntensity_(const Intensity_<Prec> &intensity)
     : MeanIntensity_(get(intensity))
@@ -704,6 +709,7 @@ struct MeanIntensity_
 template <typename Prec>
 struct Peakedness_
   : ts::strong_typedef<Peakedness_<Prec>, stat_t<Prec>>,
+    ts::strong_typedef_op::equality_comparison<Peakedness_<Prec>>,
     ts::strong_typedef_op::relational_comparison<Peakedness_<Prec>>,
     ts::strong_typedef_op::output_operator<Peakedness_<Prec>>
 {

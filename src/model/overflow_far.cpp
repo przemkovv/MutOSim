@@ -72,6 +72,7 @@ compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
 }
 
 //----------------------------------------------------------------------
+// Formula 3.105
 Variance
 compute_riordan_variance(
     const MeanIntensity mean,
@@ -79,14 +80,11 @@ compute_riordan_variance(
     const CapacityF     fictitous_capacity,
     const SizeF         tc_size)
 {
+  const auto denominator = fictitous_capacity.value() / tc_size.value() + 1
+                           - intensity.value() + mean.value();
   Variance::value_type variance =
-      get(mean)
-      * (get(intensity)
-             / ((get(fictitous_capacity) / get(tc_size)) + 1 - get(intensity)
-                + get(mean))
-         + 1 - get(mean));
+      mean.value() * (intensity.value() / denominator + 1 - mean.value());
   return Variance{variance};
-  /* clang-format on */
 }
 
 //----------------------------------------------------------------------
@@ -267,6 +265,10 @@ compute_overflow_parameters(
     // V, rs.tc.id, KaufmanRobertsVariant::FixedReqSize); println( "Cr V= {},
     // V_f = {}, P_b={}", V, rs.fictitious_capacity,
     // extended_erlang_b(rs.fictitous_capacity, rs.intensity));
+    if (rs.blocking_probability == Probability{0})
+    {
+      continue;
+    }
     auto fictitous_capacity =
         compute_fictitious_capacity_fit_blocking_probability(rs, V);
     ASSERT(
@@ -281,17 +283,33 @@ compute_overflow_parameters(
         rs.mean, rs.intensity, rs.fictitous_capacity, SizeF{rs.tc.size});
 
     ASSERT(
+        !isnan(get(rs.variance)),
+        "[{}] Variance shouldn't be nan.",
+        location());
+    ASSERT(
         get(rs.variance) >= 0,
         "[{}] Variance should be positive but is equal to {}. ({})",
         location(),
         rs.variance,
         rs);
 
-    rs.peakedness = rs.variance / rs.mean;
+    if (rs.mean > MeanIntensity{0})
+    {
+      rs.peakedness = rs.variance / rs.mean;
+    }
+    else
+    {
+      rs.peakedness = Peakedness{0};
+    }
     ASSERT(
         !isnan(get(rs.peakedness)),
         "[{}] Peakedness shouldn't be nan.",
         location());
+    ASSERT(
+        (get(rs.peakedness) >= 0),
+        "[{}] Peakedness shouldn't be negative.",
+        location());
+    debug_println("Computed overflow parameters for: {}", rs);
   }
 
   return out_request_streams;

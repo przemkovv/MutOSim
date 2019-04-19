@@ -184,12 +184,20 @@ struct formatter<TypesPrecision::Weight_<P, Tag>>
 };
 
 template <typename P>
-struct formatter<TypesPrecision::Intensity_<P>>
-  : formatter<intensity_t<P>>
+struct formatter<TypesPrecision::Ratio_<P>> : formatter<ratio_t<P>>
 {
   template <typename FormatContext>
-  auto
-  format(const TypesPrecision::Intensity_<P> &value, FormatContext &ctx)
+  auto format(const TypesPrecision::Ratio_<P> &value, FormatContext &ctx)
+  {
+    return formatter<ratio_t<P>>::format(get(value), ctx);
+  }
+};
+
+template <typename P>
+struct formatter<TypesPrecision::Intensity_<P>> : formatter<intensity_t<P>>
+{
+  template <typename FormatContext>
+  auto format(const TypesPrecision::Intensity_<P> &value, FormatContext &ctx)
   {
     return formatter<intensity_t<P>>::format(get(value), ctx);
   }

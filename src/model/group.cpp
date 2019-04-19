@@ -31,6 +31,7 @@ Group::get_outgoing_request_streams() const
       {
         const auto peakedness =
             compute_collective_peakedness(in_request_streams);
+        debug_println("Collective peakedness: {}", peakedness);
         return resource_ / peakedness;
       }
     }();
