@@ -391,12 +391,21 @@ class PlotType(Enum):
     NormalSingle = "_normal_single"
 
 
+class ScenarioResults:
+    scenario_id: int
+    name: str
+    tc_data_x: List[float] = []
+    tc_data_y: dict = {}
+    tc_data_y_by_size: dict = {}
+    tc_sizes: dict = {}
+
+
 class Main:
     """."""
 
     markers = ["+", "x", "2"]
     glob_markers = ["+", "x", "2"]
-    glob_linestyle = [":", "-"]
+    glob_linestyles = [":", "-"]
 
     def __init__(self, args: dict):
         """Init plotting class."""
@@ -412,7 +421,7 @@ class Main:
         self.enable_boxplots = args["--bp"]
         self.title_suffix = args["--title-suffix"]
 
-        self.strip_prefix = "data/scenarios/analytical/"
+        self.strip_prefix = "data/scenarios/analytical/layer_types/"
 
         self.groups = ast.literal_eval(
             args["--groups"]) if args["--groups"] else None
@@ -472,17 +481,17 @@ class Main:
 
     def prepare_scenario_data(self,
                               scenario_results: dict,
-                              stat_name: str) -> dict:
+                              stat_name: str) -> ScenarioResults:
         """Parse and prepare data of a certain scenario."""
         scenario_description = scenario_results["_scenario"]
         tc_sizes, _ = get_traffic_classes_sizes(scenario_description)
 
-        scenario_data: dict = {}
-        scenario_data["name"] = scenario_description["name"]
-        scenario_data["tc_sizes"] = tc_sizes
-        tc_data_x = scenario_data.setdefault("x", [])
-        tc_data_y = scenario_data.setdefault("y", {})
-        tc_data_y_by_size = scenario_data.setdefault('y_by_size', {})
+        scenario_data = ScenarioResults()
+        scenario_data.name = scenario_description["name"]
+        scenario_data.tc_sizes = tc_sizes
+        tc_data_x = scenario_data.tc_data_x
+        tc_data_y = scenario_data.tc_data_y
+        tc_data_y_by_size = scenario_data.tc_data_y_by_size
 
         used_tcs = get_used_traffic_classes(scenario_results, self.tc_filter)
 
@@ -501,123 +510,112 @@ class Main:
                                                   tc_sizes)
         return scenario_data
 
+    def plot_tc_series(self,
+                       axes: Axes,
+                       data_x,
+                       group_data_y,
+                       tc_sizes,
+                       label_suffix: str = None,
+                       markers: List[str] = None,
+                       line_style: str = "-",
+                       markevery: int = 1):
+        """."""
+        if markers is None:
+            markers = ["+", "x", "2"]
+
+        markerscycle = itertools.cycle(markers)
+        for tc_id, data_y in group_data_y.items():
+            print(f"{tc_id} : {label_suffix}")
+            if self.enable_boxplots:
+                axes.boxplot(
+                    data_y,
+                    positions=data_x,
+                    notch=False,
+                    widths=0.05,
+                    bootstrap=10000,
+                    showfliers=False,
+                    vert=True,
+                    patch_artist=False,
+                    showcaps=False,
+                    whis=0,
+                    manage_xticks=False,
+                )
+
+            series_means = [statistics.mean(serie) for serie in data_y]
+            print(len(data_x) == len(series_means))
+            pprint(series_means)
+            axes.plot(
+                data_x,
+                series_means,
+                label=f"$t_{tc_id}={tc_sizes[tc_id]}$ {label_suffix}",
+                marker=next(markerscycle),
+                linestyle=line_style,
+                markevery=markevery
+            )
+
     def plot_single_normal(self,
-                           ax: Axes,
+                           axes: Axes,
                            scenario_file: str,
-                           scenario_results: dict):
+                           scenario_results: ScenarioResults):
         """Plot Normal type."""
-        tc_data_x = scenario_results["x"]
-        tc_data_y = scenario_results["y"]
-        tc_sizes = scenario_results["tc_sizes"]
+        tc_data_x = scenario_results.tc_data_x
+        tc_data_y = scenario_results.tc_data_y
+        tc_sizes = scenario_results.tc_sizes
         for group_name, group_data_y in tc_data_y.items():
             if not get_valid_group(group_name, self.groups):
                 continue
 
-            glob_markerscycle = itertools.cycle(self.glob_markers)
-            for tc_id, data_y in group_data_y.items():
-                if self.enable_boxplots:
-                    ax.set_xlim(self.x_min, self.x_max)
-                    ax.boxplot(
-                        data_y,
-                        positions=tc_data_x,
-                        notch=False,
-                        widths=0.05,
-                        bootstrap=10000,
-                        showfliers=False,
-                        vert=True,
-                        patch_artist=False,
-                        showcaps=False,
-                        whis=0,
-                        manage_xticks=False,
-                    )
+            axes.set_xlim(self.x_min, self.x_max)
+            self.plot_tc_series(axes,
+                                tc_data_x, group_data_y, tc_sizes,
+                                label_suffix=scenario_file,
+                                line_style=self.glob_linestyles[0],
+                                markevery=5)
 
-                ax.set_xlim(self.x_min, self.x_max)
-
-                series_means = [statistics.mean(
-                    serie) for serie in data_y]
-                for i in range(0, len(tc_data_x) - len(series_means)):
-                    print(f"{RED} I shouldn't be here")
-                    series_means.insert(0, 0)
-                plot_id = 0
-                ax.plot(
-                    tc_data_x,
-                    series_means,
-                    label=f"{plot_id} $t_{tc_id}={tc_sizes[tc_id]}$",
-                    linestyle=self.glob_linestyle[plot_id
-                                                  % len(self.glob_linestyle)],
-                    markevery=5,
-                    marker=next(glob_markerscycle),
-                )
-
-            self.set_style(ax)
-            title = (f'{group_name} {scenario_results["name"]}\n'
+            title = (f'{group_name} {scenario_results.name}\n'
                      f'({scenario_file})')
-            ax.set_title(ax.get_title() + "\n" + title)
-            ax.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
-                                                 self.stat_name))
-            ax.legend(loc=4, ncol=3)
+            axes.set_title(axes.get_title() + "\n" + title)
+            self.set_style(axes)
+            axes.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
+                                                   self.stat_name))
+            axes.set_xlabel("a")
+            axes.legend(loc=4, ncol=3)
 
     def plot_normal(self,
                     fig: Figure,
                     plot_id: int,
                     scenario_file: str,
-                    scenario_results: dict):
+                    scenario_results: ScenarioResults):
         """Plot Normal type."""
-        tc_data_x = scenario_results["x"]
-        tc_data_y = scenario_results["y"]
-        tc_sizes = scenario_results["tc_sizes"]
+        tc_data_x = scenario_results.tc_data_x
+        tc_data_y = scenario_results.tc_data_y
+        tc_sizes = scenario_results.tc_sizes
         for group_name, group_data_y in tc_data_y.items():
             if not get_valid_group(group_name, self.groups):
                 continue
 
-            markerscycle = itertools.cycle(self.markers)
-            ax = fig.add_subplot(self.plots_number_x,
-                                 self.plots_number_y,
-                                 plot_id)
-            for tc_id, data_y in group_data_y.items():
-                if self.enable_boxplots:
-                    ax.set_xlim(self.x_min, self.x_max)
-                    ax.boxplot(
-                        data_y,
-                        positions=tc_data_x,
-                        notch=False,
-                        widths=0.05,
-                        bootstrap=10000,
-                        showfliers=False,
-                        vert=True,
-                        patch_artist=False,
-                        showcaps=False,
-                        whis=0,
-                        manage_xticks=False,
-                    )
+            axes = fig.add_subplot(self.plots_number_x,
+                                   self.plots_number_y,
+                                   plot_id)
+            axes.set_xlim(self.x_min, self.x_max)
+            self.plot_tc_series(axes, tc_data_x, group_data_y, tc_sizes, "")
 
-                ax.set_xlim(self.x_min, self.x_max)
-
-                series_means = [statistics.mean(serie) for serie in data_y]
-                for i in range(0, len(tc_data_x) - len(series_means)):
-                    print(f"{RED} I shouldn't be here")
-                    series_means.insert(0, 0)
-                ax.plot(
-                    tc_data_x,
-                    series_means,
-                    label=f"$t_{tc_id}={tc_sizes[tc_id]}$",
-                    marker=next(markerscycle),
-                )
-
-            self.set_style(ax)
             if self.title_suffix:
-                ax.set_title(f"{group_name} {self.title_suffix}")
+                axes.set_title(f"{group_name} {self.title_suffix}")
             else:
-                title = (f"{group_name} {scenario_results['name']}\n"
+                title = (f"{group_name} {scenario_results.name}\n"
                          f"({scenario_file})")
-                ax.set_title(title)
+                axes.set_title(title)
 
-            ax.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
-                                                 self.stat_name))
+            axes.set_title(axes.get_title() + "\n" + title)
+            self.set_style(axes)
+            axes.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
+                                                   self.stat_name))
+            axes.legend(loc=4, ncol=3)
+
             if plot_id % self.plots_number_x == 0:
-                ax.set_xlabel("a")
+                axes.set_xlabel("a")
             plot_id += 1
-            ax.legend(loc=4, ncol=3)
         return plot_id
 
     def run(self):
