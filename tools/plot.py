@@ -18,6 +18,7 @@ Usage:
             [--relative-sums]
             [--relative-divs]
             [--normal]
+            [--normal_single]
             [-n NAME]
             [--width=WIDTH] [--height=HEIGHT]
             [--pairs=PAIRS]
@@ -52,6 +53,7 @@ Options:
     -r, --relatives                 plot relations (ratio)
     --relatives-diffs               plot relations (difference)
     --normal                        normal plots
+    --normal_single                 single normal plot
     --relative-sums                 plots of relatives sums
     --relative-divs                 plots of relatives divisions
     -n NAME, --name=NAME            suffix added to filename
@@ -61,7 +63,7 @@ Options:
     --no-pair-suffix                skip automatic suffix for pairs
     --print-all                     print all scenarios with ids
     -g GROUPS, --groups=GROUPS      groups that have to be plotted
-    --title-suffix=TITLE_SUFFIX     title suffix [default: ""]
+    --title-suffix=TITLE_SUFFIX     title suffix [default: ]
     --tc=TCs                        filter TCs [default: None]
 
 """
@@ -99,6 +101,7 @@ STAT_NAME_TO_LABEL = {
 YELLOW = f"{Fore.YELLOW}{Style.BRIGHT}"
 BLUE = f"{Fore.BLUE}{Style.BRIGHT}"
 GREEN = f"{Fore.GREEN}"
+RED = f"{Fore.RED}{Style.BRIGHT}"
 
 
 def flip(items, ncol: int):
@@ -385,6 +388,7 @@ class PlotType(Enum):
     RelativeSums = "_relative_sums"
     Relatives = "_relatives"
     Normal = "_normal"
+    NormalSingle = "_normal_single"
 
 
 class Main:
@@ -432,6 +436,8 @@ class Main:
             self.plot_type = PlotType.Relatives
         elif args["--normal"]:
             self.plot_type = PlotType.Normal
+        elif args["--normal_single"]:
+            self.plot_type = PlotType.NormalSingle
 
         self.title += self.plot_type.value
 
@@ -495,12 +501,10 @@ class Main:
                                                   tc_sizes)
         return scenario_data
 
-    def plot_normal(self,
-                    fig: Figure,
-                    glob_ax: Axes,
-                    plot_id: int,
-                    scenario_file: str,
-                    scenario_results: dict):
+    def plot_single_normal(self,
+                           ax: Axes,
+                           scenario_file: str,
+                           scenario_results: dict):
         """Plot Normal type."""
         tc_data_x = scenario_results["x"]
         tc_data_y = scenario_results["y"]
@@ -509,12 +513,7 @@ class Main:
             if not get_valid_group(group_name, self.groups):
                 continue
 
-            markerscycle = itertools.cycle(self.markers)
             glob_markerscycle = itertools.cycle(self.glob_markers)
-            ax = fig.add_subplot(self.plots_number_x,
-                                 self.plots_number_y,
-                                 plot_id)
-            #  pprint(tc_data_x)
             for tc_id, data_y in group_data_y.items():
                 if self.enable_boxplots:
                     ax.set_xlim(self.x_min, self.x_max)
@@ -533,19 +532,14 @@ class Main:
                     )
 
                 ax.set_xlim(self.x_min, self.x_max)
-                glob_ax.set_xlim(self.x_min, self.x_max)
 
                 series_means = [statistics.mean(
                     serie) for serie in data_y]
                 for i in range(0, len(tc_data_x) - len(series_means)):
+                    print(f"{RED} I shouldn't be here")
                     series_means.insert(0, 0)
+                plot_id = 0
                 ax.plot(
-                    tc_data_x,
-                    series_means,
-                    label=f"$t_{tc_id}={tc_sizes[tc_id]}$",
-                    marker=next(markerscycle),
-                )
-                glob_ax.plot(
                     tc_data_x,
                     series_means,
                     label=f"{plot_id} $t_{tc_id}={tc_sizes[tc_id]}$",
@@ -556,22 +550,74 @@ class Main:
                 )
 
             self.set_style(ax)
-            self.set_style(glob_ax)
-            if self.title_suffix is None:
-                title = (f'{group_name} {scenario_results["name"]}\n'
-                         f'({scenario_file})')
-                ax.set_title(title)
-            else:
-                ax.set_title(f"{group_name} {self.title_suffix}")
+            title = (f'{group_name} {scenario_results["name"]}\n'
+                     f'({scenario_file})')
+            ax.set_title(ax.get_title() + "\n" + title)
             ax.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
                                                  self.stat_name))
-            glob_ax.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
-                                                      self.stat_name))
+            ax.legend(loc=4, ncol=3)
+
+    def plot_normal(self,
+                    fig: Figure,
+                    plot_id: int,
+                    scenario_file: str,
+                    scenario_results: dict):
+        """Plot Normal type."""
+        tc_data_x = scenario_results["x"]
+        tc_data_y = scenario_results["y"]
+        tc_sizes = scenario_results["tc_sizes"]
+        for group_name, group_data_y in tc_data_y.items():
+            if not get_valid_group(group_name, self.groups):
+                continue
+
+            markerscycle = itertools.cycle(self.markers)
+            ax = fig.add_subplot(self.plots_number_x,
+                                 self.plots_number_y,
+                                 plot_id)
+            for tc_id, data_y in group_data_y.items():
+                if self.enable_boxplots:
+                    ax.set_xlim(self.x_min, self.x_max)
+                    ax.boxplot(
+                        data_y,
+                        positions=tc_data_x,
+                        notch=False,
+                        widths=0.05,
+                        bootstrap=10000,
+                        showfliers=False,
+                        vert=True,
+                        patch_artist=False,
+                        showcaps=False,
+                        whis=0,
+                        manage_xticks=False,
+                    )
+
+                ax.set_xlim(self.x_min, self.x_max)
+
+                series_means = [statistics.mean(serie) for serie in data_y]
+                for i in range(0, len(tc_data_x) - len(series_means)):
+                    print(f"{RED} I shouldn't be here")
+                    series_means.insert(0, 0)
+                ax.plot(
+                    tc_data_x,
+                    series_means,
+                    label=f"$t_{tc_id}={tc_sizes[tc_id]}$",
+                    marker=next(markerscycle),
+                )
+
+            self.set_style(ax)
+            if self.title_suffix:
+                ax.set_title(f"{group_name} {self.title_suffix}")
+            else:
+                title = (f"{group_name} {scenario_results['name']}\n"
+                         f"({scenario_file})")
+                ax.set_title(title)
+
+            ax.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
+                                                 self.stat_name))
             if plot_id % self.plots_number_x == 0:
                 ax.set_xlabel("a")
             plot_id += 1
             ax.legend(loc=4, ncol=3)
-            glob_ax.legend(loc=4, ncol=3)
         return plot_id
 
     def run(self):
@@ -583,15 +629,18 @@ class Main:
         fig = plt.figure(figsize=(self.plot_width, self.plot_height),
                          tight_layout=True)
         fig.canvas.set_window_title(self.title)
-        glob_fig = plt.figure(figsize=(self.plot_width, self.plot_height),
-                              tight_layout=True)
-        glob_fig.canvas.set_window_title(self.title)
-        glob_ax = glob_fig.add_subplot(1, 1, 1)
-        plot_id = 1
+
+        if self.plot_type == PlotType.NormalSingle:
+            ax = fig.add_subplot(1, 1, 1)
+            for filename, scenario_results in self.scenarios_data.items():
+                self.plot_single_normal(ax,
+                                        filename,
+                                        scenario_results)
+
         if self.plot_type == PlotType.Normal:
+            plot_id = 1
             for filename, scenario_results in self.scenarios_data.items():
                 plot_id = self.plot_normal(fig,
-                                           glob_ax,
                                            plot_id,
                                            filename,
                                            scenario_results)
@@ -600,12 +649,6 @@ class Main:
         fig.set_size_inches(self.plot_width, self.plot_height)
         print(f"{BLUE}Saving {output_file}")
         fig.savefig(output_file, transparent=True)
-
-        output_file = self.create_filename("glob_"+self.title)
-        glob_fig.set_size_inches(self.plot_width/self.plots_number_y,
-                                 self.plot_height/self.plots_number_x)
-        print(f"{BLUE}Saving {output_file}")
-        glob_fig.savefig(output_file, transparent=True)
 
     def create_filename(self, name: str):
         """."""
