@@ -12,18 +12,18 @@ Usage:
             [--save] [--output-dir=DIR]
             [--format=FORMAT]
             [--quiet]
-            [--bp] [-i INDICES]
+            [--bp] [-i INDICES | --indices=INDICES]
             [-r] [--relatives]
             [--relatives-diffs]
             [--relative-sums]
             [--relative-divs]
             [--normal]
             [-n NAME]
-            [--width W] [--height H]
-            [--pairs PAIRS]
-            [--groups GROUPS]
-            [--tc TCs]
-            [--title-suffix TITLE_SUFFIX]
+            [--width=WIDTH] [--height=HEIGHT]
+            [--pairs=PAIRS]
+            [--groups=GROUPS]
+            [--tc=TCs]
+            [--title-suffix=TITLE_SUFFIX]
             [--no-pair-suffix]
             [--print-all]
     plot.py -h | --help
@@ -32,37 +32,37 @@ Arguments:
     DATA_FILE   path to the file with data to plot
 
 Options:
-    -h --help                   show this help message and exit
-    -p PROPERTY                 property from data file to plot
-                                [default: P_block]
-    --linear                    linear plot (default is log)
-    --x_max=X_MAX               right limit on x axis [default: 3.0]
-    --x_min=X_MIN               left limit on x axis [default: 0.0]
-    --y_max=Y_MAX               top limit on y axis [default: 5]
-    --y_min=Y_MIN               bottom limit on y axis [default: 1e-6]
-    -x X                        number of plots horizontally [default: 3]
-    -y Y                        number of plots vertically [default: 3]
-    -s, --save                  save to file
-    --format FORMAT             output format [default: pdf]
-    -q, --quiet                 don't show plot window
-    -d DIR, --output-dir=DIR    directory where the files are saved
-                                [default: data/results/plots/]
-    --bp                        enable box plots
-    -i INDICES                  indices of scenarios to plot [default: -1]
-    -r, --relatives             plot relations (ratio)
-    --relatives-diffs           plot relations (difference)
-    --normal                    normal plots
-    --relative-sums             plots of relatives sums
-    --relative-divs             plots of relatives divisions
-    -n NAME, --name=NAME        suffix added to filename
-    --width W                   width of generated image [default: 32]
-    --height H                  height of generated image [default: 18]
-    --pairs PAIRS               list of scenario pairs for relative plots
-    --no-pair-suffix            skip automatic suffix for pairs
-    --print-all                 print all scenarios with ids
-    -g GROUPS, --groups=GROUPS  groups that have to be plotted
-    --title-suffix=TITLE_SUFFIX title suffix [default: ""]
-    --tc=TCs                    filter TCs [default: None]
+    -h --help                       show this help message and exit
+    -p PROPERTY                     property from data file to plot
+                                    [default: P_block]
+    --linear                        linear plot (default is log)
+    --x_max=X_MAX                   right limit on x axis [default: 3.0]
+    --x_min=X_MIN                   left limit on x axis [default: 0.0]
+    --y_max=Y_MAX                   top limit on y axis [default: 5]
+    --y_min=Y_MIN                   bottom limit on y axis [default: 1e-6]
+    -x X                            number of plots horizontally [default: 3]
+    -y Y                            number of plots vertically [default: 3]
+    -s, --save                      save to file
+    --format FORMAT                 output format [default: pdf]
+    -q, --quiet                     don't show plot window
+    -d DIR, --output-dir=DIR        directory where the files are saved
+                                    [default: data/results/plots/]
+    --bp                            enable box plots
+    -i INDICES, --indices=INDICES   indices of scenarios to plot [default: -1]
+    -r, --relatives                 plot relations (ratio)
+    --relatives-diffs               plot relations (difference)
+    --normal                        normal plots
+    --relative-sums                 plots of relatives sums
+    --relative-divs                 plots of relatives divisions
+    -n NAME, --name=NAME            suffix added to filename
+    --width WIDTH                   width of generated image [default: 32]
+    --height HEIGHT                 height of generated image [default: 18]
+    --pairs PAIRS                   list of scenario pairs for relative plots
+    --no-pair-suffix                skip automatic suffix for pairs
+    --print-all                     print all scenarios with ids
+    -g GROUPS, --groups=GROUPS      groups that have to be plotted
+    --title-suffix=TITLE_SUFFIX     title suffix [default: ""]
+    --tc=TCs                        filter TCs [default: None]
 
 """
 import os
@@ -79,6 +79,7 @@ from docopt import docopt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.pyplot import Axes
+from matplotlib.pyplot import Figure
 import numpy as np
 import scipy as sp
 import scipy.stats
@@ -86,6 +87,7 @@ import ubjson
 import cbor2
 import colorama
 from colorama import Fore, Style
+from enum import Enum
 
 
 STAT_NAME_TO_LABEL = {
@@ -282,6 +284,26 @@ def get_tcs_served_by_groups(scenario_results, filtered_tcs):
     return tcs_served_by_groups
 
 
+def get_used_traffic_classes(scenario_results, filtered_tcs):
+    """Return list of traffic classes served by any group."""
+    tcs_served_by_groups = {}
+    for key, result in scenario_results.items():
+        if key.startswith("_"):
+            continue
+        for group_name, tcs_stats in result.items():
+            if group_name.startswith("_") or tcs_stats is None:
+                continue
+            tcs_served_by_group = tcs_served_by_groups.setdefault(
+                group_name, [])
+            for tc_id, _ in tcs_stats.items():
+                if tc_id not in tcs_served_by_group:
+                    if filtered_tcs is None or int(tc_id) in filtered_tcs:
+                        tcs_served_by_group.append(tc_id)
+    for _, tcs in tcs_served_by_groups.items():
+        tcs.sort()
+    return tcs_served_by_groups
+
+
 def describe_dict(dictionary: dict, prefix=()):
     """Return an hierarchical structure of the dictionary."""
     for key, value in dictionary.items():
@@ -316,6 +338,291 @@ def clean(s: str):
         .replace("data/scenarios/analytical/layer_types/", "")
         .replace(".json", "")
     )
+
+
+def load_data(filename: str):
+    """Load data from JSON file."""
+    ext = os.path.splitext(filename)[1]
+    with open(filename, "rb") as data_file:
+        if ext == ".json":
+            data = json.load(data_file)
+        elif ext == ".cbor":
+            data = cbor2.load(data_file)
+        elif ext == ".ubjson":
+            data = ubjson.load(data_file)
+        return data
+
+
+def remove_prefix(text: str, prefix: str):
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
+def filter_data(indices_str: str, strip_prefix: str, data):
+    """Leave only results from request list of indices."""
+    if indices_str == "-1":
+        return data
+
+    indices = map(int, indices_str.split(","))
+    return {remove_prefix(k, strip_prefix): data[k]
+            for k in [sorted(data.keys())[i]
+                      for i in indices]
+            }
+
+
+def print_scenarios(title: str, data):
+    """Print an enumerate list of scenario names."""
+    print(f"{YELLOW}{title}:")
+    for index, scenario_name in enumerate(data.keys()):
+        print(f"  {index}: {scenario_name}")
+
+
+class PlotType(Enum):
+    """Define plot types."""
+
+    RelativeDivs = "_relative_divs"
+    RelativeSums = "_relative_sums"
+    Relatives = "_relatives"
+    Normal = "_normal"
+
+
+class Main:
+    """."""
+
+    markers = ["+", "x", "2"]
+    glob_markers = ["+", "x", "2"]
+    glob_linestyle = [":", "-"]
+
+    def __init__(self, args: dict):
+        """Init plotting class."""
+        self.args = args
+        data_filename = args["<DATA_FILE>"]
+        self.stat_name = args["-p"]
+        self.x_min = float(args["--x_min"])
+        self.x_max = float(args["--x_max"])
+        self.y_min = float(args["--y_min"])
+        self.y_max = float(args["--y_max"])
+        self.logarithmic_plot = not args["--linear"]
+        self.aggregate_over_tc_size = args["--linear"]
+        self.enable_boxplots = args["--bp"]
+        self.title_suffix = args["--title-suffix"]
+
+        self.strip_prefix = "data/scenarios/analytical/"
+
+        self.groups = ast.literal_eval(
+            args["--groups"]) if args["--groups"] else None
+
+        self.tc_filter = ast.literal_eval(
+            args["--tc"]) if args["--tc"] else []
+
+        self.plots_number_x = int(args["-x"])
+        self.plots_number_y = int(args["-y"])
+
+        self.plot_width = float(args["--width"])
+        self.plot_height = float(args["--width"])
+
+        basename = clean(os.path.splitext(os.path.basename(data_filename))[0])
+        self.title = f"{basename}_{self.stat_name}"
+        if args["--relative-divs"]:
+            self.plot_type = PlotType.RelativeDivs
+        elif args["--relative-sums"]:
+            self.plot_type = PlotType.RelativeSums
+        elif args["--relatives"]:
+            self.plot_type = PlotType.Relatives
+        elif args["--normal"]:
+            self.plot_type = PlotType.Normal
+
+        self.title += self.plot_type.value
+
+        if args["--name"]:
+            self.title += args["--name"]
+
+        data = load_data(data_filename)
+        if self.args["--print-all"]:
+            print_scenarios("All scenarios", data)
+
+        self.source_scenarios_data = filter_data(args["--indices"],
+                                                 self.strip_prefix,
+                                                 data)
+        print_scenarios("Filtered scenarios", self.source_scenarios_data)
+
+        self.scenarios_data: dict = {}
+
+    def set_style(self, axes: Axes):
+        """Set style of the plot."""
+        if self.logarithmic_plot:
+            return set_plot_log_style(axes, self.y_max, self.y_min)
+        else:
+            return set_plot_linear_style(axes, self.y_max, self.y_min)
+
+    def prepare_data(self):
+        """Parse and prepare data of selected scenarios."""
+        for filename, scenario_results in self.source_scenarios_data.items():
+            print(f"{GREEN}Parsing '{filename}' scenario.")
+            scenario_data = self.prepare_scenario_data(scenario_results,
+                                                       self.stat_name)
+            self.scenarios_data[filename] = scenario_data
+
+    def prepare_scenario_data(self,
+                              scenario_results: dict,
+                              stat_name: str) -> dict:
+        """Parse and prepare data of a certain scenario."""
+        scenario_description = scenario_results["_scenario"]
+        tc_sizes, _ = get_traffic_classes_sizes(scenario_description)
+
+        scenario_data: dict = {}
+        scenario_data["name"] = scenario_description["name"]
+        scenario_data["tc_sizes"] = tc_sizes
+        tc_data_x = scenario_data.setdefault("x", [])
+        tc_data_y = scenario_data.setdefault("y", {})
+        tc_data_y_by_size = scenario_data.setdefault('y_by_size', {})
+
+        used_tcs = get_used_traffic_classes(scenario_results, self.tc_filter)
+
+        for key, result in scenario_results.items():
+            if key.startswith("_"):
+                continue
+            tc_data_x.append(float(result["_A"]))
+            append_tc_stat_for_groups(tc_data_y,
+                                      result,
+                                      stat_name,
+                                      used_tcs)
+            if self.aggregate_over_tc_size:
+                append_tc_stat_for_groups_by_size(tc_data_y_by_size,
+                                                  result,
+                                                  stat_name,
+                                                  tc_sizes)
+        return scenario_data
+
+    def plot_normal(self,
+                    fig: Figure,
+                    glob_ax: Axes,
+                    plot_id: int,
+                    scenario_file: str,
+                    scenario_results: dict):
+        """Plot Normal type."""
+        tc_data_x = scenario_results["x"]
+        tc_data_y = scenario_results["y"]
+        tc_sizes = scenario_results["tc_sizes"]
+        for group_name, group_data_y in tc_data_y.items():
+            if not get_valid_group(group_name, self.groups):
+                continue
+
+            markerscycle = itertools.cycle(self.markers)
+            glob_markerscycle = itertools.cycle(self.glob_markers)
+            ax = fig.add_subplot(self.plots_number_x,
+                                 self.plots_number_y,
+                                 plot_id)
+            #  pprint(tc_data_x)
+            for tc_id, data_y in group_data_y.items():
+                if self.enable_boxplots:
+                    ax.set_xlim(self.x_min, self.x_max)
+                    ax.boxplot(
+                        data_y,
+                        positions=tc_data_x,
+                        notch=False,
+                        widths=0.05,
+                        bootstrap=10000,
+                        showfliers=False,
+                        vert=True,
+                        patch_artist=False,
+                        showcaps=False,
+                        whis=0,
+                        manage_xticks=False,
+                    )
+
+                ax.set_xlim(self.x_min, self.x_max)
+                glob_ax.set_xlim(self.x_min, self.x_max)
+
+                series_means = [statistics.mean(
+                    serie) for serie in data_y]
+                for i in range(0, len(tc_data_x) - len(series_means)):
+                    series_means.insert(0, 0)
+                ax.plot(
+                    tc_data_x,
+                    series_means,
+                    label=f"$t_{tc_id}={tc_sizes[tc_id]}$",
+                    marker=next(markerscycle),
+                )
+                glob_ax.plot(
+                    tc_data_x,
+                    series_means,
+                    label=f"{plot_id} $t_{tc_id}={tc_sizes[tc_id]}$",
+                    linestyle=self.glob_linestyle[plot_id
+                                                  % len(self.glob_linestyle)],
+                    markevery=5,
+                    marker=next(glob_markerscycle),
+                )
+
+            self.set_style(ax)
+            self.set_style(glob_ax)
+            if self.title_suffix is None:
+                title = (f'{group_name} {scenario_results["name"]}\n'
+                         f'({scenario_file})')
+                ax.set_title(title)
+            else:
+                ax.set_title(f"{group_name} {self.title_suffix}")
+            ax.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
+                                                 self.stat_name))
+            glob_ax.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
+                                                      self.stat_name))
+            if plot_id % self.plots_number_x == 0:
+                ax.set_xlabel("a")
+            plot_id += 1
+            ax.legend(loc=4, ncol=3)
+            glob_ax.legend(loc=4, ncol=3)
+        return plot_id
+
+    def run(self):
+        """."""
+        self.prepare_data()
+
+    def plot(self):
+        """."""
+        fig = plt.figure(figsize=(self.plot_width, self.plot_height),
+                         tight_layout=True)
+        fig.canvas.set_window_title(self.title)
+        glob_fig = plt.figure(figsize=(self.plot_width, self.plot_height),
+                              tight_layout=True)
+        glob_fig.canvas.set_window_title(self.title)
+        glob_ax = glob_fig.add_subplot(1, 1, 1)
+        plot_id = 1
+        if self.plot_type == PlotType.Normal:
+            for filename, scenario_results in self.scenarios_data.items():
+                plot_id = self.plot_normal(fig,
+                                           glob_ax,
+                                           plot_id,
+                                           filename,
+                                           scenario_results)
+
+        output_file = self.create_filename(self.title)
+        fig.set_size_inches(self.plot_width, self.plot_height)
+        print(f"{BLUE}Saving {output_file}")
+        fig.savefig(output_file, transparent=True)
+
+        output_file = self.create_filename("glob_"+self.title)
+        glob_fig.set_size_inches(self.plot_width/self.plots_number_y,
+                                 self.plot_height/self.plots_number_x)
+        print(f"{BLUE}Saving {output_file}")
+        glob_fig.savefig(output_file, transparent=True)
+
+    def create_filename(self, name: str):
+        """."""
+        output_dir = self.args["--output-dir"]
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir)
+        output_file = name + "." + self.args["--format"]
+        output_file = os.path.join(output_dir, output_file)
+        return output_file
+
+
+def main2():
+    """."""
+    args = docopt(__doc__, version="0.1")
+    scenario_plot = Main(args)
+    scenario_plot.run()
+    scenario_plot.plot()
 
 
 def main():
@@ -382,10 +689,10 @@ def main():
         print("All scenarios:")
         pprint(list(enumerate(data.keys())))
 
-    if args["-i"] == "-1":
+    if args["--indices"] == "-1":
         filtered_data = data
     else:
-        indices = map(int, args["-i"].split(","))
+        indices = map(int, args["--indices"].split(","))
         filtered_data = {k: data[k] for k in [
             sorted(data.keys())[i] for i in indices]}
 
@@ -423,10 +730,6 @@ def main():
                 return set_plot_log_style(axes, y_max, y_min)
 
             aggregate = False
-
-        markers = ["+", "x", "2"]
-        glob_markers = ["+", "x", "2"]
-        glob_linestyle = [":", "-"]
 
         tcs_served_by_groups = get_tcs_served_by_groups(
             scenario_results, tc_filter)
@@ -969,4 +1272,4 @@ def main():
 
 if __name__ == "__main__":
     colorama.init(autoreset=True)
-    main()
+    main2()
