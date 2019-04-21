@@ -4,7 +4,7 @@
 Simulator of network with Mutual Overflows.
 
 Usage:
-    plot.py <DATA_FILE> [-p PROPERTY]
+    plot.py <DATA_FILE> [-p PROPERTY]...
             [--linear]
             [--y_max=Y_MAX] [--y_min=Y_MIN]
             [--x_max=X_MAX] [--x_min=X_MIN]
@@ -78,6 +78,7 @@ from typing import Optional
 from typing import List
 from typing import Iterable
 from docopt import docopt
+from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.pyplot import Axes
@@ -96,6 +97,7 @@ STAT_NAME_TO_LABEL = {
     "served_u": "Carried traffic",
     "served": "Carried requests",
     "P_block": "Blocking probability",
+    "P_block_recursive": "Blocking probability",
 }
 
 YELLOW = f"{Fore.YELLOW}{Style.BRIGHT}"
@@ -391,27 +393,31 @@ class PlotType(Enum):
     NormalSingle = "_normal_single"
 
 
+@dataclass
 class ScenarioResults:
-    scenario_id: int
+    """."""
+
+    index: int
     name: str
-    tc_data_x: List[float] = []
-    tc_data_y: dict = {}
-    tc_data_y_by_size: dict = {}
-    tc_sizes: dict = {}
+    filename: str
+    tc_data_x: List[float]
+    tc_data_y: dict
+    tc_data_y_by_size: dict
+    tc_sizes: dict
 
 
 class Main:
     """."""
 
     markers = ["+", "x", "2"]
-    glob_markers = ["+", "x", "2"]
-    glob_linestyles = [":", "-"]
+    colors = ["r", "g", "b"]
+    line_styles = [":", "-"]
 
     def __init__(self, args: dict):
         """Init plotting class."""
         self.args = args
         data_filename = args["<DATA_FILE>"]
-        self.stat_name = args["-p"]
+        self.properties = args["-p"]
         self.x_min = float(args["--x_min"])
         self.x_max = float(args["--x_max"])
         self.y_min = float(args["--y_min"])
@@ -436,7 +442,7 @@ class Main:
         self.plot_height = float(args["--width"])
 
         basename = clean(os.path.splitext(os.path.basename(data_filename))[0])
-        self.title = f"{basename}_{self.stat_name}"
+        self.title = f"{basename}_{self.properties[0]}"
         if args["--relative-divs"]:
             self.plot_type = PlotType.RelativeDivs
         elif args["--relative-sums"]:
@@ -460,6 +466,9 @@ class Main:
         self.source_scenarios_data = filter_data(args["--indices"],
                                                  self.strip_prefix,
                                                  data)
+        if len(self.properties) == 1:
+            self.properties = self.properties * len(self.source_scenarios_data)
+
         print_scenarios("Filtered scenarios", self.source_scenarios_data)
 
         self.scenarios_data: dict = {}
@@ -473,29 +482,32 @@ class Main:
 
     def prepare_data(self):
         """Parse and prepare data of selected scenarios."""
-        for filename, scenario_results in self.source_scenarios_data.items():
-            print(f"{GREEN}Parsing '{filename}' scenario.")
+        scenario_items = self.source_scenarios_data.items()
+        for index, (filename, scenario_results) in enumerate(scenario_items):
+            print(f"{GREEN}Parsing '{filename}' scenario (index: {index}).")
             scenario_data = self.prepare_scenario_data(scenario_results,
-                                                       self.stat_name)
+                                                       self.properties[index],
+                                                       index,
+                                                       filename)
             self.scenarios_data[filename] = scenario_data
 
     def prepare_scenario_data(self,
-                              scenario_results: dict,
-                              stat_name: str) -> ScenarioResults:
+                              source_scenario_results: dict,
+                              stat_name: str,
+                              index: int,
+                              filename: str) -> ScenarioResults:
         """Parse and prepare data of a certain scenario."""
-        scenario_description = scenario_results["_scenario"]
+        scenario_description = source_scenario_results["_scenario"]
         tc_sizes, _ = get_traffic_classes_sizes(scenario_description)
 
-        scenario_data = ScenarioResults()
-        scenario_data.name = scenario_description["name"]
-        scenario_data.tc_sizes = tc_sizes
-        tc_data_x = scenario_data.tc_data_x
-        tc_data_y = scenario_data.tc_data_y
-        tc_data_y_by_size = scenario_data.tc_data_y_by_size
+        tc_data_x: List[float] = []
+        tc_data_y: dict = {}
+        tc_data_y_by_size: dict = {}
 
-        used_tcs = get_used_traffic_classes(scenario_results, self.tc_filter)
+        used_tcs = get_used_traffic_classes(source_scenario_results,
+                                            self.tc_filter)
 
-        for key, result in scenario_results.items():
+        for key, result in source_scenario_results.items():
             if key.startswith("_"):
                 continue
             tc_data_x.append(float(result["_A"]))
@@ -508,7 +520,13 @@ class Main:
                                                   result,
                                                   stat_name,
                                                   tc_sizes)
-        return scenario_data
+        return ScenarioResults(index, scenario_description["name"],
+                               filename,
+                               tc_data_x=tc_data_x,
+                               tc_data_y=tc_data_y,
+                               tc_data_y_by_size=tc_data_y_by_size,
+                               tc_sizes=tc_sizes)
+        #  return scenario_data
 
     def plot_tc_series(self,
                        axes: Axes,
@@ -521,11 +539,13 @@ class Main:
                        markevery: int = 1):
         """."""
         if markers is None:
-            markers = ["+", "x", "2"]
+            markers = self.markers
+        if label_suffix is None:
+            label_suffix = ""
 
         markerscycle = itertools.cycle(markers)
+        colorscycle = itertools.cycle(self.colors)
         for tc_id, data_y in group_data_y.items():
-            print(f"{tc_id} : {label_suffix}")
             if self.enable_boxplots:
                 axes.boxplot(
                     data_y,
@@ -542,79 +562,74 @@ class Main:
                 )
 
             series_means = [statistics.mean(serie) for serie in data_y]
-            print(len(data_x) == len(series_means))
-            pprint(series_means)
             axes.plot(
                 data_x,
                 series_means,
-                label=f"$t_{tc_id}={tc_sizes[tc_id]}$ {label_suffix}",
+                label=f"$t_{tc_id}={tc_sizes[tc_id]}${label_suffix}",
                 marker=next(markerscycle),
+                color=next(colorscycle),
                 linestyle=line_style,
                 markevery=markevery
             )
 
     def plot_single_normal(self,
                            axes: Axes,
-                           scenario_file: str,
-                           scenario_results: ScenarioResults):
+                           group_name: str,
+                           scenario_results: ScenarioResults,
+                           line_style: str = None,
+                           xlabel: bool = True):
         """Plot Normal type."""
-        tc_data_x = scenario_results.tc_data_x
-        tc_data_y = scenario_results.tc_data_y
-        tc_sizes = scenario_results.tc_sizes
-        for group_name, group_data_y in tc_data_y.items():
-            if not get_valid_group(group_name, self.groups):
-                continue
 
-            axes.set_xlim(self.x_min, self.x_max)
-            self.plot_tc_series(axes,
-                                tc_data_x, group_data_y, tc_sizes,
-                                label_suffix=scenario_file,
-                                line_style=self.glob_linestyles[0],
-                                markevery=5)
+        label_suffix = scenario_results.filename.partition(";")[2]
+        if label_suffix:
+            label_suffix = f" - {label_suffix}"
+        if line_style is None:
+            line_style = self.line_styles[scenario_results.index]
 
+        group_data_y = scenario_results.tc_data_y[group_name]
+
+        axes.set_xlim(self.x_min, self.x_max)
+        self.plot_tc_series(
+            axes,
+            scenario_results.tc_data_x,
+            group_data_y,
+            scenario_results.tc_sizes,
+            label_suffix=label_suffix,
+            line_style=line_style,
+            markevery=5)
+
+        if self.title_suffix:
+            axes.set_title(f"{group_name} {self.title_suffix}")
+        else:
             title = (f'{group_name} {scenario_results.name}\n'
-                     f'({scenario_file})')
+                     f'({scenario_results.index}: '
+                     f'{scenario_results.filename})')
             axes.set_title(axes.get_title() + "\n" + title)
-            self.set_style(axes)
-            axes.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
-                                                   self.stat_name))
+        self.set_style(axes)
+        axes.set_ylabel(STAT_NAME_TO_LABEL.get(self.properties[0],
+                                               self.properties[0]))
+        if xlabel:
             axes.set_xlabel("a")
-            axes.legend(loc=4, ncol=3)
+        axes.legend(loc=4, ncol=3)
 
     def plot_normal(self,
                     fig: Figure,
                     plot_id: int,
-                    scenario_file: str,
                     scenario_results: ScenarioResults):
         """Plot Normal type."""
-        tc_data_x = scenario_results.tc_data_x
-        tc_data_y = scenario_results.tc_data_y
-        tc_sizes = scenario_results.tc_sizes
-        for group_name, group_data_y in tc_data_y.items():
+        for group_name in scenario_results.tc_data_y.keys():
             if not get_valid_group(group_name, self.groups):
                 continue
 
             axes = fig.add_subplot(self.plots_number_x,
                                    self.plots_number_y,
                                    plot_id)
-            axes.set_xlim(self.x_min, self.x_max)
-            self.plot_tc_series(axes, tc_data_x, group_data_y, tc_sizes, "")
+            self.plot_single_normal(axes,
+                                    group_name,
+                                    scenario_results,
+                                    line_style=':',
+                                    xlabel=plot_id % self.plots_number_x == 0)
 
-            if self.title_suffix:
-                axes.set_title(f"{group_name} {self.title_suffix}")
-            else:
-                title = (f"{group_name} {scenario_results.name}\n"
-                         f"({scenario_file})")
-                axes.set_title(title)
-
-            axes.set_title(axes.get_title() + "\n" + title)
-            self.set_style(axes)
-            axes.set_ylabel(STAT_NAME_TO_LABEL.get(self.stat_name,
-                                                   self.stat_name))
-            axes.legend(loc=4, ncol=3)
-
-            if plot_id % self.plots_number_x == 0:
-                axes.set_xlabel("a")
             plot_id += 1
         return plot_id
 
@@ -629,18 +644,20 @@ class Main:
         fig.canvas.set_window_title(self.title)
 
         if self.plot_type == PlotType.NormalSingle:
-            ax = fig.add_subplot(1, 1, 1)
-            for filename, scenario_results in self.scenarios_data.items():
-                self.plot_single_normal(ax,
-                                        filename,
-                                        scenario_results)
+            axes = fig.add_subplot(1, 1, 1)
+            for scenario_results in self.scenarios_data.values():
+                for group_name in scenario_results.tc_data_y.keys():
+                    if not get_valid_group(group_name, self.groups):
+                        continue
+                    self.plot_single_normal(axes,
+                                            group_name,
+                                            scenario_results)
 
         if self.plot_type == PlotType.Normal:
             plot_id = 1
-            for filename, scenario_results in self.scenarios_data.items():
+            for scenario_results in self.scenarios_data.values():
                 plot_id = self.plot_normal(fig,
                                            plot_id,
-                                           filename,
                                            scenario_results)
 
         output_file = self.create_filename(self.title)
