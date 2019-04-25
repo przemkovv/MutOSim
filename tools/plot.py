@@ -74,11 +74,11 @@ import statistics
 import itertools
 import ast
 from pprint import pprint
-from typing import Optional
-from typing import List
-from typing import Iterable
+from typing import Optional, List, Iterable, Dict, Tuple
+from dataclasses import dataclass, field
+from collections import defaultdict
+from enum import Enum
 from docopt import docopt
-from dataclasses import dataclass
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.pyplot import Axes
@@ -90,7 +90,6 @@ import ubjson
 import cbor2
 import colorama
 from colorama import Fore, Style
-from enum import Enum
 
 
 STAT_NAME_TO_LABEL = {
@@ -257,14 +256,14 @@ def set_plot_style(axes: Axes):
     axes.xaxis.set_minor_locator(minor_locator)
 
 
-def set_plot_linear_style(axes: Axes, top=15e5, bottom=0):
+def set_plot_linear_style(axes: Axes, bottom=0, top=15e5):
     """Set linear plot style."""
     set_plot_style(axes)
     axes.set_yscale("linear")
     axes.set_ylim(bottom=bottom, top=top, auto=True, emit=True)
 
 
-def set_plot_log_style(axes: Axes, top=5, bottom=1e-6):
+def set_plot_log_style(axes: Axes, bottom=1e-6, top=5):
     """Set logarythmic plot style."""
     set_plot_style(axes)
     axes.set_yscale("log")
@@ -320,24 +319,22 @@ def describe_dict(dictionary: dict, prefix=()):
 
 def compare_dicts_structure(dict1, dict2):
     """Compare if two dictionaries structures matches themselves."""
-    #  pprint(sorted(describe_dict(dict1)))
-    #  pprint(sorted(describe_dict(dict2)))
     return sorted(describe_dict(dict1)) == sorted(describe_dict(dict2))
 
 
 def confidence_interval(data, confidence=0.95):
-    """Return a values interval for a given confidence."""
-    a = 1.0 * np.array(data)
-    n = len(a)
-    se = scipy.stats.sem(a)
-    h = se * sp.stats.t._ppf((1 + confidence) / 2.0, n - 1)
+    """Return data_array values interval for data_array given confidence."""
+    data_array = 1.0 * np.array(data)
+    length = len(data_array)
+    std_err = scipy.stats.sem(data_array)
+    h = std_err * sp.stats.t._ppf((1 + confidence) / 2.0, length - 1)
     return h
 
 
-def clean(s: str):
+def clean(text: str):
     """Remove prefixes from the name."""
     return (
-        s.replace("data/journal/", "")
+        text.replace("data/journal/", "")
         .replace("data/journal2/", "")
         .replace("data/scenarios/simulator_publication/", "")
         .replace("data/scenarios/analytical/layer_types/", "")
@@ -358,7 +355,21 @@ def load_data(filename: str):
         return data
 
 
-def remove_prefix(text: str, prefix: str):
+def load_data2(filename: str) -> ([str], Dict[str, dict]):
+    """Load data from JSON file."""
+    ext = os.path.splitext(filename)[1]
+    with open(filename, "rb") as data_file:
+        if ext == ".json":
+            data = json.load(data_file)
+        elif ext == ".cbor":
+            data = cbor2.load(data_file)
+        elif ext == ".ubjson":
+            data = ubjson.load(data_file)
+        return dict(sorted(data.items()))
+
+
+def remove_prefix(text: str, prefix: str) -> str:
+    """."""
     if text.startswith(prefix):
         return text[len(prefix):]
     return text
@@ -373,6 +384,17 @@ def filter_data(indices_str: str, strip_prefix: str, data):
     return {remove_prefix(k, strip_prefix): data[k]
             for k in [sorted(data.keys())[i]
                       for i in indices]
+            }
+
+
+def filter_data2(indices: List[int], data: dict):
+    """Leave only results from request list of indices."""
+    if not indices:
+        return data
+
+    keys: List[str] = list(data.keys())
+    return {k: data[k]
+            for k in [keys[i] for i in indices]
             }
 
 
@@ -418,10 +440,8 @@ class Main:
         self.args = args
         data_filename = args["<DATA_FILE>"]
         self.properties = args["-p"]
-        self.x_min = float(args["--x_min"])
-        self.x_max = float(args["--x_max"])
-        self.y_min = float(args["--y_min"])
-        self.y_max = float(args["--y_max"])
+        self.x_range = (float(args["--x_min"]), float(args["--x_max"]))
+        self.y_range = (float(args["--y_min"]), float(args["--x_max"]))
         self.logarithmic_plot = not args["--linear"]
         self.aggregate_over_tc_size = args["--linear"]
         self.enable_boxplots = args["--bp"]
@@ -435,11 +455,9 @@ class Main:
         self.tc_filter = ast.literal_eval(
             args["--tc"]) if args["--tc"] else []
 
-        self.plots_number_x = int(args["-x"])
-        self.plots_number_y = int(args["-y"])
+        self.plot_grid = (int(args["-x"]), int(args["-y"]))
 
-        self.plot_width = float(args["--width"])
-        self.plot_height = float(args["--width"])
+        self.plot_size = (float(args["--width"]), float(args["--height"]))
 
         basename = clean(os.path.splitext(os.path.basename(data_filename))[0])
         self.title = f"{basename}_{self.properties[0]}"
@@ -471,43 +489,47 @@ class Main:
 
         print_scenarios("Filtered scenarios", self.source_scenarios_data)
 
-        self.scenarios_data: dict = {}
+        self.scenarios_results = self.prepare_data(self.source_scenarios_data)
 
     def set_style(self, axes: Axes):
         """Set style of the plot."""
         if self.logarithmic_plot:
-            return set_plot_log_style(axes, self.y_max, self.y_min)
+            return set_plot_log_style(axes, *self.y_range)
         else:
-            return set_plot_linear_style(axes, self.y_max, self.y_min)
+            return set_plot_linear_style(axes, *self.y_range)
 
-    def prepare_data(self):
+    def prepare_data(self, scenarios_data: dict) -> dict:
         """Parse and prepare data of selected scenarios."""
-        scenario_items = self.source_scenarios_data.items()
-        for index, (filename, scenario_results) in enumerate(scenario_items):
-            print(f"{GREEN}Parsing '{filename}' scenario (index: {index}).")
-            scenario_data = self.prepare_scenario_data(scenario_results,
-                                                       self.properties[index],
-                                                       index,
-                                                       filename)
-            self.scenarios_data[filename] = scenario_data
+        scenarios_items = scenarios_data.items()
+        scenarios_results: dict = {}
+        for index, (filename, scenario_data) in enumerate(scenarios_items):
+            property_name = self.properties[index]
+            print(f"{GREEN}Parsing '{filename}' scenario"
+                  f" (index: {index}, property: '{property_name}').")
+            scenarios_results[filename] = self.prepare_scenario_data(
+                scenario_data,
+                property_name,
+                index,
+                filename)
+        return scenarios_results
 
     def prepare_scenario_data(self,
-                              source_scenario_results: dict,
+                              source_scenario_data: dict,
                               stat_name: str,
                               index: int,
                               filename: str) -> ScenarioResults:
         """Parse and prepare data of a certain scenario."""
-        scenario_description = source_scenario_results["_scenario"]
+        scenario_description = source_scenario_data["_scenario"]
         tc_sizes, _ = get_traffic_classes_sizes(scenario_description)
 
         tc_data_x: List[float] = []
         tc_data_y: dict = {}
         tc_data_y_by_size: dict = {}
 
-        used_tcs = get_used_traffic_classes(source_scenario_results,
+        used_tcs = get_used_traffic_classes(source_scenario_data,
                                             self.tc_filter)
 
-        for key, result in source_scenario_results.items():
+        for key, result in source_scenario_data.items():
             if key.startswith("_"):
                 continue
             tc_data_x.append(float(result["_A"]))
@@ -588,7 +610,7 @@ class Main:
 
         group_data_y = scenario_results.tc_data_y[group_name]
 
-        axes.set_xlim(self.x_min, self.x_max)
+        axes.set_xlim(*self.x_range)
         self.plot_tc_series(
             axes,
             scenario_results.tc_data_x,
@@ -621,31 +643,28 @@ class Main:
             if not get_valid_group(group_name, self.groups):
                 continue
 
-            axes = fig.add_subplot(self.plots_number_x,
-                                   self.plots_number_y,
-                                   plot_id)
+            axes = fig.add_subplot(*self.plot_grid, plot_id)
             self.plot_single_normal(axes,
                                     group_name,
                                     scenario_results,
                                     line_style=':',
-                                    xlabel=plot_id % self.plots_number_x == 0)
+                                    xlabel=plot_id % self.plot_grid[0] == 0)
 
             plot_id += 1
         return plot_id
 
     def run(self):
         """."""
-        self.prepare_data()
 
     def plot(self):
         """."""
-        fig = plt.figure(figsize=(self.plot_width, self.plot_height),
+        fig = plt.figure(figsize=self.plot_size,
                          tight_layout=True)
         fig.canvas.set_window_title(self.title)
 
         if self.plot_type == PlotType.NormalSingle:
             axes = fig.add_subplot(1, 1, 1)
-            for scenario_results in self.scenarios_data.values():
+            for scenario_results in self.scenarios_results.values():
                 for group_name in scenario_results.tc_data_y.keys():
                     if not get_valid_group(group_name, self.groups):
                         continue
@@ -655,13 +674,13 @@ class Main:
 
         if self.plot_type == PlotType.Normal:
             plot_id = 1
-            for scenario_results in self.scenarios_data.values():
+            for scenario_results in self.scenarios_results.values():
                 plot_id = self.plot_normal(fig,
                                            plot_id,
                                            scenario_results)
 
         output_file = self.create_filename(self.title)
-        fig.set_size_inches(self.plot_width, self.plot_height)
+        fig.set_size_inches(self.plot_size)
         print(f"{BLUE}Saving {output_file}")
         fig.savefig(output_file, transparent=True)
 
@@ -683,651 +702,181 @@ def main2():
     scenario_plot.plot()
 
 
-def main():
+Property = str
+GroupName = str
+ScenarioIndex = int
+TcId = int
+
+
+@dataclass
+class Serie:
+    name: str
+    x_data: List[float]
+    y_data: List[List[float]]
+    y_data_mean: List[float] = field(init=False)
+
+    def __post_init__(self):
+        self.y_data_mean = [statistics.mean(subserie)
+                            for subserie in self.y_data]
+
+
+def extract_serie_data(property_name: Property,
+                       group_name: GroupName,
+                       tc_id: TcId,
+                       scenario_data: dict):
     """."""
-    args = docopt(__doc__, version="0.1")
-    data_filename = args["<DATA_FILE>"]
-    ext = os.path.splitext(data_filename)[1]
-    with open(data_filename, "rb") as data_file:
-        if ext == ".json":
-            data = json.load(data_file)
-        elif ext == ".cbor":
-            data = cbor2.load(data_file)
-        elif ext == ".ubjson":
-            data = ubjson.load(data_file)
-    stat_name = args["-p"]
-    x_min = float(args["--x_min"])
-    x_max = float(args["--x_max"])
-    y_min = float(args["--y_min"])
-    y_max = float(args["--y_max"])
-    logarithmic_plot = not args["--linear"]
-    enable_boxplots = args["--bp"]
-    title_suffix = args["--title-suffix"]
+    x_data = []
+    y_data = []
+    for intensity, intensity_data in scenario_data.items():
+        if intensity.startswith("_"):
+            continue
+        groups = list(intensity_data.keys())
+        corresponding_group = get_corresponding_group(group_name, groups)
+        if not corresponding_group:
+            print(f"{RED} No group {group_name}.")
+            pprint(groups)
+            continue
+        group_data = intensity_data[corresponding_group]
+        if str(tc_id) not in group_data:
+            print(f"{RED} No tc id {tc_id}.")
+            continue
+        properties_data = group_data[str(tc_id)]
+        x_data.append(float(intensity))
+        y_data.append(properties_data[property_name])
 
-    groups = ast.literal_eval(args["--groups"]) if args["--groups"] else None
+    assert len(x_data) == len(y_data)
+    return Serie("", x_data, y_data)
 
-    tc_filter = ast.literal_eval(args["--tc"]) if args["--tc"] else []
 
-    title = os.path.splitext(os.path.basename(data_filename))[
-        0] + "_" + stat_name
-    if args["--relative-divs"]:
-        title += "_relative_div"
-    if args["--relative-sums"]:
-        title += "_relative_sum"
-    if args["--relatives"]:
-        title += "_relatives"
-    if args["--name"]:
-        title += args["--name"]
+def nested_dict():
+    return defaultdict(nested_dict)
 
-    #  rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
-    # for Palatino and other serif fonts use:
-    # rc('font',**{'family':'serif','serif':['Palatino']})
-    #  rc('text', usetex=True)
 
-    plots_number_x = int(args["-x"])
-    plots_number_y = int(args["-y"])
+class MutOSimPlots:
+    """."""
 
-    fig = plt.figure(
-        figsize=(float(args["--width"]), float(args["--height"])), tight_layout=True
+    series: Dict[Property,
+                 Dict[ScenarioIndex,
+                      Dict[GroupName,
+                           Dict[TcId, Serie]]]] = nested_dict()
+
+    def __init__(self, data_filename: str):
+        self.all_scenarios_data = load_data2(data_filename)
+        self.scenarios_data = self.all_scenarios_data
+
+    def print_all(self):
+        """."""
+        print_scenarios("All scenarios", self.all_scenarios_data)
+
+    def print_selected(self):
+        """."""
+        print_scenarios("Selected scenarios", self.scenarios_data)
+
+    def remove_prefix(self, prefix_to_remove: str):
+        """."""
+        self.all_scenarios_data = {remove_prefix(k, prefix_to_remove): v
+                                   for k, v in self.all_scenarios_data.items()}
+
+    def select_scenarios(self, indices: List[ScenarioIndex]):
+        """."""
+        self.scenarios_data = filter_data2(indices, self.all_scenarios_data)
+
+    def serie_exists(self,
+                     property_name: Property,
+                     group_name: GroupName,
+                     scenario_index: ScenarioIndex,
+                     tc_id: TcId):
+        """."""
+        series = self.series
+        if property_name not in series:
+            return False
+        if group_name not in series[property_name]:
+            return False
+        if scenario_index not in series[property_name][group_name]:
+            return False
+        if tc_id not in series[property_name][group_name][scenario_index]:
+            return False
+        return True
+
+    def get_serie(self,
+                  property_name: Property,
+                  group_name: GroupName,
+                  scenario_index: ScenarioIndex,
+                  tc_id: TcId):
+        """."""
+        return self.series[property_name][group_name][scenario_index][tc_id]
+
+    def add_serie(self,
+                  property_name: Property,
+                  group_name: GroupName,
+                  scenario_index: ScenarioIndex,
+                  tc_id: TcId,
+                  serie: Serie):
+        """."""
+        self.series[property_name][group_name][scenario_index][tc_id] = serie
+
+    def prepare_data(self,
+                     scenarios: List[Tuple[ScenarioIndex, Property]],
+                     group_name: GroupName,
+                     traffic_classes: List[TcId]):
+        """."""
+        scenarios_data = self.scenarios_data
+        for tc_id in traffic_classes:
+            keys = list(scenarios_data.keys())
+            for scenario_index, property_name in scenarios:
+                scenario_data = scenarios_data[keys[scenario_index]]
+                if not self.serie_exists(property_name,
+                                         group_name,
+                                         scenario_index,
+                                         tc_id):
+                    serie = extract_serie_data(property_name,
+                                               group_name,
+                                               tc_id,
+                                               scenario_data)
+                    self.add_serie(property_name,
+                                   group_name,
+                                   scenario_index,
+                                   tc_id,
+                                   serie)
+                else:
+                    serie = self.get_serie(property_name,
+                                           group_name,
+                                           scenario_index,
+                                           tc_id)
+
+    def plot_normal(self,
+                    property_name: Property,
+                    group_name: GroupName,
+                    traffic_classes: List[TcId]):
+        """."""
+        self.prepare_data(property_name, group_name, traffic_classes)
+        pprint(list(describe_dict(self.series)))
+
+
+def main3():
+    """."""
+
+    output_dir = "data/results/plots/layer_types"
+    data_filename = "data/results/layer_types/eq_m.json"
+    prefix_to_remove = "data/scenarios/analytical/layer_types/"
+    settings = dict(
+        x_range=(0.3, 2.4),
+        plot_size=(10, 5)
     )
-    fig.canvas.set_window_title(title)
-    plot_id = 1
-    glob_fig = plt.figure(
-        figsize=(
-            float(args["--width"]) / plots_number_y,
-            float(args["--height"]) / plots_number_x,
-        ),
-        tight_layout=True,
-    )
-    glob_fig.canvas.set_window_title(title)
+    traffic_classes = [3, 4, 5]
 
-    glob_ax = glob_fig.add_subplot(1, 1, 1)
+    scenario_plots = MutOSimPlots(data_filename)
+    scenario_plots.remove_prefix(prefix_to_remove)
 
-    if args["--print-all"]:
-        print("All scenarios:")
-        pprint(list(enumerate(data.keys())))
-
-    if args["--indices"] == "-1":
-        filtered_data = data
-    else:
-        indices = map(int, args["--indices"].split(","))
-        filtered_data = {k: data[k] for k in [
-            sorted(data.keys())[i] for i in indices]}
-
-    print(f"{YELLOW}Filtered scenarios:")
-    pprint(list(enumerate(filtered_data.keys())))
-
-    all_data = {}
-    scenario_id = -1
-
-    for scenario_file, scenario_results in filtered_data.items():
-        scenario_id = scenario_id + 1
-        all_data[scenario_file] = {}
-        if "_scenario" in scenario_results.keys():
-            tc_sizes, scenario = get_traffic_classes_sizes(
-                scenario_results["_scenario"]
-            )
-            scenario_results.pop("_scenario", None)
-        else:
-            raise ValueError("Scenario data are missing.")
-
-        scenario["name"] = scenario["name"].replace(";", "\n")
-        print(f"{GREEN}{scenario_file}")
-        tc_data_x = all_data[scenario_file].setdefault("x", [])
-        tc_data_y = all_data[scenario_file].setdefault("y", {})
-        tc_data_y_by_size = {}
-        if not logarithmic_plot:
-            def set_style(axes: Axes):
-                return set_plot_linear_style(axes, y_max, y_min)
-
-            aggregate = True
-            if args["--normal"]:
-                plots_number_x = 2 * len(filtered_data)
-        else:
-            def set_style(axes: Axes):
-                return set_plot_log_style(axes, y_max, y_min)
-
-            aggregate = False
-
-        tcs_served_by_groups = get_tcs_served_by_groups(
-            scenario_results, tc_filter)
-
-        for _, result in scenario_results.items():
-            # TODO(PW): make this range properly work on different intensity
-            # multipliers
-            a = float(result["_A"])
-            #  if (x_min and x_min > a) or (x_max and x_max < a):
-            #  continue
-            tc_data_x.append(a)
-            append_tc_stat_for_groups(
-                tc_data_y, result, stat_name, tcs_served_by_groups
-            )
-            if aggregate:
-                append_tc_stat_for_groups_by_size(
-                    tc_data_y_by_size, result, stat_name, tc_sizes
-                )
-
-        if args["--normal"]:
-            for group_name, group_data_y in tc_data_y_by_size.items():
-                if not get_valid_group(group_name, groups):
-                    continue
-
-                markerscycle = itertools.cycle(markers)
-                glob_markerscycle = itertools.cycle(glob_markers)
-                ax = fig.add_subplot(
-                    plots_number_x, plots_number_y, plot_id)
-                for tc_size, data_y in group_data_y.items():
-                    ax.set_xlim(x_min, x_max)
-                    ax.plot(
-                        tc_data_x,
-                        data_y,
-                        label="t={}".format(tc_size),
-                        marker=next(markerscycle),
-                    )
-                    glob_ax.set_xlim(x_min, x_max)
-                    glob_ax.plot(
-                        tc_data_x,
-                        data_y,
-                        label="t={}".format(tc_size),
-                        marker=next(glob_markerscycle),
-                    )
-
-                set_style(ax)
-                set_style(glob_ax)
-                ax.set_title(
-                    "{} ({}\n{})".format(group_name,
-                                         scenario["name"], scenario_file)
-                )
-                ax.set_ylabel(STAT_NAME_TO_LABEL.get(
-                    stat_name, stat_name))
-                glob_ax.set_title(
-                    "{} ({}\n{})".format(group_name,
-                                         scenario["name"], scenario_file)
-                )
-                glob_ax.set_ylabel(
-                    STAT_NAME_TO_LABEL.get(stat_name, stat_name))
-                if plot_id % plots_number_x == 0:
-                    ax.set_xlabel("a")
-                plot_id += 1
-                ax.legend(loc=4, ncol=3)
-                glob_ax.legend(loc=4, ncol=3)
-
-            for group_name, group_data_y in tc_data_y.items():
-                if not get_valid_group(group_name, groups):
-                    continue
-
-                markerscycle = itertools.cycle(markers)
-                glob_markerscycle = itertools.cycle(glob_markers)
-                ax = fig.add_subplot(
-                    plots_number_x, plots_number_y, plot_id)
-                #  pprint(tc_data_x)
-                for tc_id, data_y in group_data_y.items():
-
-                    if enable_boxplots:
-                        ax.set_xlim(x_min, x_max)
-                        ax.boxplot(
-                            data_y,
-                            positions=tc_data_x,
-                            notch=False,
-                            widths=0.05,
-                            bootstrap=10000,
-                            showfliers=False,
-                            vert=True,
-                            patch_artist=False,
-                            showcaps=False,
-                            whis=0,
-                            manage_xticks=False,
-                        )
-
-                    #  pprint([(tc_id, statistics.mean(serie), confidence_interval(serie))
-                    #  for serie in data_y])
-                    ax.set_xlim(x_min, x_max)
-                    glob_ax.set_xlim(x_min, x_max)
-                    #  pprint((len(tc_data_x), tc_data_x,
-                    #  len([statistics.mean(serie) for serie in data_y]),
-                    #  [statistics.mean(serie) for serie in data_y]))
-
-                    series_means = [statistics.mean(
-                        serie) for serie in data_y]
-                    for i in range(0, len(tc_data_x) - len(series_means)):
-                        series_means.insert(0, 0)
-                    ax.plot(
-                        tc_data_x,
-                        series_means,
-                        #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
-                        label="$t_{}={}$".format(
-                            tc_id, tc_sizes[tc_id]),
-                        marker=next(markerscycle),
-                    )
-                    glob_ax.plot(
-                        tc_data_x,
-                        series_means,
-                        #  label="TC{} t={}".format(tc_id, tc_sizes[tc_id]),
-                        label="{} $t_{}={}$".format(
-                            scenario_id, tc_id, tc_sizes[tc_id]
-                        ),
-                        linestyle=glob_linestyle[scenario_id],
-                        markevery=5,
-                        marker=next(glob_markerscycle),
-                    )
-
-                set_style(ax)
-                set_style(glob_ax)
-                #  ax.set_title("{} V={} {}"
-                #  .format(group_name,
-                #  scenario["groups"][group_name]["capacity"],
-                if title_suffix == None:
-                    ax.set_title(
-                        "{} {}\n({})".format(
-                            group_name, scenario["name"], scenario_file
-                        )
-                    )
-                else:
-                    ax.set_title("{} {}".format(
-                        group_name, title_suffix))
-                ax.set_ylabel(STAT_NAME_TO_LABEL.get(
-                    stat_name, stat_name))
-                glob_ax.set_ylabel(
-                    STAT_NAME_TO_LABEL.get(stat_name, stat_name))
-                if plot_id % plots_number_x == 0:
-                    ax.set_xlabel("a")
-                plot_id += 1
-                ax.legend(loc=4, ncol=3)
-                glob_ax.legend(loc=4, ncol=3)
-
-    if args["--pairs"]:
-        key_pairs_id = list(ast.literal_eval(args["--pairs"]))
-        keys = list(all_data.keys())
-        key_pairs = list(
-            map(
-                lambda p: (keys[p[0]], keys[p[1]], p[2]
-                           if len(p) > 2 else None),
-                key_pairs_id,
-            )
-        )
-    else:
-        key_pairs = itertools.combinations(all_data.keys(), 2)
-        key_pairs = list(p + (None,) for p in key_pairs)
-
-    if args["--relatives-diffs"]:
-        for k1, k2, p_name in key_pairs:
-            print((k1, k2))
-            if all_data[k1]["x"] == all_data[k2]["x"]:
-                print("OK")
-            if not compare_dicts_structure(all_data[k1]["y"], all_data[k2]["y"]):
-                print("NOT OK")
-
-            for group_name, k1_group_data_y in all_data[k1]["y"].items():
-                valid_group_k1 = get_valid_group(group_name, groups)
-
-                if not valid_group_k1:
-                    continue
-                valid_group_k2 = get_corresponding_group(
-                    valid_group_k1, all_data[k2]["y"].keys()
-                )
-                if not valid_group_k2:
-                    continue
-
-                k2_group_data_y = all_data[k2]["y"][valid_group_k2]
-
-                markerscycle = itertools.cycle(markers)
-                ax = fig.add_subplot(
-                    plots_number_x, plots_number_y, plot_id)
-                for tc_id, k1_data_y in k1_group_data_y.items():
-                    if tc_id not in k2_group_data_y:
-                        continue
-                    k2_data_y = k2_group_data_y[tc_id]
-                    k2_data_y_means = [
-                        statistics.mean(x) for x in k2_data_y]
-                    k1_data_y_means = [
-                        statistics.mean(x) for x in k1_data_y]
-
-                    plot_data = [
-                        x - y for x, y in zip(k1_data_y_means, k2_data_y_means)
-                    ]
-                    #  pprint((len(k1_data_y_means), len(k2_data_y_means)))
-
-                    label = "$t_{}={}$".format(tc_id, tc_sizes[tc_id])
-                    #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
-                    data_x = np.array(
-                        [all_data[k1]["x"], all_data[k2]["x"]])
-                    #  pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x'])))
-                    #  ax.plot(tc_data_x,
-                    #  pprint((len(data_x), len(data_x[0]), data_x))
-                    #  pprint((len(plot_data), plot_data))
-                    for i in range(0, len(data_x[0]) - len(plot_data)):
-                        plot_data.insert(0, 0)
-                    #  pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x']), label))
-                    #  pprint(("ZIP", list(zip(data_x[0], k1_data_y_means, k2_data_y_means))))
-                    #  pprint(plot_data)
-
-                    ax.set_xlim(x_min, x_max)
-
-                    ax.plot(
-                        np.average(data_x, axis=0),
-                        plot_data,
-                        label=label,
-                        marker=next(markerscycle),
-                    )
-
-                set_style(ax)
-
-                def remove_prefix(s):
-                    return (
-                        s.replace("data/journal/", "")
-                        .replace("data/journal2/", "")
-                        .replace(".json", "")
-                    )
-
-                if p_name:
-                    title_append = p_name
-                else:
-                    title_append = "\n({} - \n{})".format(
-                        remove_prefix(k1), remove_prefix(k2)
-                    )
-
-                #  ax.set_title("{} V={} {}"
-                #  .format(group_name,
-                #  scenario["groups"][group_name]["capacity"],
-                #  ax.set_title("{} {}"
-                #  .format(group_name,
-                #  title_append))
-                ax.set_title(
-                    "{} {}".format(
-                        group_name,
-                        title_append if title_suffix == None else title_suffix,
-                    )
-                )
-                ax.set_ylabel(
-                    "{}\n difference".format(
-                        STAT_NAME_TO_LABEL.get(stat_name, stat_name)
-                    )
-                )
-                if plot_id % plots_number_x == 0:
-                    ax.set_xlabel("a")
-                plot_id += 1
-                handles, labels = ax.get_legend_handles_labels()
-                ncol = cols_number(labels)
-                ax.legend(
-                    flip(handles, ncol),
-                    flip(labels, ncol),
-                    loc=9,
-                    ncol=3,
-                    borderaxespad=0,
-                )
-                #  ax.legend(loc=9, ncol=5, borderaxespad=0)
-    if args["--relatives"]:
-        for k1, k2, p_name in key_pairs:
-            print((k1, k2))
-            if all_data[k1]["x"] == all_data[k2]["x"]:
-                print("OK")
-            if not compare_dicts_structure(all_data[k1]["y"], all_data[k2]["y"]):
-                print("NOT OK")
-                #  continue
-            for group_name, k1_group_data_y in all_data[k1]["y"].items():
-                if groups and group_name not in groups:
-                    continue
-                k2_group_data_y = all_data[k2]["y"][group_name]
-
-                markerscycle = itertools.cycle(markers)
-                ax = fig.add_subplot(
-                    plots_number_x, plots_number_y, plot_id)
-                for tc_id, k1_data_y in k1_group_data_y.items():
-                    if tc_id not in k2_group_data_y:
-                        continue
-                    k2_data_y = k2_group_data_y[tc_id]
-                    k2_data_y_means = [
-                        statistics.mean(x) for x in k2_data_y]
-                    k1_data_y_means = [
-                        statistics.mean(x) for x in k1_data_y]
-
-                    plot_data = [
-                        x / y * 100 if y != 0 else 0
-                        for x, y in zip(k1_data_y_means, k2_data_y_means)
-                    ]
-                    #  pprint((len(k1_data_y_means), len(k2_data_y_means)))
-
-                    label = "$t_{}={}$".format(tc_id, tc_sizes[tc_id])
-                    #  label = "TC{} t={}".format(tc_id, tc_sizes[tc_id])
-                    data_x = np.array(
-                        [all_data[k1]["x"], all_data[k2]["x"]])
-                    #  pprint((k1, len(all_data[k1]['x']), k2, len(all_data[k2]['x'])))
-                    #  ax.plot(tc_data_x,
-                    #  pprint((len(data_x), len(data_x[0]), data_x))
-                    #  pprint((len(plot_data), plot_data))
-                    for i in range(0, len(data_x[0]) - len(plot_data)):
-                        plot_data.insert(0, 0)
-                    ax.set_xlim(x_min, x_max)
-
-                    ax.plot(
-                        np.average(data_x, axis=0),
-                        plot_data,
-                        label=label,
-                        marker=next(markerscycle),
-                    )
-
-                set_style(ax)
-
-                def remove_prefix(s):
-                    return (
-                        s.replace("data/journal/", "")
-                        .replace("data/journal2/", "")
-                        .replace(".json", "")
-                    )
-
-                if p_name:
-                    title_append = p_name
-                else:
-                    title_append = "\n({} / \n{})".format(
-                        remove_prefix(k1), remove_prefix(k2)
-                    )
-
-                #  ax.set_title("{} V={} {}"
-                #  .format(group_name,
-                #  scenario["groups"][group_name]["capacity"],
-                #  ax.set_title("{} {}"
-                #  .format(group_name,
-                #  title_append))
-                ax.set_title(
-                    "{} {}".format(
-                        group_name,
-                        title_append if title_suffix == None else title_suffix,
-                    )
-                )
-                ax.set_ylabel(
-                    "{}\n ratio [%]".format(
-                        STAT_NAME_TO_LABEL.get(stat_name, stat_name)
-                    )
-                )
-                if plot_id % plots_number_x == 0:
-                    ax.set_xlabel("a")
-                plot_id += 1
-                handles, labels = ax.get_legend_handles_labels()
-                ncol = cols_number(labels)
-                ax.legend(
-                    flip(handles, ncol),
-                    flip(labels, ncol),
-                    loc=9,
-                    ncol=ncol,
-                    borderaxespad=0,
-                )
-                #  ax.legend(loc=9, ncol=5, borderaxespad=0)
-
-    if args["--relative-sums"]:
-        ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
-        markerscycle = itertools.cycle(markers)
-        for k1, k2, p_name in key_pairs:
-            print((k1, k2))
-            if all_data[k1]["x"] == all_data[k2]["x"]:
-                print("OK")
-            if not compare_dicts_structure(all_data[k1]["y"], all_data[k2]["y"]):
-                print("NOT OK")
-                #  continue
-            k1_sum = []
-            k2_sum = []
-            for group_name, k1_group_data_y in all_data[k1]["y"].items():
-                if groups and group_name not in groups:
-                    continue
-                k2_group_data_y = all_data[k2]["y"][group_name]
-
-                for tc_id, k1_data_y in k1_group_data_y.items():
-                    k1_data_y_means = [
-                        statistics.mean(x) for x in k1_data_y]
-                    k1_sum = [
-                        x + y
-                        for x, y in itertools.zip_longest(
-                            k1_sum, k1_data_y_means, fillvalue=0
-                        )
-                    ]
-                for tc_id, k2_data_y in k2_group_data_y.items():
-                    k2_data_y_means = [
-                        statistics.mean(x) for x in k2_data_y]
-                    k2_sum = [
-                        x + y
-                        for x, y in itertools.zip_longest(
-                            k2_sum, k2_data_y_means, fillvalue=0
-                        )
-                    ]
-
-            plot_data = [x - y for x, y in zip(k1_sum, k2_sum)]
-
-            label = "{} - {}".format(clean(k1),
-                                     clean(k2)) if not p_name else p_name
-            data_x = np.array([all_data[k1]["x"], all_data[k2]["x"]])
-            #  ax.plot(tc_data_x,
-            ax.set_xlim(x_min, x_max)
-            ax.plot(
-                np.average(data_x, axis=0),
-                plot_data,
-                label=label,
-                marker=next(markerscycle),
-            )
-
-            set_style(ax)
-            #  ax.set_title("Differences of aggregated statistic")
-            ax.set_ylabel(
-                "{} difference".format(
-                    STAT_NAME_TO_LABEL.get(stat_name, stat_name))
-            )
-            if plot_id % plots_number_x == 0:
-                ax.set_xlabel("a")
-
-            plot_id += 1
-            ax.legend(loc=9, ncol=2, borderaxespad=0)
-
-    if args["--relative-divs"]:
-        ax = fig.add_subplot(plots_number_x, plots_number_y, plot_id)
-        markerscycle = itertools.cycle(markers)
-        for k1, k2, p_name in key_pairs:
-            print((k1, k2))
-            if all_data[k1]["x"] == all_data[k2]["x"]:
-                print("X: OK")
-            else:
-                print("X: NOT OK")
-                #  pprint((all_data[k1]['x'], all_data[k2]['x']))
-
-            if not compare_dicts_structure(all_data[k1]["y"], all_data[k2]["y"]):
-                print("Y: NOT OK")
-
-            k1_sum = []
-            k2_sum = []
-            for group_name, k1_group_data_y in all_data[k1]["y"].items():
-                if groups and group_name not in groups:
-                    continue
-                k2_group_data_y = all_data[k2]["y"][group_name]
-
-                for tc_id, k1_data_y in k1_group_data_y.items():
-                    k1_data_y_means = [
-                        statistics.mean(x) for x in k1_data_y]
-                    k1_sum = [
-                        x + y
-                        for x, y in itertools.zip_longest(
-                            k1_sum, k1_data_y_means, fillvalue=0
-                        )
-                    ]
-                for tc_id, k2_data_y in k2_group_data_y.items():
-                    k2_data_y_means = [
-                        statistics.mean(x) for x in k2_data_y]
-                    k2_sum = [
-                        x + y
-                        for x, y in itertools.zip_longest(
-                            k2_sum, k2_data_y_means, fillvalue=0
-                        )
-                    ]
-
-                plot_data = [
-                    x / y * 100 if y != 0 else 0 for x, y in zip(k1_sum, k2_sum)
-                ]
-
-                label = (
-                    "{} - {} ".format(clean(k1), clean(k2))
-                    if p_name is None
-                    else p_name
-                )
-                if not args["--no-pair-suffix"]:
-                    label = "{}{}".format(label, group_name)
-                data_x = np.array(
-                    [all_data[k1]["x"], all_data[k2]["x"]])
-                #  ax.plot(tc_data_x,
-                #  pprint(np.average(data_x, axis=0))
-                ax.set_xlim(x_min, x_max)
-                ax.plot(
-                    np.average(data_x, axis=0),
-                    plot_data,
-                    label=label,
-                    marker=next(markerscycle),
-                )
-
-            set_style(ax)
-            if title_suffix:
-                ax.set_title(title_suffix)
-            #  ax.set_title("Differences of aggregated statistic")
-            ax.set_ylabel(
-                "{} ratio [%]".format(
-                    STAT_NAME_TO_LABEL.get(stat_name, stat_name))
-            )
-            if plot_id % plots_number_x == 0:
-                ax.set_xlabel("a")
-            plot_id += 1
-            handles, labels = ax.get_legend_handles_labels()
-            ncol = cols_number(labels)
-            ax.legend(
-                flip(handles, ncol),
-                flip(labels, ncol),
-                loc=9,
-                ncol=ncol,
-                borderaxespad=0,
-            )
-            #  ax.legend(loc=9, ncol=2, borderaxespad=0)
-
-    if not args["--quiet"]:
-        plt.show()
-
-    if args["--save"]:
-
-        def create_filename(name: str):
-            output_dir = args["--output-dir"]
-            if not os.path.isdir(output_dir):
-                os.makedirs(output_dir)
-            output_file = name + "." + args["--format"]
-            output_file = os.path.join(output_dir, output_file)
-            return output_file
-
-        output_file = create_filename(title)
-        fig.set_size_inches(
-            float(args["--width"]), float(args["--height"]))
-        print(f"{BLUE}Saving {output_file}")
-        fig.savefig(output_file, transparent=True)
-
-        output_file = create_filename("glob_" + title)
-        glob_fig.set_size_inches(
-            float(args["--width"]) / plots_number_y,
-            float(args["--height"]) / plots_number_x,
-        )
-        print(f"{BLUE}Saving {output_file}")
-        glob_fig.savefig(output_file, transparent=True)
+    scenario_plots.select_scenarios(None)
+    #  scenario_plots.select_scenarios([6, 8])
+    scenario_plots.print_selected()
+    scenario_plots.plot_normal([(6, "P_block_recursive"), (8, "P_block")],
+                               "G0",
+                               traffic_classes)
+    #  scenario_plots.plot_normal("P_block_recursive", "G2", traffic_classes)
 
 
 if __name__ == "__main__":
     colorama.init(autoreset=True)
-    main2()
+    main3()
