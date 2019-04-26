@@ -90,6 +90,7 @@ import ubjson
 import cbor2
 import colorama
 from colorama import Fore, Style
+from MutOSim.plots import Plots
 
 
 STAT_NAME_TO_LABEL = {
@@ -308,29 +309,6 @@ def get_used_traffic_classes(scenario_results, filtered_tcs):
     return tcs_served_by_groups
 
 
-def describe_dict(dictionary: dict, prefix=()):
-    """Return an hierarchical structure of the dictionary."""
-    for key, value in dictionary.items():
-        path = prefix + (key,)
-        yield path
-        if isinstance(value, dict):
-            yield from describe_dict(value, path)
-
-
-def compare_dicts_structure(dict1, dict2):
-    """Compare if two dictionaries structures matches themselves."""
-    return sorted(describe_dict(dict1)) == sorted(describe_dict(dict2))
-
-
-def confidence_interval(data, confidence=0.95):
-    """Return data_array values interval for data_array given confidence."""
-    data_array = 1.0 * np.array(data)
-    length = len(data_array)
-    std_err = scipy.stats.sem(data_array)
-    h = std_err * sp.stats.t._ppf((1 + confidence) / 2.0, length - 1)
-    return h
-
-
 def clean(text: str):
     """Remove prefixes from the name."""
     return (
@@ -354,18 +332,6 @@ def load_data(filename: str):
             data = ubjson.load(data_file)
         return data
 
-
-def load_data2(filename: str) -> Dict[str, Dict[str, dict]]:
-    """Load data from JSON file."""
-    ext = os.path.splitext(filename)[1]
-    with open(filename, "rb") as data_file:
-        if ext == ".json":
-            data = json.load(data_file)
-        elif ext == ".cbor":
-            data = cbor2.load(data_file)
-        elif ext == ".ubjson":
-            data = ubjson.load(data_file)
-        return dict(sorted(data.items()))
 
 
 def remove_prefix(text: str, prefix: str) -> str:
@@ -700,156 +666,6 @@ def main2():
     scenario_plot.plot()
 
 
-Property = str
-GroupName = str
-ScenarioIndex = int
-TcId = int
-
-
-@dataclass
-class Serie:
-    name: str
-    x_data: List[float]
-    y_data: List[List[float]]
-    y_data_mean: List[float] = field(init=False)
-
-    def __post_init__(self):
-        """Compute means."""
-        self.y_data_mean = [statistics.mean(subserie)
-                            for subserie in self.y_data]
-
-
-def extract_serie_data(property_name: Property,
-                       group_name: GroupName,
-                       tc_id: TcId,
-                       scenario_data: dict):
-    """."""
-    x_data = []
-    y_data = []
-    for intensity, intensity_data in scenario_data.items():
-        if intensity.startswith("_"):
-            continue
-        groups = list(intensity_data.keys())
-        corresponding_group = get_corresponding_group(group_name, groups)
-        if not corresponding_group:
-            print(f"{RED} No group {group_name}.")
-            pprint(groups)
-            continue
-        group_data = intensity_data[corresponding_group]
-        if str(tc_id) not in group_data:
-            print(f"{RED} No tc id {tc_id}.")
-            continue
-        properties_data = group_data[str(tc_id)]
-        x_data.append(float(intensity))
-        y_data.append(properties_data[property_name])
-
-    assert len(x_data) == len(y_data)
-    return Serie("", x_data, y_data)
-
-
-def nested_dict():
-    return defaultdict(nested_dict)
-
-
-class MutOSimPlots:
-    """."""
-
-    series: Dict[Property,
-                 Dict[ScenarioIndex,
-                      Dict[GroupName,
-                           Dict[TcId, Serie]]]] = nested_dict()
-
-    def __init__(self, data_filename: str):
-        self.all_scenarios_data = load_data2(data_filename)
-        self.scenarios_data = self.all_scenarios_data
-
-    def print_all(self):
-        """."""
-        print_scenarios("All scenarios", self.all_scenarios_data)
-
-    def print_selected(self):
-        """."""
-        print_scenarios("Selected scenarios", self.scenarios_data)
-
-    def remove_prefix(self, prefix_to_remove: str):
-        """."""
-        self.all_scenarios_data = {remove_prefix(k, prefix_to_remove): v
-                                   for k, v in self.all_scenarios_data.items()}
-
-    def select_scenarios(self, indices: List[ScenarioIndex]):
-        """."""
-        self.scenarios_data = filter_data2(indices, self.all_scenarios_data)
-
-    def serie_exists(self,
-                     property_name: Property,
-                     group_name: GroupName,
-                     scenario_index: ScenarioIndex,
-                     tc_id: TcId):
-        """."""
-        series = self.series
-        if property_name not in series:
-            return False
-        if scenario_index not in series[property_name]:
-            return False
-        if group_name not in series[property_name][scenario_index]:
-            return False
-        if tc_id not in series[property_name][scenario_index][group_name]:
-            return False
-        return True
-
-    def get_serie(self,
-                  property_name: Property,
-                  group_name: GroupName,
-                  scenario_index: ScenarioIndex,
-                  tc_id: TcId):
-        """."""
-        return self.series[property_name][scenario_index][group_name][tc_id]
-
-    def add_serie(self,
-                  property_name: Property,
-                  group_name: GroupName,
-                  scenario_index: ScenarioIndex,
-                  tc_id: TcId,
-                  serie: Serie):
-        """."""
-        self.series[property_name][scenario_index][group_name][tc_id] = serie
-
-    def prepare_data(self,
-                     scenarios: List[Tuple[ScenarioIndex, Property]],
-                     group_name: GroupName,
-                     traffic_classes: List[TcId]):
-        """."""
-        scenarios_data = self.scenarios_data
-        for tc_id in traffic_classes:
-            keys = list(scenarios_data.keys())
-            for scenario_index, property_name in scenarios:
-                scenario_data = scenarios_data[keys[scenario_index]]
-                if not self.serie_exists(property_name,
-                                         group_name,
-                                         scenario_index,
-                                         tc_id):
-                    serie = extract_serie_data(property_name,
-                                               group_name,
-                                               tc_id,
-                                               scenario_data)
-                    self.add_serie(property_name,
-                                   group_name,
-                                   scenario_index,
-                                   tc_id,
-                                   serie)
-                else:
-                    serie = self.get_serie(property_name,
-                                           group_name,
-                                           scenario_index,
-                                           tc_id)
-
-    def plot_normal(self,
-                    scenarios: List[Tuple[ScenarioIndex, Property]],
-                    group_name: GroupName,
-                    traffic_classes: List[TcId]):
-        """."""
-        self.prepare_data(scenarios, group_name, traffic_classes)
-        pprint(list(describe_dict(self.series)))
 
 
 def main3():
@@ -863,7 +679,7 @@ def main3():
     )
     traffic_classes = [3, 4, 5]
 
-    scenario_plots = MutOSimPlots(data_filename)
+    scenario_plots = Plots(data_filename)
     scenario_plots.remove_prefix(prefix_to_remove)
 
     scenario_plots.select_scenarios(None)
