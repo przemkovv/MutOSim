@@ -8,3 +8,4 @@ data/results/
 .gdb_history
 .ccls-cache
 .mypy_cache
+*.pyc

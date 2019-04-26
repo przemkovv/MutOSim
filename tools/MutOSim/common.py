@@ -152,6 +152,19 @@ def load_data2(filename: str) -> Dict[str, Dict[str, dict]]:
         return dict(sorted(data.items()))
 
 
+def filter_data2(indices: List[int], data: dict):
+    """Leave only results from request list of indices."""
+    if not indices:
+        return data
+
+    keys: List[str] = list(data.keys())
+    return {k: data[k]
+            for k in [keys[i] for i in indices]
+            }
+
+
+
+
 def print_scenarios(title: str, data):
     """Print an enumerate list of scenario names."""
     print(f"{YELLOW}{title}:")

@@ -353,17 +353,6 @@ def filter_data(indices_str: str, strip_prefix: str, data):
             }
 
 
-def filter_data2(indices: List[int], data: dict):
-    """Leave only results from request list of indices."""
-    if not indices:
-        return data
-
-    keys: List[str] = list(data.keys())
-    return {k: data[k]
-            for k in [keys[i] for i in indices]
-            }
-
-
 def print_scenarios(title: str, data):
     """Print an enumerate list of scenario names."""
     print(f"{YELLOW}{title}:")

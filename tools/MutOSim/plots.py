@@ -1,9 +1,8 @@
 
 
 import statistics
-import itertools
 from pprint import pprint
-from typing import Optional, List, Iterable, Dict, Tuple
+from typing import List, Dict, Tuple
 from dataclasses import dataclass, field
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
