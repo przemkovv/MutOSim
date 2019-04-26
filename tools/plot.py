@@ -355,7 +355,7 @@ def load_data(filename: str):
         return data
 
 
-def load_data2(filename: str) -> ([str], Dict[str, dict]):
+def load_data2(filename: str) -> Dict[str, Dict[str, dict]]:
     """Load data from JSON file."""
     ext = os.path.splitext(filename)[1]
     with open(filename, "rb") as data_file:
@@ -495,8 +495,7 @@ class Main:
         """Set style of the plot."""
         if self.logarithmic_plot:
             return set_plot_log_style(axes, *self.y_range)
-        else:
-            return set_plot_linear_style(axes, *self.y_range)
+        return set_plot_linear_style(axes, *self.y_range)
 
     def prepare_data(self, scenarios_data: dict) -> dict:
         """Parse and prepare data of selected scenarios."""
@@ -601,7 +600,6 @@ class Main:
                            line_style: str = None,
                            xlabel: bool = True):
         """Plot Normal type."""
-
         label_suffix = scenario_results.filename.partition(";")[2]
         if label_suffix:
             label_suffix = f" - {label_suffix}"
@@ -716,6 +714,7 @@ class Serie:
     y_data_mean: List[float] = field(init=False)
 
     def __post_init__(self):
+        """Compute means."""
         self.y_data_mean = [statistics.mean(subserie)
                             for subserie in self.y_data]
 
@@ -790,11 +789,11 @@ class MutOSimPlots:
         series = self.series
         if property_name not in series:
             return False
-        if group_name not in series[property_name]:
+        if scenario_index not in series[property_name]:
             return False
-        if scenario_index not in series[property_name][group_name]:
+        if group_name not in series[property_name][scenario_index]:
             return False
-        if tc_id not in series[property_name][group_name][scenario_index]:
+        if tc_id not in series[property_name][scenario_index][group_name]:
             return False
         return True
 
@@ -804,7 +803,7 @@ class MutOSimPlots:
                   scenario_index: ScenarioIndex,
                   tc_id: TcId):
         """."""
-        return self.series[property_name][group_name][scenario_index][tc_id]
+        return self.series[property_name][scenario_index][group_name][tc_id]
 
     def add_serie(self,
                   property_name: Property,
@@ -813,7 +812,7 @@ class MutOSimPlots:
                   tc_id: TcId,
                   serie: Serie):
         """."""
-        self.series[property_name][group_name][scenario_index][tc_id] = serie
+        self.series[property_name][scenario_index][group_name][tc_id] = serie
 
     def prepare_data(self,
                      scenarios: List[Tuple[ScenarioIndex, Property]],
@@ -845,17 +844,16 @@ class MutOSimPlots:
                                            tc_id)
 
     def plot_normal(self,
-                    property_name: Property,
+                    scenarios: List[Tuple[ScenarioIndex, Property]],
                     group_name: GroupName,
                     traffic_classes: List[TcId]):
         """."""
-        self.prepare_data(property_name, group_name, traffic_classes)
+        self.prepare_data(scenarios, group_name, traffic_classes)
         pprint(list(describe_dict(self.series)))
 
 
 def main3():
     """."""
-
     output_dir = "data/results/plots/layer_types"
     data_filename = "data/results/layer_types/eq_m.json"
     prefix_to_remove = "data/scenarios/analytical/layer_types/"
