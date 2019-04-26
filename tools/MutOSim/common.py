@@ -3,7 +3,7 @@ import os
 import json
 import itertools
 import math
-from typing import Optional, List, Iterable, Dict, Tuple
+from typing import Optional, List, Iterable, Dict
 import ubjson
 import cbor2
 import numpy as np
@@ -139,7 +139,7 @@ def get_corresponding_group(needle_group, groups):
     return None
 
 
-def load_data2(filename: str) -> Dict[str, Dict[str, dict]]:
+def load_data(filename: str) -> Dict[str, Dict[str, dict]]:
     """Load data from JSON file."""
     ext = os.path.splitext(filename)[1]
     with open(filename, "rb") as data_file:
@@ -152,7 +152,7 @@ def load_data2(filename: str) -> Dict[str, Dict[str, dict]]:
         return dict(sorted(data.items()))
 
 
-def filter_data2(indices: List[int], data: dict):
+def filter_data(indices: List[int], data: dict):
     """Leave only results from request list of indices."""
     if not indices:
         return data
@@ -163,8 +163,6 @@ def filter_data2(indices: List[int], data: dict):
             }
 
 
-
-
 def print_scenarios(title: str, data):
     """Print an enumerate list of scenario names."""
     print(f"{YELLOW}{title}:")
@@ -173,7 +171,7 @@ def print_scenarios(title: str, data):
 
 
 def remove_prefix(text: str, prefix: str) -> str:
-    """."""
+    """Remove prefix from the text"""
     if text.startswith(prefix):
         return text[len(prefix):]
     return text

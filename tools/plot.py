@@ -333,7 +333,6 @@ def load_data(filename: str):
         return data
 
 
-
 def remove_prefix(text: str, prefix: str) -> str:
     """."""
     if text.startswith(prefix):
@@ -655,8 +654,6 @@ def main2():
     scenario_plot.plot()
 
 
-
-
 def main3():
     """."""
     output_dir = "data/results/plots/layer_types"
@@ -671,12 +668,30 @@ def main3():
     scenario_plots = Plots(data_filename)
     scenario_plots.remove_prefix(prefix_to_remove)
 
-    scenario_plots.select_scenarios(None)
-    #  scenario_plots.select_scenarios([6, 8])
-    scenario_plots.print_selected()
-    scenario_plots.plot_normal([(6, "P_block_recursive"), (8, "P_block")],
-                               "G0",
-                               traffic_classes)
+    #  scenario_plots.select_scenarios(None)
+    scenarios_groups = [[0, 1, 2], [3, 4, 5]]
+    for scenarios in scenarios_groups:
+        scenario_plots.select_scenarios(scenarios)
+        scenario_plots.print_selected()
+        scenario_plots.plot_normal([(0, "P_block"),
+                                    (1, "P_block"),
+                                    (2, "P_block")],
+                                   "G0", traffic_classes)
+        scenario_plots.plot_normal([(0, "P_block"),
+                                    (1, "P_block"),
+                                    (2, "P_block")],
+                                   "G2", traffic_classes)
+        scenario_plots.plot_normal([(0, "P_block_recursive"),
+                                    (1, "P_block"),
+                                    (2, "P_block")],
+                                   "G0", traffic_classes,
+                                   title_suffix=" - recursive")
+        scenario_plots.plot_normal([(0, "P_block_recursive"),
+                                    (1, "P_block"),
+                                    (2, "P_block")],
+                                   "G2", traffic_classes,
+                                   title_suffix=" - recursive")
+    input("wait")
     #  scenario_plots.plot_normal("P_block_recursive", "G2", traffic_classes)
 
 
