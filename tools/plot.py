@@ -669,29 +669,43 @@ def main3():
     scenario_plots.remove_prefix(prefix_to_remove)
 
     #  scenario_plots.select_scenarios(None)
-    scenarios_groups = [[0, 1, 2], [3, 4, 5]]
+    scenarios_groups = [[3, 4, 5]]
+    #  scenarios_groups = [[0, 1, 2], [3, 4, 5]]
     for scenarios in scenarios_groups:
         scenario_plots.select_scenarios(scenarios)
         scenario_plots.print_selected()
-        scenario_plots.plot_normal([(0, "P_block"),
-                                    (1, "P_block"),
-                                    (2, "P_block")],
-                                   "G0", traffic_classes)
-        scenario_plots.plot_normal([(0, "P_block"),
-                                    (1, "P_block"),
-                                    (2, "P_block")],
-                                   "G2", traffic_classes)
-        scenario_plots.plot_normal([(0, "P_block_recursive"),
-                                    (1, "P_block"),
-                                    (2, "P_block")],
-                                   "G0", traffic_classes,
-                                   title_suffix=" - recursive")
-        scenario_plots.plot_normal([(0, "P_block_recursive"),
-                                    (1, "P_block"),
-                                    (2, "P_block")],
-                                   "G2", traffic_classes,
-                                   title_suffix=" - recursive")
-    input("wait")
+        title = scenario_plots.get_scenario_name(0)
+        scenario_plots.create_plot(layout=(2, 2),
+                                   title=title,
+                                   y_range=(1e-5, 5e0))
+        scenario_plots.plot_normal([
+            (0, "P_block"),
+            (1, "P_block"),
+            (2, "P_block")
+        ],
+            "G0", traffic_classes)
+        scenario_plots.plot_normal([
+            (0, "P_block"),
+            (1, "P_block"),
+            (2, "P_block")
+        ],
+            "G2", traffic_classes)
+        scenario_plots.plot_normal([
+            (0, "P_block_recursive"),
+            (1, "P_block"),
+            (2, "P_block")
+        ],
+            "G0", traffic_classes,
+            title_suffix=" - recursive")
+        scenario_plots.plot_normal([
+            (0, "P_block_recursive"),
+            (1, "P_block"),
+            (2, "P_block")
+        ],
+            "G2", traffic_classes,
+            title_suffix=" - recursive")
+        scenario_plots.show(True)
+    #  input("wait")
     #  scenario_plots.plot_normal("P_block_recursive", "G2", traffic_classes)
 
 

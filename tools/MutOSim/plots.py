@@ -2,6 +2,7 @@
 
 import statistics
 import itertools
+from enum import Enum
 from pprint import pprint
 from typing import List, Dict, Tuple
 from dataclasses import dataclass, field
@@ -9,7 +10,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.pyplot import Axes
-#  from matplotlib.pyplot import Figure
+from matplotlib.pyplot import Figure
 #  import numpy as np
 #  import scipy as sp
 #  import scipy.stats
@@ -22,6 +23,18 @@ Property = str
 GroupName = str
 ScenarioIndex = int
 TcId = int
+
+STAT_NAME_TO_LABEL = {
+    "served_u": "Carried traffic",
+    "served": "Carried requests",
+    "P_block": "Blocking probability",
+    "P_block_recursive": "Blocking probability",
+}
+
+
+def get_y_label(property_name: Property):
+    """Retrun humand readable name of property."""
+    return STAT_NAME_TO_LABEL.get(property_name, property_name)
 
 
 @dataclass
@@ -58,6 +71,11 @@ class SequenceStyle:
     color: str = None
     line: str = None
     markevery: int = 5
+
+
+class ScaleType(Enum):
+    Linear = "linear"
+    Log = "log"
 
 
 def extract_data_sequence(property_name: Property,
@@ -114,6 +132,7 @@ def set_plot_log_style(axes: Axes, bottom=1e-6, top=5):
     set_plot_style(axes)
     axes.set_yscale("log")
     axes.set_ylim(bottom=bottom, top=top, auto=True, emit=True)
+    axes.autoscale(False, 'y')
 
 
 def plot_sequence(axes: Axes,
@@ -140,7 +159,6 @@ def plot_sequence(axes: Axes,
             manage_xticks=False,
         )
 
-    print(sequence.name)
     axes.plot(
         sequence.x_data,
         sequence.y_data_mean,
@@ -163,6 +181,12 @@ class Plots:
     markers = ["+", "x", "2"]
     colors = ["r", "#999900", "b"]
     line_styles = [":", "-", "--"]
+
+    fig: Figure = None
+    layout: Tuple[int, int] = tuple([1, 1])
+    plot_id: int = 1
+    x_range: Tuple[float, float] = None
+    y_range: Tuple[float, float] = None
 
     def __init__(self, data_filename: str):
         self.all_scenarios_data = load_data(data_filename)
@@ -282,23 +306,22 @@ class Plots:
                     scenarios: List[Tuple[ScenarioIndex, Property]],
                     group_name: GroupName,
                     traffic_classes: List[TcId],
-                    title_suffix: str = None):
+                    title_suffix: str = None,
+                    y_scale_type: ScaleType = ScaleType.Log):
         """."""
         self.prepare_data(scenarios, group_name, traffic_classes)
 
-        fig = plt.figure(figsize=(6, 4),
-                         tight_layout=True)
         title = self.prepare_title(scenarios[0][0], group_name)
         if title_suffix is not None:
             title += title_suffix
-        fig.canvas.set_window_title(title)
-        axes = fig.add_subplot(1, 1, 1)
-        axes.set_title(title)
-        set_plot_log_style(axes)
+
+        axes = self.__create_subplot(title, y_scale_type)
         style = SequenceStyle()
-        style.markevery = 1
+        style.markevery = 5
         colorscycle = itertools.cycle(self.colors)
         linescycle = itertools.cycle(self.line_styles)
+        if self.x_range is not None:
+            axes.set_xlim(*self.x_range)
         for scenario in scenarios:
             style.color = next(colorscycle)
             style.line = next(linescycle)
@@ -309,13 +332,44 @@ class Plots:
                 if label:
                     label = f" - {label}"
                 sequence = self.get_data_sequence(scenario, group_name, tc_id)
-                axes.set_xlim(*sequence.x_range)
+                if self.x_range is None:
+                    axes.set_xlim(*sequence.x_range)
                 plot_sequence(axes,
                               sequence,
                               enable_boxplots=False,
                               style=style,
                               label_suffix=label)
-        axes.set_ylabel("P_block")
+            axes.set_ylabel(get_y_label(scenario[1]))
         axes.set_xlabel("a")
         axes.legend(loc=4, ncol=len(scenarios))
-        plt.show(block=False)
+
+    def create_plot(self,
+                    layout: Tuple[int, int] = None,
+                    title: str = None,
+                    x_range: Tuple[float, float] = None,
+                    y_range: Tuple[float, float] = None):
+        """Initialize figure with a given subplots layout."""
+        self.fig = plt.figure(figsize=(10, 5),
+                              tight_layout=True)
+        if title is not None:
+            self.fig.canvas.set_window_title(title)
+
+        self.layout = layout if layout is not None else tuple([1, 1])
+        self.plot_id = 1
+        self.x_range = x_range
+        self.y_range = y_range if y_range is not None else (1e-6, 5)
+
+    def __create_subplot(self, title: str, y_scale_type: ScaleType) -> Axes:
+        axes = self.fig.add_subplot(*self.layout, self.plot_id)
+        axes.set_title(title)
+        if y_scale_type == ScaleType.Log:
+            set_plot_log_style(axes, *self.y_range)
+        else:
+            set_plot_linear_style(axes, *self.y_range)
+        self.plot_id += 1
+        return axes
+
+    @staticmethod
+    def show(block=False):
+        """Shows plots."""
+        plt.show(block)
