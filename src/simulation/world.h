@@ -80,7 +80,7 @@ struct formatter<Simulation::World>
   template <typename FormatContext>
   auto format(const Simulation::World &world, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "t={} [World]", world.get_current_time());
+    return format_to(ctx.out(), "t={} [World]", world.get_current_time());
   }
 };
 

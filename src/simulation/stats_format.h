@@ -1,6 +1,7 @@
 
 #pragma once
 #include "stats.h"
+#include "math_utils.h"
 #include "types/hash.h"
 
 #include <fmt/format.h>
@@ -22,7 +23,7 @@ struct formatter<Simulation::Stats> {
   template <typename FormatContext>
   auto format(const Simulation::Stats &stats, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", stats.total);
+    return format_to(ctx.out(), "{}", stats.total);
   }
 };
 
@@ -38,7 +39,7 @@ struct formatter<Simulation::LoadStats> {
   auto format(const Simulation::LoadStats &load_stats, FormatContext &ctx)
   {
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "{:>10n} ({:>10n}u)",
         ts::get(load_stats.count),
         ts::get(load_stats.size));
@@ -62,7 +63,7 @@ struct formatter<Simulation::LostServedStats> {
         Math::ratio_to_sum<double>(ts::get(stats.lost.size), ts::get(stats.served.size));
 
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "served/lost: {} / {}. P_loss: {:<10} ({:<10})",
         stats.served,
         stats.lost,
@@ -85,7 +86,7 @@ struct formatter<std::map<TrafficClassId, Simulation::LostServedStats>> {
       FormatContext &ctx)
   {
     for (auto &[tc_id, stats] : lost_served_stats) {
-      ctx = format_to(ctx.begin(), "tc={}: {}", tc_id, stats);
+      ctx = format_to(ctx.out(), "tc={}: {}", tc_id, stats);
     }
   }
 };
@@ -104,7 +105,7 @@ struct formatter<std::unordered_map<TrafficClassId, Simulation::LostServedStats>
       FormatContext &ctx)
   {
     for (auto &[tc_id, stats] : lost_served_stats) {
-      ctx = format_to(ctx.begin(), "tc={}: {}", tc_id, stats);
+      ctx = format_to(ctx.out(), "tc={}: {}", tc_id, stats);
     }
   }
 };
@@ -122,7 +123,7 @@ struct formatter<std::map<SourceId, Simulation::LoadStats>> {
       FormatContext &ctx)
   {
     for (auto &[source_id, stats] : served_by_traffic_class) {
-      ctx = format_to(ctx.begin(), "source_id={}: {}", source_id, stats);
+      ctx = format_to(ctx.out(), "source_id={}: {}", source_id, stats);
     }
   }
 };
@@ -140,7 +141,7 @@ struct formatter<std::unordered_map<SourceId, Simulation::LoadStats>> {
       FormatContext &ctx)
   {
     for (auto &[source_id, stats] : served_by_traffic_class) {
-      ctx = format_to(ctx.begin(), "source_id={}: {}", source_id, stats);
+      ctx = format_to(ctx.out(), "source_id={}: {}", source_id, stats);
     }
   }
 };
@@ -158,7 +159,7 @@ struct formatter<Simulation::TrafficClassStats> {
   {
     auto p_block = stats.block_time / stats.simulation_time;
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "{}, P_block = {:<10} ({:<10})",
         stats.lost_served_stats,
         p_block,

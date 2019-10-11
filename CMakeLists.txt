@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
 
 project(MSMutONet)
 
@@ -6,7 +6,7 @@ project(MSMutONet)
 #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 #list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-include(cotire)
+# include(cotire)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYjkPES)
   message(STATUS "No build type selected, default to Release")
@@ -65,8 +65,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     -Wno-padded
     -Wno-return-type
     -fdiagnostics-color=always
-    -fdiagnostics-show-template-tree
-    -fmax-errors=5
+    # -fdiagnostics-show-template-tree
+    -fmax-errors=15
+    -fconcepts
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
@@ -77,11 +78,22 @@ endif()
 include(ExternalProject)
 
 ExternalProject_Add(type_safe
-    GIT_REPOSITORY https://github.com/foonathan/type_safe
-    INSTALL_DIR ${PROJECT_BINARY_DIR}
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> -DTYPE_SAFE_BUILD_TEST_EXAMPLE=OFF
-    UPDATE_COMMAND ""
-)
+  GIT_REPOSITORY https://github.com/foonathan/type_safe
+  INSTALL_DIR ${PROJECT_BINARY_DIR}
+  CMAKE_ARGS 
+  -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
+  -DTYPE_SAFE_BUILD_TEST_EXAMPLE=OFF
+  UPDATE_COMMAND ""
+  )
+
+ExternalProject_Add(sg14_ext
+  GIT_REPOSITORY https://github.com/WG21-SG14/SG14.git
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND
+  COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/SG14 ${CMAKE_CURRENT_BINARY_DIR}/include/sg14
+  INSTALL_COMMAND ""
+  UPDATE_COMMAND ""
+  )
 
 find_package(Boost REQUIRED system program_options )
 find_package(Catch2 REQUIRED)
@@ -106,7 +118,7 @@ function(append value)
 endfunction()
 
 # if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  # append("-fuse-ld=gold -Wl,--no-threads,--plugin-opt,cache-dir=${PROJECT_BINARY_DIR}/lto.cache" CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
+# append("-fuse-ld=gold -Wl,--no-threads,--plugin-opt,cache-dir=${PROJECT_BINARY_DIR}/lto.cache" CMAKE_EXE_LINKER_FLAGS CMAKE_SHARED_LINKER_FLAGS)
 # # endif()
 
 option(SIM_DEBUG "Enable more detailed tracing" OFF)

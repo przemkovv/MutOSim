@@ -2,12 +2,12 @@
 set tags=tags,./tags
 
 if hostname() == "legolas"
-  set makeprg=ninja\ -j3\ -C\ ../mutosim_build/
+  set makeprg=ninja\ -j3\ -C\ ../build/
 else
   set makeprg=ninja\ -C\ ../build/
 endif
 
-setlocal path=.,../build/include,~/phd/vcpkg/installed/x64-linux/include,/usr/include,/usr/include/c++/8.2.1,src/,
+setlocal path=.,../build/include,~/projects/phd/simulator/vcpkg/installed/x64-linux/include,/usr/include,/usr/include/c++/9.1.0,src/,
 
 set fixendofline
 

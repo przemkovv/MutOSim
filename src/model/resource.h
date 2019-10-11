@@ -51,16 +51,20 @@ struct Resource
   {
   }
   Resource(const std::vector<C> &capacities)
-    : components(capacities | ranges::view::transform([](C capacity) {
-                   return ResourceComponent{Count{1}, capacity};
-                 }))
+    : components(
+        capacities | ranges::view::transform([](C capacity) {
+          return ResourceComponent{Count{1}, capacity};
+        })
+        | ranges::to_vector)
   {
   }
 
   Resource(std::initializer_list<C> initializer_list)
-    : components(initializer_list | ranges::view::transform([](C capacity) {
-                   return ResourceComponent{Count{1}, capacity};
-                 }))
+    : components(
+        initializer_list | ranges::view::transform([](C capacity) {
+          return ResourceComponent{Count{1}, capacity};
+        })
+        | ranges::to_vector)
   {
   }
 
@@ -103,7 +107,8 @@ operator/(const Resource<C> &resource, Peakedness peakedness)
 {
   return {resource.components | ranges::view::transform([&](auto component) {
             return component / peakedness;
-          })};
+          })
+          | ranges::to_vector};
 }
 
 } // namespace Model

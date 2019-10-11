@@ -20,7 +20,7 @@ struct formatter<Model::OutgoingRequestStream>
   auto format(const Model::OutgoingRequestStream &rs, FormatContext &ctx)
   {
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "[OutgoingRequestStream] {} P_block={}, V_fict={}, A={}, R={}, sigma^2={}, Z={}, "
         "Y={}",
         rs.tc,
@@ -46,7 +46,7 @@ struct formatter<Model::IncomingRequestStream>
   auto format(const Model::IncomingRequestStream &rs, FormatContext &ctx)
   {
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "[IncomingRequestStream] {} R={}, sigma^2={}, Z={}, A={}",
         rs.tc,
         rs.mean,

@@ -18,7 +18,7 @@ struct formatter<GroupName>
   template <typename FormatContext>
   auto format(const GroupName &name, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(name));
+    return format_to(ctx.out(), "{}", get(name));
   }
 };
 
@@ -43,7 +43,7 @@ struct formatter<LoadId>
   template <typename FormatContext>
   auto format(const LoadId &id, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(id));
+    return format_to(ctx.out(), "{}", get(id));
   }
 };
 template <>
@@ -58,7 +58,7 @@ struct formatter<SourceId>
   template <typename FormatContext>
   auto format(const SourceId &id, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(id));
+    return format_to(ctx.out(), "{}", get(id));
   }
 };
 template <>
@@ -73,7 +73,7 @@ struct formatter<SourceName>
   template <typename FormatContext>
   auto format(const SourceName &name, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(name));
+    return format_to(ctx.out(), "{}", get(name));
   }
 };
 template <typename P>
@@ -101,7 +101,7 @@ struct formatter<TypesPrecision::Capacity_<P, Tag>>
   auto
   format(const TypesPrecision::Capacity_<P, Tag> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 template <typename P>
@@ -116,7 +116,7 @@ struct formatter<TypesPrecision::Variance_<P>>
   template <typename FormatContext>
   auto format(const TypesPrecision::Variance_<P> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 template <typename P>
@@ -132,7 +132,7 @@ struct formatter<TypesPrecision::MeanRequestNumber_<P>>
   auto
   format(const TypesPrecision::MeanRequestNumber_<P> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 template <typename P>
@@ -147,7 +147,7 @@ struct formatter<TypesPrecision::Peakedness_<P>>
   template <typename FormatContext>
   auto format(const TypesPrecision::Peakedness_<P> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 template <typename P>
@@ -163,7 +163,7 @@ struct formatter<TypesPrecision::MeanIntensity_<P>>
   auto
   format(const TypesPrecision::MeanIntensity_<P> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 
@@ -179,7 +179,7 @@ struct formatter<TypesPrecision::Weight_<P, Tag>>
   template <typename FormatContext>
   auto format(const TypesPrecision::Weight_<P, Tag> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 
@@ -215,7 +215,7 @@ struct formatter<TypesPrecision::Size_<P, Tag>>
   template <typename FormatContext>
   auto format(const TypesPrecision::Size_<P, Tag> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 
@@ -231,7 +231,7 @@ struct formatter<TypesPrecision::Probability_<P>>
   template <typename FormatContext>
   auto format(const TypesPrecision::Probability_<P> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 
@@ -247,7 +247,7 @@ struct formatter<TypesPrecision::Duration_<P>>
   template <typename FormatContext>
   auto format(const TypesPrecision::Duration_<P> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 
@@ -263,7 +263,7 @@ struct formatter<TypesPrecision::Count_<P>>
   template <typename FormatContext>
   auto format(const TypesPrecision::Count_<P> &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", get(value));
+    return format_to(ctx.out(), "{}", get(value));
   }
 };
 template <>
@@ -278,7 +278,7 @@ struct formatter<highp::float_t>
   template <typename FormatContext>
   auto format(const highp::float_t &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", mediump::float_t(value));
+    return format_to(ctx.out(), "{}", mediump::float_t(value));
   }
 };
 template <>
@@ -293,7 +293,7 @@ struct formatter<highp::int_t>
   template <typename FormatContext>
   auto format(const highp::int_t &value, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "{}", mediump::int_t(value));
+    return format_to(ctx.out(), "{}", mediump::int_t(value));
   }
 };
 

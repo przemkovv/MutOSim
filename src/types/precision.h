@@ -237,30 +237,37 @@ struct Capacity_
 
   explicit operator size_t() const { return static_cast<size_t>(get(*this)); }
 
-  template <
-      typename SrcPrec,
-      typename SrcUseFloat,
-      typename = std::enable_if_t<!std::is_same_v<
-          Capacity_<SrcPrec, SrcUseFloat>,
-          Capacity_<Prec, UseFloat>>>>
-  explicit constexpr Capacity_(const Capacity_<SrcPrec, SrcUseFloat> &c)
-    : Capacity_(static_cast<value_type>(get(c)))
-  {
-  }
-  template <
-      typename SrcPrec,
-      typename SrcUseFloat,
-      typename = std::enable_if_t<std::conjunction_v<
-          std::is_same_v<SrcPrec, Prec>,
-          std::is_same_v<SrcUseFloat, UseFloat>>>>
-  explicit constexpr Capacity_(const Size_<SrcPrec, SrcUseFloat> &s)
-    : Capacity_(get(s))
-  {
-  }
+  // template <
+  // typename SrcPrec,
+  // typename SrcUseFloat,
+  // typename = std::enable_if_t<!std::is_same_v<
+  // Capacity_<SrcPrec, SrcUseFloat>,
+  // Capacity_<Prec, UseFloat>>>>
+  // explicit constexpr Capacity_(const Capacity_<SrcPrec, SrcUseFloat> &c)
+  // : Capacity_(static_cast<value_type>(get(c)))
+  // {
+  // }
+  // template <
+  // typename SrcPrec,
+  // typename SrcUseFloat,
+  // typename = std::enable_if_t<std::conjunction_v<
+  // std::is_same_v<SrcPrec, Prec>,
+  // std::is_same_v<SrcUseFloat, UseFloat>>>>
+  // explicit constexpr Capacity_(const Size_<SrcPrec, SrcUseFloat> &s)
+  // : Capacity_(get(s))
+  // {
+  // }
   template <typename DstPrec, typename DstUseFloat>
   explicit operator Capacity_<DstPrec, DstUseFloat>() const &&
   {
-    return Capacity_<DstPrec, DstUseFloat>(get(*this));
+    return Capacity_<DstPrec, DstUseFloat>(
+        static_cast<PrecisionType<DstPrec, DstUseFloat>>(get(*this)));
+  }
+  template <typename DstPrec, typename DstUseFloat>
+  explicit operator Capacity_<DstPrec, DstUseFloat>() const &
+  {
+    return Capacity_<DstPrec, DstUseFloat>(
+        static_cast<PrecisionType<DstPrec, DstUseFloat>>(get(*this)));
   }
   constexpr auto &operator+=(const Capacity_ &c)
   {
@@ -332,13 +339,20 @@ struct Size_
     : Size_(count_t<Prec, UseFloat>(get(c)))
   {
   }
-  template <
-      typename SrcPrec,
-      typename = std::enable_if_t<std::is_same_v<UseFloat, use_int_tag>>>
-  explicit constexpr Size_(const Size_<SrcPrec, use_float_tag> &c)
-    : Size_(count_t<Prec, UseFloat>(ceil(get(c))))
-  {
-  }
+  // template <
+  // typename SrcPrec,
+  // std::enable_if_t<std::is_same_v<UseFloat, use_int_tag>, int> = 0>
+  // explicit Size_(const Size_<SrcPrec, use_float_tag> &c)
+  // : Size_(count_t<Prec, UseFloat>(ceil(get(c))))
+  // {
+  // }
+  // template <
+  // typename SrcPrec,
+  // std::enable_if_t<std::is_same_v<UseFloat, use_float_tag>, int> = 0>
+  // explicit Size_(const Size_<SrcPrec, use_float_tag> &c)
+  // : Size_(count_t<Prec, UseFloat>(ceil(get(c))))
+  // {
+  // }
 
   template <
       typename Dummy = void,

@@ -357,7 +357,7 @@ load_topology_config(const std::string &filename)
       configs.rbegin(),
       configs.rend(),
       nlohmann::json{},
-      [](auto &j1, const auto &p) {
+      [](auto j1, const auto &p) {
         j1.merge_patch(p);
         return j1;
       });

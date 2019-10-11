@@ -15,8 +15,8 @@ Group::get_outgoing_request_streams() const
 {
   if (need_recalculate_)
   {
-    IncomingRequestStreams in_request_streams = in_request_streams_
-                                                | rng::view::values;
+    auto in_request_streams = in_request_streams_ | rng::view::values
+                              | rng::to<IncomingRequestStreams>();
 
     debug_println(
         fg(fmt::color::blue),

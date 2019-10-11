@@ -4,6 +4,7 @@
 
 #include <experimental/source_location>
 #include <fmt/color.h>
+#include <fmt/core.h>
 #include <fmt/format.h>
 
 namespace fmt {
@@ -20,8 +21,7 @@ struct formatter<std::experimental::source_location>
   auto
   format(const std::experimental::source_location &location, FormatContext &ctx)
   {
-    return format_to(
-        ctx.begin(), "{}:{}", location.file_name(), location.line());
+    return format_to(ctx.out(), "{}:{}", location.file_name(), location.line());
   }
 };
 } // namespace fmt

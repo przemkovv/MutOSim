@@ -21,7 +21,7 @@ struct formatter<Simulation::SourceStream>
   template <typename FormatContext>
   auto format(const Simulation::SourceStream &source, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "[Source {} id={:>2}]", source.name_, source.id);
+    return format_to(ctx.out(), "[Source {} id={:>2}]", source.name_, source.id);
   }
 };
 
@@ -38,7 +38,7 @@ struct formatter<Simulation::EngsetSourceStream>
   auto format(const Simulation::EngsetSourceStream &source, FormatContext &ctx)
   {
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "[EngsetSource {} (id={}), active={}/{}, gamma={}, lambda={}]",
         source.name_,
         source.id,
@@ -62,7 +62,7 @@ struct formatter<Simulation::PascalSourceStream>
   auto format(const Simulation::PascalSourceStream &source, FormatContext &ctx)
   {
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "t={} [PascalSource {} (id={}), active={}/{}/{}/{}, gamma={}]",
         source.world_->get_current_time(),
         source.name_,
@@ -87,7 +87,7 @@ struct formatter<Simulation::PoissonSourceStream>
   template <typename FormatContext>
   auto format(const Simulation::PoissonSourceStream &source, FormatContext &ctx)
   {
-    return format_to(ctx.begin(), "[PoissonSource {} (id={})]", source.name_, source.id);
+    return format_to(ctx.out(), "[PoissonSource {} (id={})]", source.name_, source.id);
   }
 };
 

@@ -16,24 +16,24 @@ struct TrafficClass
 {
   TrafficClassId        id{};
   Simulation::Intensity serve_intensity{};
-  Simulation::Size                  size{};
+  Simulation::Size      size{};
   Weight                weight{};
   Length                max_path_length{};
 };
 
 struct Source
 {
-  SourceName     name{};
-  SourceType     type{};
-  TrafficClassId tc_id{};
-  Simulation::Count          source_number{};
-  GroupName      attached{};
+  SourceName        name{};
+  SourceType        type{};
+  TrafficClassId    tc_id{};
+  Simulation::Count source_number{};
+  GroupName         attached{};
 };
 
 struct CompressionRatio
 {
   Simulation::Capacity        threshold{};
-  Simulation::Size                        size{};
+  Simulation::Size            size{};
   Simulation::IntensityFactor intensity_factor{};
 };
 

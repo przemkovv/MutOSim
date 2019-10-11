@@ -330,7 +330,7 @@ main(int argc, char *argv[])
             }
             else
             {
-              println("[Main] Scenario file {} doesn't exists.", path);
+              println("[Main] Scenario file {} doesn't exists.", path.string());
               return false;
             }
           }))

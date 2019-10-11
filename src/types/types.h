@@ -42,6 +42,7 @@ using Ratio = TypesPrecision::Ratio_<precision>;
 using Capacity = TypesPrecision::Capacity_<precision, use_int_tag>;
 using Count = TypesPrecision::Count_<precision>;
 using Size = TypesPrecision::Size_<precision, use_int_tag>;
+using SizeF = TypesPrecision::Size_<precision, use_float_tag>;
 
 } // namespace Simulation
 

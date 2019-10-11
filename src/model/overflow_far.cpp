@@ -45,7 +45,8 @@ convert_to_incoming_streams(
           stream_it->second += out_rs;
         });
   }
-  return incoming_request_streams | rng::view::values;
+  return incoming_request_streams | rng::view::values
+         | rng::to<IncomingRequestStreams>();
 }
 
 //----------------------------------------------------------------------

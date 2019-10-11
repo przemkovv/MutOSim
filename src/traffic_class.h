@@ -11,11 +11,12 @@ struct TrafficClass
   TrafficClassId        id;
   Simulation::Intensity source_intensity;
   Simulation::Intensity serve_intensity;
-  Simulation::Size                  size;
+  Simulation::Size      size;
   Length                max_path_length;
 };
 
 bool operator==(const TrafficClass &tc1, const TrafficClass &tc2);
+
 using TrafficClasses = boost::container::flat_map<TrafficClassId, TrafficClass>;
 
 namespace fmt {
@@ -32,7 +33,7 @@ struct formatter<TrafficClass>
   auto format(const TrafficClass &tc, FormatContext &ctx)
   {
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "[TC: id={:>2}, l={:<8} u={}, size={}]",
         tc.id,
         tc.source_intensity,

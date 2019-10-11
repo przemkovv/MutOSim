@@ -64,7 +64,7 @@ struct formatter<boost::program_options::options_description>
   {
     std::stringstream str;
     t.print(str);
-    return format_to(ctx.begin(), "{}", str.str());
+    return format_to(ctx.out(), "{}", str.str());
   }
 };
 } // namespace fmt

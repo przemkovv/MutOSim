@@ -9,7 +9,7 @@ add_executable(${TARGET_NAME_EXE})
 target_include_directories(${TARGET_NAME} PRIVATE ${MSMutONetSim_SOURCE_DIR})
 target_include_directories(${TARGET_NAME_EXE} PRIVATE ${MSMutONetSim_SOURCE_DIR})
 
-add_dependencies(${TARGET_NAME} type_safe)
+add_dependencies(${TARGET_NAME} type_safe sg14_ext)
 add_dependencies(${TARGET_NAME_EXE} ${TARGET_NAME})
 
 target_link_libraries(${TARGET_NAME} PRIVATE meta range-v3)
@@ -25,7 +25,7 @@ target_link_libraries(${TARGET_NAME_EXE} PRIVATE nlohmann_json nlohmann_json::nl
 target_link_libraries(${TARGET_NAME_EXE} PRIVATE ${TARGET_NAME})
 
 set_target_properties(${TARGET_NAME_EXE} ${TARGET_NAME} PROPERTIES
-  CXX_STANDARD 17
+  CXX_STANDARD 20
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF
   )
@@ -35,7 +35,7 @@ if (ipo_supported)
   message(STATUS "IPO / LTO enabled")
   set_target_properties(${TARGET_NAME_EXE} ${TARGET_NAME} PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE
-    NTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE
+    INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE
     )
 else()
   message(STATUS "IPO / LTO not supported: <${error}>")

@@ -21,12 +21,12 @@ struct formatter<Simulation::Load>
     if (load.end_time < Time{0})
     {
       return format_to(
-          ctx.begin(), "[Load: id={}, size={} st={}]", load.id, load.size, load.send_time);
+          ctx.out(), "[Load: id={}, size={} st={}]", load.id, load.size, load.send_time);
     }
     else
     {
       return format_to(
-          ctx.begin(),
+          ctx.out(),
           "[Load: id={}, size={}, st={}, dt={}]",
           load.id,
           load.size,

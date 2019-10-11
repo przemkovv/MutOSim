@@ -122,7 +122,7 @@ struct formatter<Simulation::Group>
   auto format(const Simulation::Group &group, FormatContext &ctx)
   {
     return format_to(
-        ctx.begin(),
+        ctx.out(),
         "t={} [Group {} V={}/{}, L{}]",
         group.world_->get_current_time(),
         group.name_,
