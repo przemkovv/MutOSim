@@ -6,7 +6,7 @@ set(TARGET_NAME mutosim_test)
 
 add_executable(${TARGET_NAME})
 target_include_directories(${TARGET_NAME} PRIVATE ${MSMutONetSim_SOURCE_DIR})
-target_link_libraries(${TARGET_NAME} Catch2::Catch2 mutosim_lib)
+target_link_libraries(${TARGET_NAME} Catch2::Catch2WithMain mutosim_lib)
 
 set_target_properties(${TARGET_NAME} PROPERTIES
   CXX_STANDARD 20

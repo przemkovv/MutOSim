@@ -16,8 +16,7 @@ endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 
-include(CheckIPOSupported)
-check_ipo_supported()
+# check_ipo_supported()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
@@ -28,7 +27,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -g")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
+# set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   add_compile_options(
@@ -67,7 +66,6 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     -fdiagnostics-color=always
     # -fdiagnostics-show-template-tree
     -fmax-errors=15
-    -fconcepts
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
   # using Intel C++
@@ -79,6 +77,7 @@ include(ExternalProject)
 
 ExternalProject_Add(type_safe
   GIT_REPOSITORY https://github.com/foonathan/type_safe
+  GIT_TAG main
   INSTALL_DIR ${PROJECT_BINARY_DIR}
   CMAKE_ARGS 
   -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> 
@@ -86,14 +85,14 @@ ExternalProject_Add(type_safe
   UPDATE_COMMAND ""
   )
 
-ExternalProject_Add(sg14_ext
-  GIT_REPOSITORY https://github.com/WG21-SG14/SG14.git
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND
-  COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/SG14 ${CMAKE_CURRENT_BINARY_DIR}/include/sg14
-  INSTALL_COMMAND ""
-  UPDATE_COMMAND ""
-  )
+# ExternalProject_Add(sg14_ext
+  # GIT_REPOSITORY https://github.com/WG21-SG14/SG14.git
+  # CONFIGURE_COMMAND ""
+  # BUILD_COMMAND
+  # COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/SG14 ${CMAKE_CURRENT_BINARY_DIR}/include/sg14
+  # INSTALL_COMMAND ""
+  # UPDATE_COMMAND ""
+  # )
 
 find_package(Boost REQUIRED system program_options )
 find_package(Catch2 REQUIRED)
@@ -173,3 +172,8 @@ add_subdirectory(tests)
 
 enable_testing()
 
+
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/compile_commands.json
+          ${CMAKE_SOURCE_DIR}/compile_commands.json
+)

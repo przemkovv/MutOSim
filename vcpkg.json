@@ -1,0 +1,16 @@
+{
+  "name": "mutosim",
+  "version-string": "0.0.1",
+  "dependencies": [
+    "fmt",
+    "asio",
+    "range-v3",
+    "catch2",
+    "boost-program-options",
+    "boost-system",
+    "boost-multiprecision",
+    "ms-gsl",
+    "nlohmann-json",
+    "wg21-sg14"
+  ]
+}

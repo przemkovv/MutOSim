@@ -9,12 +9,11 @@ namespace boost::program_options {
 class options_description;
 }
 
-namespace fmt {
 template <>
-struct formatter<Mode> : formatter<std::string_view>
+struct fmt::formatter<Mode> : formatter<std::string_view>
 {
   template <typename FormatContext>
-  auto format(const Mode &t, FormatContext &ctx)
+  auto format(const Mode &t, FormatContext &ctx) const
   {
     return formatter<std::string_view>::format(
         [](Mode value) {
@@ -31,11 +30,12 @@ struct formatter<Mode> : formatter<std::string_view>
         ctx);
   }
 };
+namespace fmt {
 template <>
 struct formatter<Model::AnalyticModel> : formatter<std::string_view>
 {
   template <typename FormatContext>
-  auto format(const Model::AnalyticModel &t, FormatContext &ctx)
+  auto format(const Model::AnalyticModel &t, FormatContext &ctx) const
   {
     return formatter<std::string_view>::format(
         [](Model::AnalyticModel value) {
@@ -60,7 +60,9 @@ struct formatter<boost::program_options::options_description>
   }
 
   template <typename FormatContext>
-  auto format(const boost::program_options::options_description &t, FormatContext &ctx)
+  auto format(
+      const boost::program_options::options_description &t,
+      FormatContext                                     &ctx)
   {
     std::stringstream str;
     t.print(str);

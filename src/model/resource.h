@@ -52,7 +52,7 @@ struct Resource
   }
   Resource(const std::vector<C> &capacities)
     : components(
-        capacities | ranges::view::transform([](C capacity) {
+        capacities | ranges::views::transform([](C capacity) {
           return ResourceComponent{Count{1}, capacity};
         })
         | ranges::to_vector)
@@ -61,7 +61,7 @@ struct Resource
 
   Resource(std::initializer_list<C> initializer_list)
     : components(
-        initializer_list | ranges::view::transform([](C capacity) {
+        initializer_list | ranges::views::transform([](C capacity) {
           return ResourceComponent{Count{1}, capacity};
         })
         | ranges::to_vector)
@@ -79,7 +79,7 @@ struct Resource
   operator Resource<C2>() const
   {
     return Resource<C2>(
-        components | ranges::view::transform([&](const auto &component) {
+        components | ranges::views::transform([&](const auto &component) {
           return ResourceComponent<C2>(component);
         })
         | ranges::to_vector);
@@ -105,7 +105,7 @@ template <typename C>
 Resource<CapacityF>
 operator/(const Resource<C> &resource, Peakedness peakedness)
 {
-  return {resource.components | ranges::view::transform([&](auto component) {
+  return {resource.components | ranges::views::transform([&](auto component) {
             return component / peakedness;
           })
           | ranges::to_vector};

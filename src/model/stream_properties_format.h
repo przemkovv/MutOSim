@@ -5,10 +5,10 @@
 #include "types/types_format.h"
 
 #include <fmt/format.h>
+#include <map>
 
-namespace fmt {
 template <>
-struct formatter<Model::OutgoingRequestStream>
+struct fmt::formatter<Model::OutgoingRequestStream>
 {
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
@@ -19,9 +19,10 @@ struct formatter<Model::OutgoingRequestStream>
   template <typename FormatContext>
   auto format(const Model::OutgoingRequestStream &rs, FormatContext &ctx)
   {
-    return format_to(
+    return fmt::format_to(
         ctx.out(),
-        "[OutgoingRequestStream] {} P_block={}, V_fict={}, A={}, R={}, sigma^2={}, Z={}, "
+        "[OutgoingRequestStream] {} P_block={}, V_fict={}, A={}, R={}, "
+        "sigma^2={}, Z={}, "
         "Y={}",
         rs.tc,
         rs.blocking_probability,
@@ -34,7 +35,7 @@ struct formatter<Model::OutgoingRequestStream>
   }
 };
 template <>
-struct formatter<Model::IncomingRequestStream>
+struct fmt::formatter<Model::IncomingRequestStream>
 {
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
@@ -45,7 +46,7 @@ struct formatter<Model::IncomingRequestStream>
   template <typename FormatContext>
   auto format(const Model::IncomingRequestStream &rs, FormatContext &ctx)
   {
-    return format_to(
+    return fmt::format_to(
         ctx.out(),
         "[IncomingRequestStream] {} R={}, sigma^2={}, Z={}, A={}",
         rs.tc,
@@ -57,7 +58,7 @@ struct formatter<Model::IncomingRequestStream>
 };
 
 template <typename K, typename V>
-struct formatter<std::map<K, V>>
+struct fmt::formatter<std::map<K, V>>
 {
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
@@ -68,23 +69,23 @@ struct formatter<std::map<K, V>>
   template <typename FormatContext>
   auto format(const std::map<K, V> &m, FormatContext &ctx)
   {
-    format_to(ctx.out(), "S({}) [", std::size(m));
-    for (const auto &[k,v] : m)
+    fmt::format_to(ctx.out(), "S({}) [", std::size(m));
+    for (const auto &[k, v] : m)
     {
       auto s = fmt::format("('{}': '{}'), ", k, v);
       if (s.size() > 16)
       {
-        format_to(ctx.out(), "\n");
+        fmt::format_to(ctx.out(), "\n");
       }
-      format_to(ctx.out(), s);
+      fmt::format_to(ctx.out(), s);
     }
-    format_to(ctx.out(), "]");
+    fmt::format_to(ctx.out(), "]");
     return ctx.out();
   }
 };
 
 template <typename T>
-struct formatter<std::vector<T>>
+struct fmt::formatter<std::vector<T>>
 {
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
@@ -93,20 +94,19 @@ struct formatter<std::vector<T>>
   }
 
   template <typename FormatContext>
-  auto format(const std::vector<T> &vec, FormatContext &ctx)
+  auto format(const std::vector<T> &vec, FormatContext &ctx) const
   {
-    format_to(ctx.out(), "S({}) [", std::size(vec));
+    fmt::format_to(ctx.out(), "S({}) [", std::size(vec));
     for (const auto &x : vec)
     {
       auto s = fmt::format("{}, ", x);
       if (s.size() > 16)
       {
-        format_to(ctx.out(), "\n");
+        fmt::format_to(ctx.out(), "\n");
       }
-      format_to(ctx.out(), s);
+      fmt::format_to(ctx.out(), "{}", s);
     }
-    format_to(ctx.out(), "]");
+    fmt::format_to(ctx.out(), "]");
     return ctx.out();
   }
 };
-} // namespace fmt

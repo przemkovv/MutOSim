@@ -37,7 +37,7 @@ print_state(const std::vector<bool> &states)
   winsize ws;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
   auto              width = ws.ws_col - 10;
-  const auto        rows = states.size() / width + 2;
+  const auto        rows = states.size() / static_cast<std::size_t>(width) + 2;
   std::stringstream str;
   int               finished = 0;
   int               current = 0;
@@ -206,7 +206,7 @@ load_scenarios_from_files(
           scenario.layers_types =
               Model::determine_layers_types(scenario.topology);
           if (rng::any_of(
-                  scenario.layers_types | rng::view::values,
+                  scenario.layers_types | rng::views::values,
                   [](auto layer_type) {
                     return layer_type == Model::LayerType::Unknown;
                   }))
@@ -361,7 +361,7 @@ main(int argc, char *argv[])
 
   if (!cli.output_file.empty())
   {
-    save_json(global_stats, cli.output_dir, cli.output_file);
+  save_json(global_stats, cli.output_dir, cli.output_file);
   }
 
   return 0;

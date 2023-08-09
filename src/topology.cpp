@@ -19,7 +19,8 @@ SourceStream &
 Topology::add_source(std::unique_ptr<SourceStream> source_stream)
 {
   source_stream->id = SourceId{get_uuid()};
-  auto it = sources.emplace(source_stream->get_name(), std::move(source_stream)).first;
+  auto it = sources.emplace(source_stream->get_name(), std::move(source_stream))
+                .first;
   return *(it->second.get());
 }
 
@@ -30,7 +31,9 @@ Topology::connect_groups(const GroupName &from, const GroupName &to)
 }
 
 void
-Topology::attach_source_to_group(const SourceName &source, const GroupName &group)
+Topology::attach_source_to_group(
+    const SourceName &source,
+    const GroupName  &group)
 {
   sources[source]->attach_to_group(*groups[group]);
 }
@@ -44,7 +47,8 @@ Topology::add_traffic_class(
 {
   auto tc_id = TrafficClassId{traffic_classes.size()};
 
-  return add_traffic_class(tc_id, source_intensity, serve_intensity, size, max_path_length);
+  return add_traffic_class(
+      tc_id, source_intensity, serve_intensity, size, max_path_length);
 }
 
 TrafficClass &
@@ -56,7 +60,9 @@ Topology::add_traffic_class(
     Length         max_path_length)
 {
   auto [it, inserted] = traffic_classes.emplace(
-      id, TrafficClass{id, source_intensity, serve_intensity, size, max_path_length});
+      id,
+      TrafficClass{
+          id, source_intensity, serve_intensity, size, max_path_length});
 
   ASSERT(
       inserted

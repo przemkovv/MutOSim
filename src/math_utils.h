@@ -16,7 +16,7 @@ template <typename T1, typename... T>
 T1
 ratio_to_sum(T1 s1, T... sn)
 {
-  if (auto sum = s1 + (sn + ...); sum < epsilon && sum > epsilon)
+  if (auto sum = s1 + (static_cast<T1>(sn) + ...); sum < epsilon && sum > epsilon)
   {
     return 0;
   }

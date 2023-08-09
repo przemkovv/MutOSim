@@ -9,13 +9,14 @@ add_executable(${TARGET_NAME_EXE})
 target_include_directories(${TARGET_NAME} PRIVATE ${MSMutONetSim_SOURCE_DIR})
 target_include_directories(${TARGET_NAME_EXE} PRIVATE ${MSMutONetSim_SOURCE_DIR})
 
-add_dependencies(${TARGET_NAME} type_safe sg14_ext)
+add_dependencies(${TARGET_NAME} type_safe)
+# add_dependencies(${TARGET_NAME} type_safe sg14_ext)
 add_dependencies(${TARGET_NAME_EXE} ${TARGET_NAME})
 
-target_link_libraries(${TARGET_NAME} PRIVATE meta range-v3)
+target_link_libraries(${TARGET_NAME} PRIVATE range-v3::meta range-v3::concepts range-v3::range-v3)
 target_link_libraries(${TARGET_NAME} PRIVATE fmt::fmt fmt::fmt-header-only)
 target_link_libraries(${TARGET_NAME} PRIVATE Boost::program_options Boost::system)
-target_link_libraries(${TARGET_NAME} PRIVATE stdc++fs)
+# target_link_libraries(${TARGET_NAME} PRIVATE stdc++fs)
 target_link_libraries(${TARGET_NAME} PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 # target_link_libraries(${TARGET_NAME} PRIVATE ${MPFR_LIBRARIES})
@@ -30,6 +31,7 @@ set_target_properties(${TARGET_NAME_EXE} ${TARGET_NAME} PROPERTIES
   CXX_EXTENSIONS OFF
   )
 
+include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported OUTPUT error)
 if (ipo_supported)
   message(STATUS "IPO / LTO enabled")
@@ -38,7 +40,8 @@ if (ipo_supported)
     INTERPROCEDURAL_OPTIMIZATION_DEBUG FALSE
     )
 else()
-  message(STATUS "IPO / LTO not supported: <${error}>")
+  message(STATUS "IPO / LTO not supported.")
+  # message(STATUS "IPO / LTO not supported: <${error}>")
 endif()
 
 target_sources(${TARGET_NAME_EXE} PRIVATE

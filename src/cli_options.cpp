@@ -5,7 +5,9 @@
 
 #include <boost/program_options.hpp>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <fmt/ranges.h>
+#include <fmt/std.h>
 #include <iostream>
 
 namespace Model {

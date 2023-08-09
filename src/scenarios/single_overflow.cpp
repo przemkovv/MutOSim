@@ -8,6 +8,7 @@
 #include "simulation/source_stream/engset.h"
 #include "simulation/source_stream/poisson.h"
 #include "topology.h"
+#include "types/types_format.h"
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -25,8 +26,8 @@ single_overflow_poisson(const Intensity lambda, const Capacity V)
   auto             size = Size(1);
   ScenarioSettings sim_settings{"Single overflow Poisson"};
 
-  auto &     topology = sim_settings.topology;
-  auto &     tc1 = topology.add_traffic_class(lambda, serve_intensity, size);
+  auto      &topology = sim_settings.topology;
+  auto      &tc1 = topology.add_traffic_class(lambda, serve_intensity, size);
   GroupName  g1{"G1"};
   GroupName  g2{"G2"};
   SourceName s1{"Spo1"};
@@ -103,8 +104,8 @@ single_overflow_engset(const Intensity gamma, const Capacity V, const Count N)
   auto             size = Size(1);
   ScenarioSettings sim_settings{"Single overflow Engset"};
 
-  auto &     topology = sim_settings.topology;
-  auto &     tc = topology.add_traffic_class(gamma, serve_intensity, size);
+  auto      &topology = sim_settings.topology;
+  auto      &tc = topology.add_traffic_class(gamma, serve_intensity, size);
   GroupName  g1{"G1"};
   GroupName  g2{"G2"};
   SourceName s1{"Spo1"};
@@ -161,7 +162,7 @@ multiple_sources_single_overflow()
 void
 prepare_custom_scenarios(
     std::vector<ScenarioSettings> &scenarios,
-    const CLIOptions &             cli)
+    const CLIOptions              &cli)
 {
   if ((false))
   {
@@ -261,4 +262,3 @@ prepare_custom_scenarios(
         engset2_model(Intensity(30.0L), Capacity(20), Count(40)));
   }
 }
-

@@ -1,4 +1,5 @@
 #include "model/overflow_far.h"
+#include "model/overflow_far.cpp"
 
 #include <catch.hpp>
 

@@ -1,5 +1,5 @@
 
-// #include "test.h"
+#include "test.h"
 
 // #include "analytical.h"
 // #include "erlang_formula.h"
@@ -253,24 +253,25 @@ ranges::v3::concepts::WeaklyEqualityComparable, T, U>())))>::type
               * <anonymous> = 0]’:
 
               */
+#if 1
 void
 test()
 {
   // static_assert(std::is_same_v<
-                // ranges::difference_type<Capacity>::type,
-                // ts::underlying_type<Capacity>>);
+  // ranges::difference_type<Capacity>::type,
+  // ts::underlying_type<Capacity>>);
   // static_assert(
-      // ranges::v3::concepts::
-          // models<ranges::v3::concepts::WeaklyIncrementable, Model::Capacity>());
+  // ranges::v3::concepts::
+  // models<ranges::v3::concepts::WeaklyIncrementable, Model::Capacity>());
   // static_assert(ranges::v3::concepts::models<
-                // ranges::v3::concepts::WeaklyEqualityComparable,
-                // Capacity,
-                // Capacity>());
+  // ranges::v3::concepts::WeaklyEqualityComparable,
+  // Capacity,
+  // Capacity>());
   // ranges::for_each(ranges::view::closed_iota(T{1}, V2), [&](T n) {
-    // println("{}", n);
+  // println("{}", n);
   // });
-  // ranges::for_each(ranges::view::closed_iota(Capacity{1}, V), [&](Capacity n) {
-    // println("{}", n);
+  // ranges::for_each(ranges::view::closed_iota(Capacity{1}, V), [&](Capacity n)
+  // { println("{}", n);
   // });
   // // test1();
   // test2();
@@ -278,5 +279,6 @@ test()
   // test5();
   // test7();
 }
+#endif
 
 } // namespace Model

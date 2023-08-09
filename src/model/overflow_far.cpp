@@ -45,7 +45,7 @@ convert_to_incoming_streams(
           stream_it->second += out_rs;
         });
   }
-  return incoming_request_streams | rng::view::values
+  return incoming_request_streams | rng::views::values
          | rng::to<IncomingRequestStreams>();
 }
 
@@ -56,7 +56,7 @@ compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
   // Formula 3.20
   auto inv_sum =
       rng::accumulate(
-          in_request_streams | rng::view::transform([](const auto &rs) {
+          in_request_streams | rng::views::transform([](const auto &rs) {
             return rs.mean * Size{rs.tc.size};
           }),
           WeightF{0})
@@ -64,7 +64,7 @@ compute_collective_peakedness(const IncomingRequestStreams &in_request_streams)
 
   // Formula 3.19
   auto peakedness = rng::accumulate(
-      in_request_streams | rng::view::transform([inv_sum](const auto &rs) {
+      in_request_streams | rng::views::transform([inv_sum](const auto &rs) {
         return rs.variance * (Size{rs.tc.size} * inv_sum);
       }),
       Peakedness{0});
@@ -99,9 +99,9 @@ compute_fictitious_capacity_fit_carried_traffic(
 {
   return V
          - rng::accumulate(
-             out_request_streams | rng::view::filter([tc_id](const auto &rs) {
+             out_request_streams | rng::views::filter([tc_id](const auto &rs) {
                return rs.tc.id != tc_id;
-             }) | rng::view::transform([&](const auto &rs) {
+             }) | rng::views::transform([&](const auto &rs) {
                if (kr_variant == KaufmanRobertsVariant::FixedCapacity)
                {
                  return rs.mean_request_number
@@ -209,13 +209,13 @@ kaufman_roberts_blocking_probability(
     CapacityF n{std::max(CapacityF{0}, V - SizeF{in_rs.tc.size} + SizeF{1})};
 
     auto blocking_probability = rng::accumulate(
-        distribution | rng::view::drop(size_t(floor(get(n)))), Probability{0});
+        distribution | rng::views::drop(size_t(floor(get(n)))), Probability{0});
     debug_println("1. n: {}, P_b: {}", n, blocking_probability);
 
     if (auto prec = get(n); (true) && floor(prec) < prec)
     {
       auto blocking_probability2 = rng::accumulate(
-          distribution2 | rng::view::drop(size_t(ceil(get(n)))),
+          distribution2 | rng::views::drop(size_t(ceil(get(n)))),
           Probability{0});
 
       WeightF interp{WeightF::value_type(prec - floor(prec))};

@@ -19,9 +19,8 @@ bool operator==(const TrafficClass &tc1, const TrafficClass &tc2);
 
 using TrafficClasses = boost::container::flat_map<TrafficClassId, TrafficClass>;
 
-namespace fmt {
 template <>
-struct formatter<TrafficClass>
+struct fmt::formatter<TrafficClass>
 {
   template <typename ParseContext>
   constexpr auto parse(ParseContext &ctx)
@@ -32,7 +31,7 @@ struct formatter<TrafficClass>
   template <typename FormatContext>
   auto format(const TrafficClass &tc, FormatContext &ctx)
   {
-    return format_to(
+    return fmt::format_to(
         ctx.out(),
         "[TC: id={:>2}, l={:<8} u={}, size={}]",
         tc.id,
@@ -41,4 +40,3 @@ struct formatter<TrafficClass>
         tc.size);
   }
 };
-} // namespace fmt

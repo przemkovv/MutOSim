@@ -72,9 +72,10 @@ struct Ratio_ : ts::strong_typedef<Ratio_<Prec>, ratio_t<Prec>>,
                 ts::strong_typedef_op::multiplication<Ratio_<Prec>>,
                 ts::strong_typedef_op::output_operator<Ratio_<Prec>>
 {
+  using base_type = ts::strong_typedef<Ratio_<Prec>, ratio_t<Prec>>;
   using ts::strong_typedef<Ratio_<Prec>, ratio_t<Prec>>::strong_typedef;
 
-  using value_type = typename ts::underlying_type<Ratio_>;
+  using value_type = typename ts::underlying_type<base_type>;
 };
 
 //----------------------------------------------------------------------
@@ -102,9 +103,10 @@ struct Weight_
     ts::strong_typedef_op::equality_comparison<Weight_<Prec, UseFloat>>,
     ts::strong_typedef_op::output_operator<Weight_<Prec, UseFloat>>
 {
+  using base_type = ts::strong_typedef<Weight_<Prec, UseFloat>, weight_t<Prec, UseFloat>>;
   using ts::strong_typedef<Weight_<Prec, UseFloat>, weight_t<Prec, UseFloat>>::
       strong_typedef;
-  using value_type = ts::underlying_type<Weight_>;
+  using value_type = ts::underlying_type<base_type>;
 
   constexpr auto operator/(const Weight_ &w) const
   {
@@ -158,9 +160,10 @@ struct Count_ : ts::strong_typedef<Count_<Prec>, count_t<Prec>>,
                 ts::strong_typedef_op::relational_comparison<Count_<Prec>>,
                 ts::strong_typedef_op::output_operator<Count_<Prec>>
 {
+  using base_type = ts::strong_typedef<Count_<Prec>, count_t<Prec>>;
   using ts::strong_typedef<Count_<Prec>, count_t<Prec>>::strong_typedef;
 
-  using value_type = ts::underlying_type<Count_>;
+  using value_type = ts::underlying_type<base_type>;
   const auto &value() const { return get(*this); }
 
   Count_ &operator-=(const Count_ &c)
@@ -229,10 +232,11 @@ struct Capacity_
     ts::strong_typedef_op::decrement<Capacity_<Prec, UseFloat>>,
     ts::strong_typedef_op::output_operator<Capacity_<Prec, UseFloat>>
 {
+  using base_type = ts::strong_typedef<Capacity_<Prec, UseFloat>, count_t<Prec, UseFloat>>;
   using ts::strong_typedef<Capacity_<Prec, UseFloat>, count_t<Prec, UseFloat>>::
       strong_typedef;
 
-  using value_type = ts::underlying_type<Capacity_>;
+  using value_type = ts::underlying_type<base_type>;
   const auto &value() const { return get(*this); }
 
   explicit operator size_t() const { return static_cast<size_t>(get(*this)); }
@@ -329,9 +333,10 @@ struct Size_
     ts::strong_typedef_op::relational_comparison<Size_<Prec, UseFloat>>,
     ts::strong_typedef_op::output_operator<Size_<Prec, UseFloat>>
 {
+  using base_type = ts::strong_typedef<Size_<Prec, UseFloat>, count_t<Prec, UseFloat>>;
   using ts::strong_typedef<Size_<Prec, UseFloat>, count_t<Prec, UseFloat>>::
       strong_typedef;
-  using value_type = ts::underlying_type<Size_>;
+  using value_type = ts::underlying_type<base_type>;
   const auto &value() const { return get(*this); }
 
   template <typename SrcPrec, typename SrcUseFloat>
@@ -354,13 +359,13 @@ struct Size_
   // {
   // }
 
-  template <
-      typename Dummy = void,
-      typename = std::enable_if_t<std::is_same_v<Prec, mediump>, Dummy>>
-  operator Size_<highp, UseFloat>() const
-  {
-    return Size_<highp, UseFloat>{get(*this)};
-  }
+  // template <
+      // typename Dummy = void,
+      // typename = std::enable_if_t<std::is_same_v<Prec, mediump>, Dummy>>
+  // operator Size_<highp, UseFloat>() const
+  // {
+    // return Size_<highp, UseFloat>{get(*this)};
+  // }
 
   explicit constexpr operator Capacity_<Prec, UseFloat>() const &&
   {
@@ -456,9 +461,10 @@ struct Intensity_
     ts::strong_typedef_op::relational_comparison<Intensity_<Prec>>,
     ts::strong_typedef_op::output_operator<Intensity_<Prec>>
 {
+  using base_type = ts::strong_typedef<Intensity_<Prec>, intensity_t<Prec>>;
   using ts::strong_typedef<Intensity_<Prec>, intensity_t<Prec>>::strong_typedef;
 
-  using value_type = ts::underlying_type<Intensity_>;
+  using value_type = ts::underlying_type<base_type>;
   const auto &value() const { return get(*this); }
 
   constexpr auto operator/(const Intensity_ &intensity) const
@@ -517,9 +523,10 @@ struct Probability_
     ts::strong_typedef_op::equality_comparison<Probability_<Prec>>,
     ts::strong_typedef_op::output_operator<Probability_<Prec>>
 {
+  using base_type = ts::strong_typedef<Probability_<Prec>, probability_t<Prec>>;
   using ts::strong_typedef<Probability_<Prec>, probability_t<Prec>>::
       strong_typedef;
-  using value_type = ts::underlying_type<Probability_>;
+  using value_type = ts::underlying_type<base_type>;
   const auto &value() const { return get(*this); }
 
   constexpr Probability_ opposite()
@@ -638,8 +645,9 @@ struct Variance_ : ts::strong_typedef<Variance_<Prec>, stat_t<Prec>>,
                    ts::strong_typedef_op::addition<Variance_<Prec>>,
                    ts::strong_typedef_op::output_operator<Variance_<Prec>>
 {
+  using base_type = ts::strong_typedef<Variance_<Prec>, stat_t<Prec>>;
   using ts::strong_typedef<Variance_<Prec>, stat_t<Prec>>::strong_typedef;
-  using value_type = ts::underlying_type<Variance_>;
+  using value_type = ts::underlying_type<base_type>;
 
   template <typename Prec2>
   explicit Variance_(const Intensity_<Prec2> &intensity)
@@ -687,10 +695,11 @@ struct MeanIntensity_
     ts::strong_typedef_op::relational_comparison<MeanIntensity_<Prec>>,
     ts::strong_typedef_op::output_operator<MeanIntensity_<Prec>>
 {
+  using base_type = ts::strong_typedef<MeanIntensity_<Prec>, intensity_t<Prec>>;
   using ts::strong_typedef<MeanIntensity_<Prec>, intensity_t<Prec>>::
       strong_typedef;
 
-  using value_type = ts::underlying_type<MeanIntensity_>;
+  using value_type = ts::underlying_type<base_type>;
   const auto &value() const { return get(*this); }
 
   MeanIntensity_(const Intensity_<Prec> &intensity)

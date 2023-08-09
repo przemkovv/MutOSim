@@ -9,3 +9,4 @@ data/results/
 .ccls-cache
 .mypy_cache
 *.pyc
+.cache

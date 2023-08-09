@@ -98,7 +98,7 @@ double
 TrafficClassStats::loss_ratio() const
 {
   return Math::ratio_to_sum<double>(
-      get(lost_served_stats.lost.count),
+      static_cast<double>(get(lost_served_stats.lost.count)),
       get(lost_served_stats.served.count),
       get(lost_served_stats.forwarded.count));
 }
@@ -106,7 +106,7 @@ double
 TrafficClassStats::loss_ratio_u() const
 {
   return Math::ratio_to_sum<double>(
-      get(lost_served_stats.lost.size),
+      static_cast<double>(get(lost_served_stats.lost.size)),
       get(lost_served_stats.served.count),
       get(lost_served_stats.forwarded.count));
 }
@@ -114,7 +114,7 @@ double
 TrafficClassStats::forward_ratio() const
 {
   return Math::ratio_to_sum<double>(
-      get(lost_served_stats.forwarded.count),
+      static_cast<double>(get(lost_served_stats.forwarded.count)),
       get(lost_served_stats.served.count),
       get(lost_served_stats.lost.count));
 }
@@ -122,7 +122,7 @@ double
 TrafficClassStats::forward_ratio_u() const
 {
   return Math::ratio_to_sum<double>(
-      get(lost_served_stats.forwarded.size),
+      static_cast<double>(get(lost_served_stats.forwarded.size)),
       get(lost_served_stats.served.count),
       get(lost_served_stats.lost.count));
 }
