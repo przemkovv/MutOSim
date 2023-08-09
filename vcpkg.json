@@ -11,6 +11,8 @@
     "boost-multiprecision",
     "ms-gsl",
     "nlohmann-json",
-    "wg21-sg14"
+    "wg21-sg14",
+    "gmp",
+    "mpfr"
   ]
 }

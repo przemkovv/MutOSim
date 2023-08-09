@@ -21,6 +21,20 @@ target_link_libraries(${TARGET_NAME} PRIVATE nlohmann_json nlohmann_json::nlohma
 target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 # target_link_libraries(${TARGET_NAME} PRIVATE ${MPFR_LIBRARIES})
 # target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARY})
+#  gmp
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(gmp REQUIRED IMPORTED_TARGET gmp)
+target_link_libraries(${TARGET_NAME} PRIVATE PkgConfig::gmp)
+
+# gmpxx
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(gmpxx REQUIRED IMPORTED_TARGET gmpxx)
+target_link_libraries(${TARGET_NAME} PRIVATE PkgConfig::gmpxx)
+
+find_package(PkgConfig)
+pkg_check_modules(mpfr REQUIRED IMPORTED_TARGET mpfr)
+
+target_link_libraries(${TARGET_NAME} PRIVATE PkgConfig::mpfr)
 
 target_link_libraries(${TARGET_NAME_EXE} PRIVATE nlohmann_json nlohmann_json::nlohmann_json)
 target_link_libraries(${TARGET_NAME_EXE} PRIVATE ${TARGET_NAME})
